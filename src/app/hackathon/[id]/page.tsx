@@ -26,7 +26,7 @@ import { CompetitorPanel } from "@/components/competitor-panel";
 import { JudgePanel } from "@/components/judge-panel";
 import { PublicSubmissions } from "@/components/public-submissions";
 
-type Tab = "overview" | "submissions" | "manage" | "compete" | "judge";
+type Tab = "overview" | "submissions"| "compete" | "judge" | "manage";
 
 export default function HackathonDetailPage() {
   const params = useParams();
@@ -94,12 +94,6 @@ export default function HackathonDetailPage() {
       show: true,
     },
     {
-      id: "manage",
-      label: "Manage",
-      icon: <Settings className="h-4 w-4" />,
-      show: role === "organizer",
-    },
-    {
       id: "compete",
       label: "Compete",
       icon: <Code className="h-4 w-4" />,
@@ -111,6 +105,12 @@ export default function HackathonDetailPage() {
       icon: <Gavel className="h-4 w-4" />,
       show: role === "judge" || role === "organizer",
       badge: pendingSubmissionsCount,
+    },
+    {
+      id: "manage",
+      label: "Manage",
+      icon: <Settings className="h-4 w-4" />,
+      show: role === "organizer",
     },
   ];
 
