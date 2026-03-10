@@ -91,7 +91,7 @@ export default function HackathonDetailPage() {
       id: "judge",
       label: "Judge",
       icon: <Gavel className="h-4 w-4" />,
-      show: role === "judge",
+      show: role === "judge" || role === "organizer",
     },
   ];
 
@@ -221,7 +221,7 @@ export default function HackathonDetailPage() {
         <CompetitorPanel hackathonId={hackathonId} hackathon={hackathon} />
       )}
 
-      {activeTab === "judge" && role === "judge" && (
+      {activeTab === "judge" && (role === "judge" || role === "organizer") && (
         <JudgePanel hackathonId={hackathonId} />
       )}
     </div>

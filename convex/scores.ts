@@ -29,8 +29,8 @@ export const submit = mutation({
           .eq("userId", judgeId)
       )
       .first();
-    if (!membership || membership.role !== "judge") {
-      throw new Error("Only judges can score submissions");
+    if (!membership || (membership.role !== "judge" && membership.role !== "organizer")) {
+      throw new Error("Only judges and organizers can score submissions");
     }
 
     // Validate score against category max
