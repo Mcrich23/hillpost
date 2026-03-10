@@ -44,6 +44,7 @@ export function JoinHackathonDialog({
         joinCode: joinCode.trim(),
         userId: user.id,
         userName: user.fullName ?? user.username ?? "Unknown",
+        userImageUrl: user.imageUrl,
       });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting to hackathon.");

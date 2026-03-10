@@ -19,6 +19,7 @@ export const create = mutation({
     submissionFrequencyMinutes: v.optional(v.number()),
     userId: v.string(),
     userName: v.string(),
+    userImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     if (!args.userId) {
@@ -68,6 +69,7 @@ export const create = mutation({
       hackathonId,
       userId,
       userName: args.userName,
+      userImageUrl: args.userImageUrl,
       role: "organizer",
       status: "approved",
       joinedAt: now,
@@ -168,6 +170,7 @@ export const join = mutation({
     joinCode: v.string(),
     userId: v.string(),
     userName: v.string(),
+    userImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     if (!args.userId) {
@@ -211,6 +214,7 @@ export const join = mutation({
       hackathonId: hackathon._id,
       userId,
       userName: args.userName,
+      userImageUrl: args.userImageUrl,
       role,
       status,
       joinedAt: Date.now(),

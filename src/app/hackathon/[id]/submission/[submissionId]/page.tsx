@@ -132,11 +132,12 @@ export default function SubmissionDetailPage() {
                 className="flex items-center gap-3 rounded-lg border border-gray-800 bg-gray-800/50 p-3"
               >
                 <div className="h-10 w-10 overflow-hidden rounded-full bg-gray-700 flex-shrink-0">
-                  {/* Assuming member has some identifier, otherwise just display a placeholder */}
-                  <div className="h-full w-full flex items-center justify-center text-gray-400 bg-gray-800 border border-gray-600 font-medium">
-                    {/* Using an initial would be nice, but we just have userId. Let's show a generic icon. */}
-                    <Users className="h-5 w-5" />
-                  </div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={member.userImageUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${member.userName || "User"}`}
+                    alt={member.userName || "User"}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-300">
@@ -146,11 +147,6 @@ export default function SubmissionDetailPage() {
                 </div>
               </div>
             ))}
-          </div>
-          <div className="mt-4 flex rounded-md bg-blue-500/10 p-4">
-             <div className="flex-1 text-sm text-blue-400">
-                Note: Participant names aren't securely exposed to everyone by default. Team members shown based on role.
-             </div>
           </div>
         </div>
       )}

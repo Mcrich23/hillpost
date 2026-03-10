@@ -44,8 +44,20 @@ export default function HackathonDetailPage() {
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
   const leaveHackathon = useMutation(api.members.leaveHackathon);
+  const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
   const [isLeaving, setIsLeaving] = useState(false);
+
+  React.useEffect(() => {
+    if (user?.id && membership) {
+      // Sync profile picture
+      syncProfile({
+        hackathonId,
+        userId: user.id,
+        userImageUrl: user.imageUrl,
+      }).catch(console.error);
+    }
+  }, [user?.id, user?.imageUrl, membership, hackathonId, syncProfile]);
 
   const [activeTab, setActiveTab] = React.useState<Tab>("overview");
   const [copiedJoinLink, setCopiedJoinLink] = useState(false);

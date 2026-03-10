@@ -53,6 +53,7 @@ export function CreateHackathonDialog({
         submissionFrequencyMinutes: submissionFrequency,
         userId: user.id,
         userName: user.fullName ?? user.username ?? "Unknown",
+        userImageUrl: user.imageUrl,
       });
       toast.success("Hackathon created successfully!");
       resetForm();

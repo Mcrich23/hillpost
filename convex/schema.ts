@@ -22,6 +22,7 @@ export default defineSchema({
     hackathonId: v.id("hackathons"),
     userId: v.string(),
     userName: v.string(),
+    userImageUrl: v.optional(v.string()),
     role: v.union(
       v.literal("organizer"),
       v.literal("judge"),
