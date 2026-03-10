@@ -57,12 +57,7 @@ export function JoinHackathonDialog({
         toast.info("You're already a member — taking you there now.");
         setJoinCode("");
         onClose();
-        // Look up the hackathon to redirect
-        const lookupHackathon = async () => {
-          // Redirect via the join link page which will handle the lookup
-          router.push(`/join/${joinCode.trim()}`);
-        };
-        await lookupHackathon();
+        router.push(`/join/${joinCode.trim()}`);
       } else {
         toast.error(message);
       }

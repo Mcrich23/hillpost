@@ -103,7 +103,7 @@ export default function JoinByLinkPage() {
   };
 
   // Already a member — show a friendly message instead of the join form
-  if (membership) {
+  if (membership && hackathon) {
     const roleBadgeClass =
       membership.role === "organizer"
         ? "border-purple-500/30 bg-purple-600/20 text-purple-400"
