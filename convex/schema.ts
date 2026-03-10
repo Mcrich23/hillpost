@@ -1,0 +1,82 @@
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  hackathons: defineTable({
+    name: v.string(),
+    description: v.string(),
+    organizerId: v.string(),
+    startDate: v.number(),
+    endDate: v.number(),
+    submissionFrequencyMinutes: v.number(),
+    isActive: v.boolean(),
+    joinCode: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_joinCode", ["joinCode"])
+    .index("by_organizerId", ["organizerId"]),
+
+  hackathonMembers: defineTable({
+    hackathonId: v.id("hackathons"),
+    userId: v.string(),
+    userName: v.string(),
+    role: v.union(
+      v.literal("organizer"),
+      v.literal("judge"),
+      v.literal("competitor")
+    ),
+    teamId: v.optional(v.id("teams")),
+    joinedAt: v.number(),
+  })
+    .index("by_hackathonId", ["hackathonId"])
+    .index("by_userId", ["userId"])
+    .index("by_hackathonId_userId", ["hackathonId", "userId"])
+    .index("by_hackathonId_role", ["hackathonId", "role"])
+    .index("by_teamId", ["teamId"]),
+
+  teams: defineTable({
+    hackathonId: v.id("hackathons"),
+    name: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_hackathonId", ["hackathonId"]),
+
+  categories: defineTable({
+    hackathonId: v.id("hackathons"),
+    name: v.string(),
+    description: v.string(),
+    maxScore: v.number(),
+    order: v.number(),
+  })
+    .index("by_hackathonId", ["hackathonId"]),
+
+  submissions: defineTable({
+    hackathonId: v.id("hackathons"),
+    teamId: v.id("teams"),
+    name: v.string(),
+    description: v.string(),
+    projectUrl: v.string(),
+    demoUrl: v.optional(v.string()),
+    submittedAt: v.number(),
+    submittedBy: v.string(),
+  })
+    .index("by_hackathonId", ["hackathonId"])
+    .index("by_teamId", ["teamId"])
+    .index("by_hackathonId_teamId", ["hackathonId", "teamId"]),
+
+  scores: defineTable({
+    submissionId: v.id("submissions"),
+    categoryId: v.id("categories"),
+    judgeId: v.string(),
+    score: v.number(),
+    feedback: v.optional(v.string()),
+    scoredAt: v.number(),
+  })
+    .index("by_submissionId", ["submissionId"])
+    .index("by_submissionId_categoryId_judgeId", [
+      "submissionId",
+      "categoryId",
+      "judgeId",
+    ])
+    .index("by_judgeId", ["judgeId"]),
+});
