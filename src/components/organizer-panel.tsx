@@ -17,6 +17,7 @@ import {
   Shield,
   UserX,
   ChevronUp,
+  Link as LinkIcon,
 } from "lucide-react";
 
 interface OrganizerPanelProps {
@@ -54,6 +55,8 @@ function HackathonInfoSection({
   const { user } = useUser();
   const [copiedCompetitor, setCopiedCompetitor] = useState(false);
   const [copiedJudge, setCopiedJudge] = useState(false);
+  const [copiedCompetitorLink, setCopiedCompetitorLink] = useState(false);
+  const [copiedJudgeLink, setCopiedJudgeLink] = useState(false);
   
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(hackathon.name);
@@ -84,6 +87,22 @@ function HackathonInfoSection({
     setCopiedJudge(true);
     toast.success("Judge code copied!");
     setTimeout(() => setCopiedJudge(false), 2000);
+  };
+
+  const copyCompetitorLink = async () => {
+    const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
+    await navigator.clipboard.writeText(link);
+    setCopiedCompetitorLink(true);
+    toast.success("Competitor join link copied!");
+    setTimeout(() => setCopiedCompetitorLink(false), 2000);
+  };
+
+  const copyJudgeLink = async () => {
+    const link = `${window.location.origin}/join/${hackathon.judgeJoinCode}`;
+    await navigator.clipboard.writeText(link);
+    setCopiedJudgeLink(true);
+    toast.success("Judge join link copied!");
+    setTimeout(() => setCopiedJudgeLink(false), 2000);
   };
 
   const toggleActive = async () => {
@@ -334,11 +353,23 @@ function HackathonInfoSection({
               <button
                 onClick={copyCompetitorCode}
                 className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                title="Copy code"
               >
                 {copiedCompetitor ? (
                   <Check className="h-4 w-4 text-emerald-400" />
                 ) : (
                   <Copy className="h-4 w-4" />
+                )}
+              </button>
+              <button
+                onClick={copyCompetitorLink}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                title="Copy join link"
+              >
+                {copiedCompetitorLink ? (
+                  <Check className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <LinkIcon className="h-4 w-4" />
                 )}
               </button>
             </div>
@@ -354,11 +385,23 @@ function HackathonInfoSection({
               <button
                 onClick={copyJudgeCode}
                 className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                title="Copy code"
               >
                 {copiedJudge ? (
                   <Check className="h-4 w-4 text-emerald-400" />
                 ) : (
                   <Copy className="h-4 w-4" />
+                )}
+              </button>
+              <button
+                onClick={copyJudgeLink}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                title="Copy join link"
+              >
+                {copiedJudgeLink ? (
+                  <Check className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <LinkIcon className="h-4 w-4" />
                 )}
               </button>
             </div>
