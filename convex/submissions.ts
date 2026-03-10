@@ -201,3 +201,40 @@ export const getLatestForTeam = query({
       .first();
   },
 });
+
+export const updateSubmissionOrganizer = mutation({
+  args: {
+    submissionId: v.id("submissions"),
+    name: v.string(),
+    description: v.string(),
+    projectUrl: v.string(),
+    demoUrl: v.optional(v.string()),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const submission = await ctx.db.get(args.submissionId);
+    if (!submission) throw new Error("Submission not found");
+
+    const membership = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", submission.hackathonId).eq("userId", args.userId)
+      )
+      .first();
+
+    if (!membership || membership.role !== "organizer") {
+      throw new Error("Only organizers can edit any submission");
+    }
+
+    await ctx.db.patch(args.submissionId, {
+      name: args.name.trim(),
+      description: args.description.trim(),
+      projectUrl: args.projectUrl.trim(),
+      demoUrl: args.demoUrl?.trim(),
+    });
+  },
+});

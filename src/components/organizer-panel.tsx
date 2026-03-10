@@ -42,6 +42,7 @@ export function OrganizerPanel({
     <div className="space-y-6">
       <HackathonInfoSection hackathonId={hackathonId} hackathon={hackathon} />
       <CategoriesSection hackathonId={hackathonId} />
+      <TeamsAndProjectsSection hackathonId={hackathonId} />
       <MembersSection hackathonId={hackathonId} />
     </div>
   );
@@ -873,6 +874,109 @@ function MembersSection({
               </div>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TeamsAndProjectsSection({
+  hackathonId,
+}: {
+  hackathonId: Id<"hackathons">;
+}) {
+  const teams = useQuery(api.teams.list, { hackathonId });
+  const updateTeamName = useMutation(api.teams.updateTeamName);
+  const { user } = useUser();
+
+  const [editingTeamId, setEditingTeamId] = useState<Id<"teams"> | null>(null);
+  const [editTeamName, setEditTeamName] = useState("");
+
+  const startEditingTeam = (team: any) => {
+    setEditingTeamId(team._id);
+    setEditTeamName(team.name);
+  };
+
+  const handleSaveTeamName = async (teamId: Id<"teams">) => {
+    if (!user?.id || !editTeamName.trim()) return;
+    try {
+      await updateTeamName({ teamId, name: editTeamName, userId: user.id });
+      toast.success("Team name updated");
+      setEditingTeamId(null);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update team");
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+      <h3 className="mb-4 text-lg font-semibold text-white">Teams</h3>
+      {!teams ? (
+        <p className="text-sm text-gray-500">Loading...</p>
+      ) : teams.length === 0 ? (
+        <p className="text-sm text-gray-500">No teams have joined yet.</p>
+      ) : (
+        <div className="space-y-4">
+          {teams.map((team) => {
+            return (
+              <div
+                key={team._id}
+                className="rounded-lg border border-gray-700 bg-gray-800 p-4"
+              >
+                {/* Team Name Section */}
+                {editingTeamId === team._id ? (
+                  <div className="mb-3 flex items-center gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 rounded-lg border border-gray-600 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+                      value={editTeamName}
+                      onChange={(e) => setEditTeamName(e.target.value)}
+                      placeholder="Team Name"
+                    />
+                    <button
+                      onClick={() => handleSaveTeamName(team._id)}
+                      className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setEditingTeamId(null)}
+                      className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mb-3 flex items-center justify-between">
+                    <h4 className="text-base font-medium text-white">
+                      Team: {team.name}
+                    </h4>
+                    <button
+                      onClick={() => startEditingTeam(team)}
+                      className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Team Members List */}
+                <div className="flex flex-wrap gap-2">
+                  {team.members?.map((m: any) => (
+                    <span
+                      key={m._id}
+                      className="rounded-full bg-gray-700/50 px-2.5 py-0.5 text-xs text-gray-300"
+                    >
+                      {m.userName}
+                    </span>
+                  ))}
+                  {(!team.members || team.members.length === 0) && (
+                    <span className="text-xs text-gray-500">No members</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
