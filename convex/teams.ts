@@ -168,3 +168,39 @@ export const leaveTeam = mutation({
     await ctx.db.patch(membership._id, { teamId: undefined });
   },
 });
+
+export const updateTeamName = mutation({
+  args: {
+    teamId: v.id("teams"),
+    name: v.string(),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    const membership = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", team.hackathonId).eq("userId", args.userId)
+      )
+      .first();
+
+    if (!membership || membership.role !== "organizer") {
+      throw new Error("Only organizers can update team names");
+    }
+
+    if (!args.name.trim()) {
+      throw new Error("Team name cannot be empty");
+    }
+
+    await ctx.db.patch(args.teamId, { name: args.name.trim() });
+    return args.teamId;
+  },
+});

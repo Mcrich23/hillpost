@@ -342,7 +342,7 @@ export default function HackathonDetailPage() {
       )}
 
       {activeTab === "submissions" && (
-        <PublicSubmissions hackathonId={hackathonId} />
+        <PublicSubmissions hackathonId={hackathonId} role={role} />
       )}
 
       {activeTab === "manage" && role === "organizer" && (
