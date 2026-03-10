@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -424,8 +424,9 @@ function AllSubmissionsSection({
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const teams = useQuery(api.teams.list, { hackathonId });
 
-  const teamNameById = new Map(
-    (teams ?? []).map((team) => [team._id, team.name] as const)
+  const teamNameById = useMemo(
+    () => new Map((teams ?? []).map((team) => [team._id, team.name] as const)),
+    [teams]
   );
 
   return (
@@ -458,6 +459,7 @@ function AllSubmissionsSection({
                     href={sub.projectUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={`Open project URL for ${sub.name}`}
                     className="text-emerald-400 hover:text-emerald-300"
                   >
                     <ExternalLink className="h-4 w-4" />
@@ -467,6 +469,7 @@ function AllSubmissionsSection({
                       href={sub.demoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={`Open demo URL for ${sub.name}`}
                       className="text-emerald-400 hover:text-emerald-300"
                     >
                       <ExternalLink className="h-4 w-4" />
