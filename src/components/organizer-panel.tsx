@@ -40,6 +40,7 @@ export function OrganizerPanel({
   return (
     <div className="space-y-6">
       <HackathonInfoSection hackathonId={hackathonId} hackathon={hackathon} />
+      <PendingApprovalsSection hackathonId={hackathonId} />
       <CategoriesSection hackathonId={hackathonId} />
       <TeamsAndProjectsSection hackathonId={hackathonId} />
       <MembersSection hackathonId={hackathonId} />
@@ -667,6 +668,79 @@ function CategoriesSection({
   );
 }
 
+function PendingApprovalsSection({
+  hackathonId,
+}: {
+  hackathonId: Id<"hackathons">;
+}) {
+  const members = useQuery(api.members.listMembers, { hackathonId });
+  const updateStatus = useMutation(api.members.updateStatus);
+  const { user } = useUser();
+
+  const handleStatusChange = async (
+    memberId: Id<"hackathonMembers">,
+    newStatus: "approved" | "rejected"
+  ) => {
+    if (!user?.id) return;
+    try {
+      await updateStatus({ memberId, status: newStatus, userId: user.id });
+      toast.success(`Judge ${newStatus}`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update status"
+      );
+    }
+  };
+
+  const pendingMembers = members?.filter((m) => m.status === "pending") ?? [];
+
+  if (!members || pendingMembers.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+          Pending Approvals
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            {pendingMembers.length}
+          </span>
+        </h3>
+      </div>
+      <div className="space-y-2">
+        {pendingMembers.map((member) => (
+          <div
+            key={member._id}
+            className="flex items-center justify-between rounded-lg border border-yellow-500/20 bg-gray-900 px-4 py-3"
+          >
+            <div className="flex items-center gap-3">
+              <span className="font-medium text-white">{member.userName}</span>
+              <span className="rounded-full border border-blue-500/30 bg-blue-600/20 px-2 py-0.5 text-xs font-medium text-blue-400">
+                {member.role}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleStatusChange(member._id, "approved")}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => handleStatusChange(member._id, "rejected")}
+                className="rounded-lg bg-red-600/20 px-3 py-1.5 text-sm font-medium text-red-400 hover:bg-red-600/30"
+              >
+                Reject
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function MembersSection({
   hackathonId,
 }: {
@@ -745,92 +819,75 @@ function MembersSection({
         <p className="text-sm text-gray-500">No members yet.</p>
       ) : (
         <div className="space-y-2">
-          {members.map((member) => (
-            <div
-              key={member._id}
-              className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-800 px-3 py-2"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-white">{member.userName}</span>
-                <span
-                  className={cn(
-                    "rounded-full border px-2 py-0.5 text-xs font-medium",
-                    roleBadgeClass(member.role)
+          {members.map((member) => {
+            if (member.status === "pending") return null;
+            return (
+              <div
+                key={member._id}
+                className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-800 px-3 py-2"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-white">{member.userName}</span>
+                  <span
+                    className={cn(
+                      "rounded-full border px-2 py-0.5 text-xs font-medium",
+                      roleBadgeClass(member.role)
+                    )}
+                  >
+                    {member.role}
+                  </span>
+                  {member.status === "rejected" && (
+                    <span className="rounded-full border border-red-500/30 bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-500">
+                      rejected
+                    </span>
                   )}
-                >
-                  {member.role}
-                </span>
-                {member.status === "pending" && (
-                  <span className="rounded-full border border-yellow-500/30 bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-500">
-                    pending approval
-                  </span>
-                )}
-                {member.status === "rejected" && (
-                  <span className="rounded-full border border-red-500/30 bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-500">
-                    rejected
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                {member.status === "pending" ? (
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => handleStatusChange(member._id, "approved")}
-                      className="rounded bg-emerald-600/20 px-2 py-1 text-xs text-emerald-400 hover:bg-emerald-600/40"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleStatusChange(member._id, "rejected")}
-                      className="rounded bg-red-600/20 px-2 py-1 text-xs text-red-400 hover:bg-red-600/40"
-                    >
-                      Reject
-                    </button>
-                  </div>
-                ) : changingRole === member._id ? (
-                  <div className="flex gap-1">
-                    {(["organizer", "judge", "competitor"] as const).map((r) => (
+                </div>
+                <div className="flex items-center gap-1">
+                  {changingRole === member._id ? (
+                    <div className="flex gap-1">
+                      {(["organizer", "judge", "competitor"] as const).map((r) => (
+                        <button
+                          key={r}
+                          onClick={() => handleRoleChange(member._id, r)}
+                          className={cn(
+                            "rounded px-2 py-1 text-xs",
+                            member.role === r
+                              ? "bg-emerald-600 text-white"
+                              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                          )}
+                        >
+                          {r}
+                        </button>
+                      ))}
                       <button
-                        key={r}
-                        onClick={() => handleRoleChange(member._id, r)}
-                        className={cn(
-                          "rounded px-2 py-1 text-xs",
-                          member.role === r
-                            ? "bg-emerald-600 text-white"
-                            : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                        )}
+                        onClick={() => setChangingRole(null)}
+                        className="ml-1 rounded px-2 py-1 text-xs text-gray-400 hover:text-white"
                       >
-                        {r}
+                        ✕
                       </button>
-                    ))}
-                    <button
-                      onClick={() => setChangingRole(null)}
-                      className="ml-1 rounded px-2 py-1 text-xs text-gray-400 hover:text-white"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => setChangingRole(member._id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
-                      title="Change role"
-                    >
-                      <Shield className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleRemove(member._id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-red-400"
-                      title="Remove member"
-                    >
-                      <UserX className="h-4 w-4" />
-                    </button>
-                  </>
-                )}
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setChangingRole(member._id)}
+                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
+                        title="Change role"
+                      >
+                        <Shield className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRemove(member._id)}
+                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-red-400"
+                        title="Remove member"
+                      >
+                        <UserX className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

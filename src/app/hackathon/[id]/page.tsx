@@ -59,6 +59,12 @@ export default function HackathonDetailPage() {
     }).length;
   }, [role, membership?.status, submissions, user?.id]);
 
+  // Calculate pending members for the manage badge
+  const pendingApprovalsCount = React.useMemo(() => {
+    if (role !== "organizer" || !allMembers) return 0;
+    return allMembers.filter((m) => m.status === "pending").length;
+  }, [role, allMembers]);
+
   if (hackathon === undefined || membership === undefined) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
@@ -130,6 +136,7 @@ export default function HackathonDetailPage() {
       label: "Manage",
       icon: <Settings className="h-4 w-4" />,
       show: role === "organizer",
+      badge: pendingApprovalsCount,
     },
   ];
 
@@ -294,44 +301,58 @@ export default function HackathonDetailPage() {
               </div>
             </Link>
 
-            {role === "judge" && membership?.status === "approved" ? (
-              <div className="flex flex-col justify-center rounded-xl border border-gray-800 bg-gray-900 p-6">
-                <h3 className="mb-4 text-sm font-medium text-gray-300">
-                  Judging Status
-                </h3>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600/20 text-emerald-400">
+            {role === "judge" ? (
+              membership?.status === "approved" ? (
+                <div className="flex flex-col justify-center rounded-xl border border-gray-800 bg-gray-900 p-6">
+                  <h3 className="mb-4 text-sm font-medium text-gray-300">
+                    Judging Status
+                  </h3>
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600/20 text-emerald-400">
+                      <Gavel className="h-6 w-6" />
+                    </div>
+                    <div>
+                      {pendingSubmissionsCount > 0 ? (
+                        <>
+                          <p className="text-xl font-bold text-white">
+                            {pendingSubmissionsCount} Project{pendingSubmissionsCount === 1 ? "" : "s"}
+                          </p>
+                          <p className="text-sm text-gray-400">
+                            Waiting to be scored
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xl font-bold text-white">All Caught Up</p>
+                          <p className="text-sm text-gray-400">
+                            Check back later for more
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {pendingSubmissionsCount > 0 && (
+                    <button
+                      onClick={() => setActiveTab("judge")}
+                      className="mt-6 w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+                    >
+                      Start Judging
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-6 text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500">
                     <Gavel className="h-6 w-6" />
                   </div>
-                  <div>
-                    {pendingSubmissionsCount > 0 ? (
-                      <>
-                        <p className="text-xl font-bold text-white">
-                          {pendingSubmissionsCount} Project{pendingSubmissionsCount === 1 ? "" : "s"}
-                        </p>
-                        <p className="text-sm text-gray-400">
-                          Waiting to be scored
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-xl font-bold text-white">All Caught Up</p>
-                        <p className="text-sm text-gray-400">
-                          Check back later for more
-                        </p>
-                      </>
-                    )}
-                  </div>
+                  <h3 className="mb-2 text-lg font-bold text-white">
+                    Approval Pending
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    Your request to judge is waiting for organizer approval.
+                  </p>
                 </div>
-                {pendingSubmissionsCount > 0 && (
-                  <button
-                    onClick={() => setActiveTab("judge")}
-                    className="mt-6 w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
-                  >
-                    Start Judging
-                  </button>
-                )}
-              </div>
+              )
             ) : (role === "organizer" || role === "competitor") ? (
               <div className="flex flex-col justify-center rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <h3 className="mb-2 text-sm font-medium text-gray-300">
