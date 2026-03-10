@@ -7,6 +7,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import {
   Copy,
   Check,
@@ -21,6 +22,8 @@ import {
 interface OrganizerPanelProps {
   hackathonId: Id<"hackathons">;
   hackathon: {
+    name: string;
+    description: string;
     competitorJoinCode: string;
     judgeJoinCode: string;
     startDate: number;
@@ -51,6 +54,21 @@ function HackathonInfoSection({
   const { user } = useUser();
   const [copiedCompetitor, setCopiedCompetitor] = useState(false);
   const [copiedJudge, setCopiedJudge] = useState(false);
+  
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState(hackathon.name);
+  
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [newDesc, setNewDesc] = useState(hackathon.description);
+  
+  const [isEditingDates, setIsEditingDates] = useState(false);
+  const [newStartDate, setNewStartDate] = useState(
+    format(new Date(hackathon.startDate), "yyyy-MM-dd")
+  );
+  const [newEndDate, setNewEndDate] = useState(
+    format(new Date(hackathon.endDate), "yyyy-MM-dd")
+  );
+
   const [isEditingCooldown, setIsEditingCooldown] = useState(false);
   const [newCooldown, setNewCooldown] = useState(hackathon.submissionFrequencyMinutes);
 
@@ -103,13 +121,208 @@ function HackathonInfoSection({
     }
   };
 
+  const saveName = async () => {
+    if (!user?.id || !newName.trim()) return;
+    try {
+      await updateHackathon({
+        hackathonId,
+        name: newName.trim(),
+        userId: user.id,
+      });
+      toast.success("Name updated");
+      setIsEditingName(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update name"
+      );
+    }
+  };
+
+  const saveDesc = async () => {
+    if (!user?.id || !newDesc.trim()) return;
+    try {
+      await updateHackathon({
+        hackathonId,
+        description: newDesc.trim(),
+        userId: user.id,
+      });
+      toast.success("Description updated");
+      setIsEditingDesc(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update description"
+      );
+    }
+  };
+
+  const saveDates = async () => {
+    if (!user?.id || !newStartDate || !newEndDate) return;
+    const start = new Date(newStartDate).getTime();
+    const end = new Date(newEndDate).getTime();
+    
+    if (end <= start) {
+      toast.error("End date must be after start date");
+      return;
+    }
+
+    try {
+      await updateHackathon({
+        hackathonId,
+        startDate: start,
+        endDate: end,
+        userId: user.id,
+      });
+      toast.success("Dates updated");
+      setIsEditingDates(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update dates"
+      );
+    }
+  };
+
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
       <h3 className="mb-4 text-lg font-semibold text-white">
         Hackathon Info
       </h3>
-      <div className="space-y-4">
-        <div className="flex flex-col gap-4 sm:flex-row">
+      <div className="space-y-6">
+        
+        {/* Name Edit */}
+        <div>
+          <label className="text-sm font-medium text-gray-300">Name</label>
+          {isEditingName ? (
+            <div className="mt-1 flex items-center gap-2">
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+              />
+              <button
+                onClick={saveName}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setIsEditingName(false)}
+                className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="mt-1 flex items-center gap-3">
+              <span className="text-base text-white">{hackathon.name}</span>
+              <button
+                onClick={() => setIsEditingName(true)}
+                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Description Edit */}
+        <div>
+          <label className="text-sm font-medium text-gray-300">Description</label>
+          {isEditingDesc ? (
+            <div className="mt-1 flex items-end gap-2">
+              <textarea
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                rows={2}
+                className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+              />
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={saveDesc}
+                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setIsEditingDesc(false)}
+                  className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-1 flex items-start gap-3">
+              <span className="text-sm text-gray-400 flex-1">{hackathon.description}</span>
+              <button
+                onClick={() => setIsEditingDesc(true)}
+                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Dates Edit */}
+        <div className="border-t border-gray-800 pt-4">
+          <label className="text-sm font-medium text-gray-300">Hackathon Dates</label>
+          {isEditingDates ? (
+            <div className="mt-2 flex flex-wrap items-end gap-3">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-500">Start Date</label>
+                <input
+                  type="date"
+                  value={newStartDate}
+                  onChange={(e) => setNewStartDate(e.target.value)}
+                  className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none block w-full"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-gray-500">End Date</label>
+                <input
+                  type="date"
+                  value={newEndDate}
+                  onChange={(e) => setNewEndDate(e.target.value)}
+                  className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none block w-full"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={saveDates}
+                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setIsEditingDates(false)}
+                  className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-1 flex items-center gap-3">
+              <span className="text-sm text-white">
+                {format(new Date(hackathon.startDate), "MMM d, yyyy")} –{" "}
+                {format(new Date(hackathon.endDate), "MMM d, yyyy")}
+              </span>
+              <button
+                onClick={() => {
+                  setNewStartDate(format(new Date(hackathon.startDate), "yyyy-MM-dd"));
+                  setNewEndDate(format(new Date(hackathon.endDate), "yyyy-MM-dd"));
+                  setIsEditingDates(true);
+                }}
+                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-4 sm:flex-row border-t border-gray-800 pt-4">
           <div className="flex-1">
             <label className="text-sm font-medium text-gray-300">
               Competitor Join Code
