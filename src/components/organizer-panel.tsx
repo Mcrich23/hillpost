@@ -134,7 +134,6 @@ function HackathonInfoSection({
       await updateHackathon({
         hackathonId,
         isActive: !hackathon.isActive,
-        userId: user.id,
       });
       toast.success(
         hackathon.isActive ? "Hackathon deactivated" : "Hackathon activated"
@@ -152,7 +151,6 @@ function HackathonInfoSection({
       await updateHackathon({
         hackathonId,
         submissionFrequencyMinutes: newCooldown,
-        userId: user.id,
       });
       toast.success("Cooldown updated");
       setIsEditingCooldown(false);
@@ -169,7 +167,6 @@ function HackathonInfoSection({
       await updateHackathon({
         hackathonId,
         name: newName.trim(),
-        userId: user.id,
       });
       toast.success("Name updated");
       setIsEditingName(false);
@@ -186,7 +183,6 @@ function HackathonInfoSection({
       await updateHackathon({
         hackathonId,
         description: newDesc.trim(),
-        userId: user.id,
       });
       toast.success("Description updated");
       setIsEditingDesc(false);
@@ -212,7 +208,6 @@ function HackathonInfoSection({
         hackathonId,
         startDate: start,
         endDate: end,
-        userId: user.id,
       });
       toast.success("Dates updated");
       setIsEditingDates(false);
@@ -543,7 +538,6 @@ function CategoriesSection({
         name: newName,
         description: newDescription,
         maxScore: newMaxScore,
-        userId: user.id,
       });
       toast.success("Category added");
       setNewName("");
@@ -565,7 +559,6 @@ function CategoriesSection({
         name: editName,
         description: editDescription,
         maxScore: editMaxScore,
-        userId: user.id,
       });
       toast.success("Category updated");
       setEditingId(null);
@@ -579,7 +572,7 @@ function CategoriesSection({
   const handleRemove = async (categoryId: Id<"categories">) => {
     if (!user?.id) return;
     try {
-      await removeCategory({ categoryId, userId: user.id });
+      await removeCategory({ categoryId });
       toast.success("Category removed");
     } catch (error) {
       toast.error(
@@ -759,7 +752,7 @@ function PendingApprovalsSection({
   ) => {
     if (!user?.id) return;
     try {
-      await updateStatus({ memberId, status: newStatus, userId: user.id });
+      await updateStatus({ memberId, status: newStatus });
       toast.success(`Judge ${newStatus}`);
     } catch (error) {
       toast.error(
@@ -836,7 +829,7 @@ function MembersSection({
   ) => {
     if (!user?.id) return;
     try {
-      await updateRole({ memberId, role: newRole, userId: user.id });
+      await updateRole({ memberId, role: newRole });
       toast.success("Role updated");
       setChangingRole(null);
     } catch (error) {
@@ -852,7 +845,7 @@ function MembersSection({
   ) => {
     if (!user?.id) return;
     try {
-      await updateStatus({ memberId, status: newStatus, userId: user.id });
+      await updateStatus({ memberId, status: newStatus });
       toast.success(`Judge ${newStatus}`);
     } catch (error) {
       toast.error(
@@ -864,7 +857,7 @@ function MembersSection({
   const handleRemove = async (memberId: Id<"hackathonMembers">) => {
     if (!user?.id) return;
     try {
-      await removeMember({ memberId, userId: user.id });
+      await removeMember({ memberId });
       toast.success("Member removed");
     } catch (error) {
       toast.error(
@@ -990,7 +983,7 @@ function TeamsAndProjectsSection({
   const handleSaveTeamName = async (teamId: Id<"teams">) => {
     if (!user?.id || !editTeamName.trim()) return;
     try {
-      await updateTeamName({ teamId, name: editTeamName, userId: user.id });
+      await updateTeamName({ teamId, name: editTeamName });
       toast.success("Team name updated");
       setEditingTeamId(null);
     } catch (error) {

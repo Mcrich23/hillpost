@@ -20,7 +20,7 @@ import { JoinHackathonDialog } from "@/components/join-hackathon-dialog";
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isLoaded } = useUser();
-  const hackathons = useQuery(api.hackathons.listMine, { userId: user?.id });
+  const hackathons = useQuery(api.hackathons.listMine);
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);

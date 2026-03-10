@@ -38,7 +38,7 @@ export default function HackathonDetailPage() {
   const { user } = useUser();
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
-  const membership = useQuery(api.members.getMyMembership, { hackathonId, userId: user?.id });
+  const membership = useQuery(api.members.getMyMembership, { hackathonId });
   
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
@@ -53,9 +53,9 @@ export default function HackathonDetailPage() {
   const role = membership?.role;
 
   const copyCompetitorJoinLink = async () => {
-    if (!hackathon) return;
+    if (!hackathon || !("competitorJoinCode" in hackathon)) return;
     try {
-      const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
+      const link = `${window.location.origin}/join/${(hackathon as any).competitorJoinCode}`;
       await navigator.clipboard.writeText(link);
       setCopiedJoinLink(true);
       toast.success("Join link copied!");
@@ -98,7 +98,7 @@ export default function HackathonDetailPage() {
     if (confirm("Are you sure you want to leave this hackathon?")) {
       setIsLeaving(true);
       try {
-        await leaveHackathon({ hackathonId, userId: user.id });
+        await leaveHackathon({ hackathonId });
         router.push("/dashboard");
       } catch (error) {
         console.error("Failed to leave hackathon:", error);
@@ -372,14 +372,14 @@ export default function HackathonDetailPage() {
                   </p>
                 </div>
               )
-            ) : (role === "organizer" || role === "competitor") ? (
+            ) : role === "organizer" && "competitorJoinCode" in hackathon ? (
               <div className="flex flex-col justify-center rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <h3 className="mb-2 text-sm font-medium text-gray-300">
                   Competitor Join Code
                 </h3>
                 <div className="flex items-center gap-3">
                   <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-xl tracking-widest text-emerald-400">
-                    {hackathon.competitorJoinCode}
+                    {(hackathon as any).competitorJoinCode}
                   </code>
                   <button
                     onClick={copyCompetitorJoinLink}
@@ -394,7 +394,7 @@ export default function HackathonDetailPage() {
                     )}
                   </button>
                   <QrCodeButton
-                    path={`/join/${hackathon.competitorJoinCode}`}
+                    path={`/join/${(hackathon as any).competitorJoinCode}`}
                     label="Competitor Join QR"
                   />
                 </div>

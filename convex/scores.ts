@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { getAuthUserId, requireAuthUserId } from "./auth";
 
 export const submit = mutation({
   args: {
@@ -7,20 +8,16 @@ export const submit = mutation({
     categoryId: v.id("categories"),
     score: v.number(),
     feedback: v.optional(v.string()),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
-    const judgeId = args.userId;
+    const judgeId = await requireAuthUserId(ctx);
 
     const submission = await ctx.db.get(args.submissionId);
     if (!submission) {
       throw new Error("Submission not found");
     }
 
-    // Verify user is a judge in this hackathon
+    // Verify user is an approved judge or organizer in this hackathon
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
@@ -46,6 +43,11 @@ export const submit = mutation({
       throw new Error(
         `Score must be between 0 and ${category.maxScore}`
       );
+    }
+
+    // Verify the category belongs to the same hackathon as the submission
+    if (category.hackathonId !== submission.hackathonId) {
+      throw new Error("Category does not belong to this hackathon");
     }
 
     // Upsert: check if this judge already scored this submission+category
@@ -110,10 +112,10 @@ export const getForSubmission = query({
 export const getMyScoresForSubmission = query({
   args: {
     submissionId: v.id("submissions"),
-    userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       return [];
     }
 
@@ -124,6 +126,6 @@ export const getMyScoresForSubmission = query({
       )
       .collect();
 
-    return allScores.filter((s) => s.judgeId === args.userId);
+    return allScores.filter((s) => s.judgeId === userId);
   },
 });

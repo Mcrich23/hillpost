@@ -1,20 +1,21 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { getAuthUserId, requireAuthUserId } from "./auth";
 
 export const getMyMembership = query({
   args: {
     hackathonId: v.id("hackathons"),
-    userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       return null;
     }
 
     return await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId!)
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
       )
       .first();
   },
@@ -40,12 +41,9 @@ export const updateRole = mutation({
       v.literal("judge"),
       v.literal("competitor")
     ),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const member = await ctx.db.get(args.memberId);
     if (!member) {
@@ -58,7 +56,7 @@ export const updateRole = mutation({
       .withIndex("by_hackathonId_userId", (q) =>
         q
           .eq("hackathonId", member.hackathonId)
-          .eq("userId", args.userId)
+          .eq("userId", userId)
       )
       .first();
     if (!callerMembership || callerMembership.role !== "organizer") {
@@ -74,12 +72,9 @@ export const updateStatus = mutation({
   args: {
     memberId: v.id("hackathonMembers"),
     status: v.union(v.literal("approved"), v.literal("rejected")),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const member = await ctx.db.get(args.memberId);
     if (!member) {
@@ -90,7 +85,7 @@ export const updateStatus = mutation({
     const callerMembership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", member.hackathonId).eq("userId", args.userId)
+        q.eq("hackathonId", member.hackathonId).eq("userId", userId)
       )
       .first();
     if (!callerMembership || callerMembership.role !== "organizer") {
@@ -105,12 +100,9 @@ export const updateStatus = mutation({
 export const removeMember = mutation({
   args: {
     memberId: v.id("hackathonMembers"),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const member = await ctx.db.get(args.memberId);
     if (!member) {
@@ -123,7 +115,7 @@ export const removeMember = mutation({
       .withIndex("by_hackathonId_userId", (q) =>
         q
           .eq("hackathonId", member.hackathonId)
-          .eq("userId", args.userId)
+          .eq("userId", userId)
       )
       .first();
     if (!callerMembership || callerMembership.role !== "organizer") {
@@ -131,7 +123,7 @@ export const removeMember = mutation({
     }
 
     // Prevent removing yourself
-    if (member.userId === args.userId) {
+    if (member.userId === userId) {
       throw new Error("You cannot remove yourself");
     }
 
@@ -142,12 +134,9 @@ export const removeMember = mutation({
 export const leaveHackathon = mutation({
   args: {
     hackathonId: v.id("hackathons"),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const hackathon = await ctx.db.get(args.hackathonId);
     if (!hackathon) {
@@ -155,7 +144,7 @@ export const leaveHackathon = mutation({
     }
 
     // The original creator cannot leave their own hackathon
-    if (hackathon.organizerId === args.userId) {
+    if (hackathon.organizerId === userId) {
       throw new Error("The creator cannot leave their own hackathon");
     }
 
@@ -163,7 +152,7 @@ export const leaveHackathon = mutation({
     const member = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId)
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
       )
       .first();
 

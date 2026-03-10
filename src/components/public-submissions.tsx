@@ -34,7 +34,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
   };
 
   const handleSave = async (submissionId: Id<"submissions">) => {
-    if (!user?.id || !editName.trim() || !editDesc.trim() || !editProjUrl.trim()) return;
+    if (!editName.trim() || !editDesc.trim() || !editProjUrl.trim()) return;
     try {
       await updateSubmissionOrganizer({
         submissionId,
@@ -42,7 +42,6 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
         description: editDesc,
         projectUrl: editProjUrl,
         demoUrl: editDemoUrl || undefined,
-        userId: user.id,
       });
       toast.success("Submission updated");
       setEditingId(null);

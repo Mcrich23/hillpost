@@ -42,8 +42,6 @@ export function JoinHackathonDialog({
     try {
       const result = await joinHackathon({
         joinCode: joinCode.trim(),
-        userId: user.id,
-        userName: user.fullName ?? user.username ?? "Unknown",
       });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting to hackathon.");

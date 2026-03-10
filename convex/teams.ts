@@ -1,19 +1,16 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { getAuthUserId, requireAuthUserId } from "./auth";
 
 export const create = mutation({
   args: {
     hackathonId: v.id("hackathons"),
     name: v.string(),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
-    const userId = args.userId;
+    const userId = await requireAuthUserId(ctx);
 
-    // Verify user is a member of this hackathon
+    // Verify user is a competitor or organizer in this hackathon
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
@@ -23,6 +20,9 @@ export const create = mutation({
     if (!membership) {
       throw new Error("You must be a member of this hackathon");
     }
+    if (membership.role !== "competitor" && membership.role !== "organizer") {
+      throw new Error("Only competitors and organizers can create teams");
+    }
 
     const teamId = await ctx.db.insert("teams", {
       hackathonId: args.hackathonId,
@@ -30,8 +30,10 @@ export const create = mutation({
       createdAt: Date.now(),
     });
 
-    // Automatically assign the creator to this team
-    await ctx.db.patch(membership._id, { teamId });
+    // Automatically assign the creator to this team (only for competitors)
+    if (membership.role === "competitor") {
+      await ctx.db.patch(membership._id, { teamId });
+    }
 
     return teamId;
   },
@@ -78,17 +80,17 @@ export const get = query({
 export const getMyTeam = query({
   args: {
     hackathonId: v.id("hackathons"),
-    userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       return null;
     }
 
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId!)
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
       )
       .first();
 
@@ -111,12 +113,9 @@ export const getMyTeam = query({
 export const joinTeam = mutation({
   args: {
     teamId: v.id("teams"),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const team = await ctx.db.get(args.teamId);
     if (!team) {
@@ -126,11 +125,16 @@ export const joinTeam = mutation({
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", team.hackathonId).eq("userId", args.userId)
+        q.eq("hackathonId", team.hackathonId).eq("userId", userId)
       )
       .first();
     if (!membership) {
       throw new Error("You must be a member of this hackathon");
+    }
+
+    // Only competitors can join teams
+    if (membership.role !== "competitor") {
+      throw new Error("Only competitors can join teams");
     }
 
     if (membership.teamId) {
@@ -145,17 +149,14 @@ export const joinTeam = mutation({
 export const leaveTeam = mutation({
   args: {
     hackathonId: v.id("hackathons"),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId)
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
       )
       .first();
     if (!membership) {
@@ -173,12 +174,9 @@ export const updateTeamName = mutation({
   args: {
     teamId: v.id("teams"),
     name: v.string(),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const team = await ctx.db.get(args.teamId);
     if (!team) {
@@ -188,7 +186,7 @@ export const updateTeamName = mutation({
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", team.hackathonId).eq("userId", args.userId)
+        q.eq("hackathonId", team.hackathonId).eq("userId", userId)
       )
       .first();
 

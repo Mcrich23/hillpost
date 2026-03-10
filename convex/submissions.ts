@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAuthUserId } from "./auth";
 
 export const create = mutation({
   args: {
@@ -9,13 +10,9 @@ export const create = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
-    const userId = args.userId;
+    const userId = await requireAuthUserId(ctx);
 
     // Verify user is a competitor member on this team
     const membership = await ctx.db
@@ -113,12 +110,9 @@ export const updateDetails = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const submission = await ctx.db.get(args.submissionId);
     if (!submission) throw new Error("Submission not found");
@@ -126,7 +120,7 @@ export const updateDetails = mutation({
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", submission.hackathonId).eq("userId", args.userId)
+        q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
       )
       .first();
 
@@ -209,12 +203,9 @@ export const updateSubmissionOrganizer = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const submission = await ctx.db.get(args.submissionId);
     if (!submission) throw new Error("Submission not found");
@@ -222,7 +213,7 @@ export const updateSubmissionOrganizer = mutation({
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", submission.hackathonId).eq("userId", args.userId)
+        q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
       )
       .first();
 

@@ -41,7 +41,7 @@ function TeamSection({
   hackathonId: Id<"hackathons">;
 }) {
   const { user } = useUser();
-  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId, userId: user?.id });
+  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId });
   const teams = useQuery(api.teams.list, { hackathonId });
   const createTeam = useMutation(api.teams.create);
   const joinTeam = useMutation(api.teams.joinTeam);
@@ -54,7 +54,7 @@ function TeamSection({
     e.preventDefault();
     if (!teamName.trim() || !user?.id) return;
     try {
-      await createTeam({ hackathonId, name: teamName.trim(), userId: user.id });
+      await createTeam({ hackathonId, name: teamName.trim() });
       toast.success("Team created!");
       setTeamName("");
       setShowCreateForm(false);
@@ -68,7 +68,7 @@ function TeamSection({
   const handleJoinTeam = async (teamId: Id<"teams">) => {
     if (!user?.id) return;
     try {
-      await joinTeam({ teamId, userId: user.id });
+      await joinTeam({ teamId });
       toast.success("Joined team!");
     } catch (error) {
       toast.error(
@@ -80,7 +80,7 @@ function TeamSection({
   const handleLeaveTeam = async () => {
     if (!user?.id) return;
     try {
-      await leaveTeam({ hackathonId, userId: user.id });
+      await leaveTeam({ hackathonId });
       toast.success("Left team");
     } catch (error) {
       toast.error(
@@ -205,7 +205,7 @@ function SubmitSection({
   hackathon,
 }: CompetitorPanelProps) {
   const { user } = useUser();
-  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId, userId: user?.id });
+  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId });
   const latestSubmission = useQuery(
     api.submissions.getLatestForTeam,
     myTeam ? { hackathonId, teamId: myTeam._id } : "skip"
@@ -259,7 +259,6 @@ function SubmitSection({
         description,
         projectUrl,
         demoUrl: demoUrl || undefined,
-        userId: user.id,
       });
       toast.success(latestSubmission ? "Project resubmitted!" : "Submission created!");
       // Don't clear fields on resubmit since they'll just look at them
@@ -290,7 +289,6 @@ function SubmitSection({
         description,
         projectUrl,
         demoUrl: demoUrl || undefined,
-        userId: user.id,
       });
       toast.success("Project details saved!");
     } catch (error) {

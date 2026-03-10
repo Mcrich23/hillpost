@@ -29,8 +29,8 @@ export default function JoinByLinkPage() {
   const hackathon = useQuery(api.hackathons.getByJoinCode, { joinCode });
   const membership = useQuery(
     api.members.getMyMembership,
-    hackathon?._id && user?.id
-      ? { hackathonId: hackathon._id, userId: user.id }
+    hackathon?._id
+      ? { hackathonId: hackathon._id }
       : "skip"
   );
   const joinHackathon = useMutation(api.hackathons.join);
@@ -41,9 +41,9 @@ export default function JoinByLinkPage() {
   const isMembershipLoading =
     hackathon !== undefined && hackathon !== null && user?.id && membership === undefined;
 
-  // Determine role based on which code matches
-  const isCompetitorCode = hackathon?.competitorJoinCode === joinCode;
-  const role = isCompetitorCode ? "competitor" : "judge";
+  // The join code type is determined by the backend via roleForCode
+  const isCompetitorCode = hackathon?.roleForCode === "competitor";
+  const role = hackathon?.roleForCode ?? "competitor";
 
   if (hackathon === undefined) {
     return (
@@ -87,8 +87,6 @@ export default function JoinByLinkPage() {
     try {
       const result = await joinHackathon({
         joinCode,
-        userId: user.id,
-        userName: user.fullName ?? user.username ?? "Unknown",
       });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting...");

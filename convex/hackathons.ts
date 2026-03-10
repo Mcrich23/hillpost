@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { getAuthUserId, requireAuthUserId, getAuthUserName } from "./auth";
 
 function generateJoinCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -17,14 +18,10 @@ export const create = mutation({
     startDate: v.number(),
     endDate: v.number(),
     submissionFrequencyMinutes: v.optional(v.number()),
-    userId: v.string(),
-    userName: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
-    const userId = args.userId;
+    const userId = await requireAuthUserId(ctx);
+    const userName = await getAuthUserName(ctx);
 
     let competitorJoinCode = generateJoinCode();
     let judgeJoinCode = generateJoinCode();
@@ -67,7 +64,7 @@ export const create = mutation({
     await ctx.db.insert("hackathonMembers", {
       hackathonId,
       userId,
-      userName: args.userName,
+      userName,
       role: "organizer",
       status: "approved",
       joinedAt: now,
@@ -80,26 +77,45 @@ export const create = mutation({
 export const get = query({
   args: { hackathonId: v.id("hackathons") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.hackathonId);
+    const hackathon = await ctx.db.get(args.hackathonId);
+    if (!hackathon) return null;
+
+    // Only organizers can see join codes
+    const userId = await getAuthUserId(ctx);
+    if (userId) {
+      const membership = await ctx.db
+        .query("hackathonMembers")
+        .withIndex("by_hackathonId_userId", (q) =>
+          q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+        )
+        .first();
+      if (membership && membership.role === "organizer") {
+        return hackathon;
+      }
+    }
+
+    // Strip sensitive join codes for non-organizers
+    const { competitorJoinCode: _c, judgeJoinCode: _j, ...safeHackathon } = hackathon;
+    return safeHackathon;
   },
 });
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("hackathons").collect();
+    const hackathons = await ctx.db.query("hackathons").collect();
+    // Strip join codes from public listing
+    return hackathons.map(({ competitorJoinCode: _c, judgeJoinCode: _j, ...safe }) => safe);
   },
 });
 
 export const listMine = query({
-  args: {
-    userId: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    if (!args.userId) {
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       return [];
     }
-    const userId = args.userId;
 
     const memberships = await ctx.db
       .query("hackathonMembers")
@@ -109,7 +125,13 @@ export const listMine = query({
     const hackathons = await Promise.all(
       memberships.map(async (m) => {
         const hackathon = await ctx.db.get(m.hackathonId);
-        return hackathon ? { ...hackathon, myRole: m.role } : null;
+        if (!hackathon) return null;
+        // Only include join codes for organizers
+        if (m.role === "organizer") {
+          return { ...hackathon, myRole: m.role };
+        }
+        const { competitorJoinCode: _c, judgeJoinCode: _j, ...safe } = hackathon;
+        return { ...safe, myRole: m.role };
       })
     );
 
@@ -126,12 +148,9 @@ export const update = mutation({
     endDate: v.optional(v.number()),
     submissionFrequencyMinutes: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const hackathon = await ctx.db.get(args.hackathonId);
     if (!hackathon) {
@@ -142,7 +161,7 @@ export const update = mutation({
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId)
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
       )
       .first();
     if (!membership || membership.role !== "organizer") {
@@ -166,14 +185,10 @@ export const update = mutation({
 export const join = mutation({
   args: {
     joinCode: v.string(),
-    userId: v.string(),
-    userName: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
-    const userId = args.userId;
+    const userId = await requireAuthUserId(ctx);
+    const userName = await getAuthUserName(ctx);
 
     let hackathon = await ctx.db
       .query("hackathons")
@@ -210,7 +225,7 @@ export const join = mutation({
     await ctx.db.insert("hackathonMembers", {
       hackathonId: hackathon._id,
       userId,
-      userName: args.userName,
+      userName,
       role,
       status,
       joinedAt: Date.now(),
@@ -227,12 +242,20 @@ export const getByJoinCode = query({
       .query("hackathons")
       .withIndex("by_competitorJoinCode", (q) => q.eq("competitorJoinCode", args.joinCode))
       .first();
+
+    let roleForCode: "competitor" | "judge" = "competitor";
+
     if (!hackathon) {
       hackathon = await ctx.db
         .query("hackathons")
         .withIndex("by_judgeJoinCode", (q) => q.eq("judgeJoinCode", args.joinCode))
         .first();
+      roleForCode = "judge";
     }
-    return hackathon;
+    if (!hackathon) return null;
+
+    // Strip join codes — this query is used for preview before joining
+    const { competitorJoinCode: _c, judgeJoinCode: _j, ...safe } = hackathon;
+    return { ...safe, roleForCode };
   },
 });

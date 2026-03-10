@@ -25,7 +25,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
   const teams = useQuery(api.teams.list, { hackathonId });
-  const membership = useQuery(api.members.getMyMembership, { hackathonId, userId: user?.id });
+  const membership = useQuery(api.members.getMyMembership, { hackathonId });
   const [expandedId, setExpandedId] = useState<Id<"submissions"> | null>(null);
   const [view, setView] = useState<"pending" | "judged">("pending");
 
@@ -214,7 +214,6 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
   const { user } = useUser();
   const myScores = useQuery(api.scores.getMyScoresForSubmission, {
     submissionId,
-    userId: user?.id,
   });
   const submitScore = useMutation(api.scores.submit);
 
@@ -250,7 +249,6 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
         categoryId,
         score,
         feedback: feedback || undefined,
-        userId: user.id,
       });
       toast.success("Score submitted!");
     } catch (error) {
