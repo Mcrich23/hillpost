@@ -31,7 +31,6 @@ export function CompetitorPanel({
     <div className="space-y-6">
       <TeamSection hackathonId={hackathonId} />
       <SubmitSection hackathonId={hackathonId} hackathon={hackathon} />
-      <MySubmissionsSection hackathonId={hackathonId} />
     </div>
   );
 }
@@ -212,13 +211,25 @@ function SubmitSection({
     myTeam ? { hackathonId, teamId: myTeam._id } : "skip"
   );
   const createSubmission = useMutation(api.submissions.create);
+  const updateDetails = useMutation(api.submissions.updateDetails);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [projectUrl, setProjectUrl] = useState("");
   const [demoUrl, setDemoUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
+
+  // Pre-fill form if they already have a submission
+  useEffect(() => {
+    if (latestSubmission) {
+      setName(latestSubmission.name);
+      setDescription(latestSubmission.description);
+      setProjectUrl(latestSubmission.projectUrl);
+      setDemoUrl(latestSubmission.demoUrl || "");
+    }
+  }, [latestSubmission]);
 
   useEffect(() => {
     if (!latestSubmission || !hackathon.submissionFrequencyMinutes) return;
@@ -250,11 +261,14 @@ function SubmitSection({
         demoUrl: demoUrl || undefined,
         userId: user.id,
       });
-      toast.success("Submission created!");
-      setName("");
-      setDescription("");
-      setProjectUrl("");
-      setDemoUrl("");
+      toast.success(latestSubmission ? "Project resubmitted!" : "Submission created!");
+      // Don't clear fields on resubmit since they'll just look at them
+      if (!latestSubmission) {
+        setName("");
+        setDescription("");
+        setProjectUrl("");
+        setDemoUrl("");
+      }
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to submit"
@@ -264,15 +278,40 @@ function SubmitSection({
     }
   };
 
+  const handleUpdateDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!myTeam || !user?.id || !latestSubmission) return;
+
+    setIsUpdating(true);
+    try {
+      await updateDetails({
+        submissionId: latestSubmission._id,
+        name,
+        description,
+        projectUrl,
+        demoUrl: demoUrl || undefined,
+        userId: user.id,
+      });
+      toast.success("Project details saved!");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update details"
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const isOnCooldown = cooldownRemaining > 0;
-  const cooldownMinutes = Math.ceil(cooldownRemaining / 60000);
-  const cooldownSeconds = Math.ceil((cooldownRemaining % 60000) / 1000);
+  const totalSeconds = Math.ceil(cooldownRemaining / 1000);
+  const cooldownMinutes = Math.floor(totalSeconds / 60);
+  const cooldownSeconds = totalSeconds % 60;
 
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
       <h3 className="mb-4 text-lg font-semibold text-white">
         <Send className="mr-2 inline h-5 w-5 text-emerald-400" />
-        Submit Project
+        {latestSubmission ? "Project Details" : "Submit Project"}
       </h3>
 
       {!myTeam ? (
@@ -281,16 +320,10 @@ function SubmitSection({
         </p>
       ) : (
         <>
-          {isOnCooldown && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-600/10 px-3 py-2 text-sm text-yellow-400">
-              <Clock className="h-4 w-4" />
-              Cooldown: {cooldownMinutes > 0
-                ? `${cooldownMinutes}m ${cooldownSeconds}s`
-                : `${cooldownSeconds}s`}{" "}
-              remaining
-            </div>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form
+            onSubmit={latestSubmission ? handleUpdateDetails : handleSubmit}
+            className="space-y-4"
+          >
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-300">
                 Project Name
@@ -332,8 +365,7 @@ function SubmitSection({
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-300">
-                Demo URL{" "}
-                <span className="text-gray-500">(optional)</span>
+                Demo URL <span className="text-gray-500">(optional)</span>
               </label>
               <input
                 type="url"
@@ -343,73 +375,63 @@ function SubmitSection({
                 className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
               />
             </div>
-            <button
-              type="submit"
-              disabled={isSubmitting || isOnCooldown}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-500 disabled:opacity-50"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Project"}
-            </button>
+
+            {latestSubmission ? (
+              <div className="flex items-center gap-3 border-t border-gray-800 pt-4">
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+                >
+                  {isUpdating ? "Saving..." : "Save Details"}
+                </button>
+                <p className="text-xs text-gray-400">
+                  Saving details does not alert judges or trigger rate limits.
+                </p>
+              </div>
+            ) : (
+              <button
+                type="submit"
+                disabled={isSubmitting || isOnCooldown}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+              >
+                {isSubmitting ? "Submitting..." : "Submit Project"}
+              </button>
+            )}
           </form>
+
+          {latestSubmission && (
+            <div className="mt-8 rounded-xl border border-blue-900 bg-blue-950/20 p-5">
+              <div className="mb-3 flex flex-col gap-1">
+                <h4 className="flex items-center gap-2 text-base font-semibold text-blue-400">
+                  <ExternalLink className="h-4 w-4" />
+                  Judging Resubmission
+                </h4>
+                <p className="text-sm text-gray-400">
+                  Made significant changes to your project code? Request a new evaluation
+                  from the judges. This will reset the judging queue.
+                </p>
+              </div>
+              {isOnCooldown && (
+                <div className="mb-4 flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-600/10 px-3 py-2 text-sm text-yellow-400">
+                  <Clock className="h-4 w-4 flex-shrink-0" />
+                  Cooldown active: {cooldownMinutes > 0
+                    ? `${cooldownMinutes}m ${cooldownSeconds}s`
+                    : `${cooldownSeconds}s`}
+                </div>
+              )}
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting || isOnCooldown}
+                className="w-full sm:w-auto rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50 transition-colors"
+              >
+                {isSubmitting ? "Resubmitting..." : "Resubmit for Judging"}
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
   );
 }
 
-function MySubmissionsSection({
-  hackathonId,
-}: {
-  hackathonId: Id<"hackathons">;
-}) {
-  const { user } = useUser();
-  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId, userId: user?.id });
-  const submissions = useQuery(
-    api.submissions.listForTeam,
-    myTeam ? { teamId: myTeam._id } : "skip"
-  );
-
-  return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-      <h3 className="mb-4 text-lg font-semibold text-white">
-        My Submissions
-      </h3>
-      {!myTeam ? (
-        <p className="text-sm text-gray-500">Join a team to see submissions.</p>
-      ) : !submissions ? (
-        <p className="text-sm text-gray-500">Loading...</p>
-      ) : submissions.length === 0 ? (
-        <p className="text-sm text-gray-500">No submissions yet.</p>
-      ) : (
-        <div className="space-y-2">
-          {submissions.map((sub) => (
-            <div
-              key={sub._id}
-              className="rounded-lg border border-gray-700 bg-gray-800 p-3"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-medium text-white">{sub.name}</p>
-                  <p className="text-sm text-gray-400">{sub.description}</p>
-                </div>
-                <div className="flex gap-2">
-                  <a
-                    href={sub.projectUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-emerald-400 hover:text-emerald-300"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Submitted {format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}

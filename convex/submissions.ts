@@ -106,6 +106,43 @@ export const create = mutation({
   },
 });
 
+export const updateDetails = mutation({
+  args: {
+    submissionId: v.id("submissions"),
+    name: v.string(),
+    description: v.string(),
+    projectUrl: v.string(),
+    demoUrl: v.optional(v.string()),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const submission = await ctx.db.get(args.submissionId);
+    if (!submission) throw new Error("Submission not found");
+
+    const membership = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", submission.hackathonId).eq("userId", args.userId)
+      )
+      .first();
+
+    if (!membership || membership.role !== "competitor" || membership.teamId !== submission.teamId) {
+      throw new Error("Unauthorized to edit this project");
+    }
+
+    await ctx.db.patch(args.submissionId, {
+      name: args.name,
+      description: args.description,
+      projectUrl: args.projectUrl,
+      demoUrl: args.demoUrl,
+    });
+  },
+});
+
 export const list = query({
   args: {
     hackathonId: v.id("hackathons"),
