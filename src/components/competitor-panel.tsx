@@ -1,0 +1,409 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import {
+  Users,
+  Plus,
+  LogOut,
+  Send,
+  Clock,
+  ExternalLink,
+} from "lucide-react";
+
+interface CompetitorPanelProps {
+  hackathonId: Id<"hackathons">;
+  hackathon: {
+    submissionFrequencyMinutes: number;
+  };
+}
+
+export function CompetitorPanel({
+  hackathonId,
+  hackathon,
+}: CompetitorPanelProps) {
+  return (
+    <div className="space-y-6">
+      <TeamSection hackathonId={hackathonId} />
+      <SubmitSection hackathonId={hackathonId} hackathon={hackathon} />
+      <MySubmissionsSection hackathonId={hackathonId} />
+    </div>
+  );
+}
+
+function TeamSection({
+  hackathonId,
+}: {
+  hackathonId: Id<"hackathons">;
+}) {
+  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId });
+  const teams = useQuery(api.teams.list, { hackathonId });
+  const createTeam = useMutation(api.teams.create);
+  const joinTeam = useMutation(api.teams.joinTeam);
+  const leaveTeam = useMutation(api.teams.leaveTeam);
+
+  const [teamName, setTeamName] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  const handleCreateTeam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!teamName.trim()) return;
+    try {
+      await createTeam({ hackathonId, name: teamName.trim() });
+      toast.success("Team created!");
+      setTeamName("");
+      setShowCreateForm(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create team"
+      );
+    }
+  };
+
+  const handleJoinTeam = async (teamId: Id<"teams">) => {
+    try {
+      await joinTeam({ teamId });
+      toast.success("Joined team!");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to join team"
+      );
+    }
+  };
+
+  const handleLeaveTeam = async () => {
+    try {
+      await leaveTeam({ hackathonId });
+      toast.success("Left team");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to leave team"
+      );
+    }
+  };
+
+  if (myTeam === undefined) {
+    return (
+      <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+        <p className="text-sm text-gray-500">Loading team info...</p>
+      </div>
+    );
+  }
+
+  if (myTeam) {
+    return (
+      <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-white">
+            <Users className="mr-2 inline h-5 w-5 text-emerald-400" />
+            My Team: {myTeam.name}
+          </h3>
+          <button
+            onClick={handleLeaveTeam}
+            className="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-sm text-white hover:bg-red-500"
+          >
+            <LogOut className="h-4 w-4" />
+            Leave
+          </button>
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-300">Members:</p>
+          {myTeam.members.map((m) => (
+            <p key={m._id} className="text-sm text-gray-400">
+              • {m.userName}
+            </p>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+      <h3 className="mb-4 text-lg font-semibold text-white">
+        <Users className="mr-2 inline h-5 w-5 text-emerald-400" />
+        Join or Create a Team
+      </h3>
+
+      <div className="mb-4">
+        {showCreateForm ? (
+          <form onSubmit={handleCreateTeam} className="flex gap-2">
+            <input
+              type="text"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
+              placeholder="Team name"
+              className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+              required
+            />
+            <button
+              type="submit"
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-500"
+            >
+              Create
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowCreateForm(false)}
+              className="rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+          </form>
+        ) : (
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-500"
+          >
+            <Plus className="h-4 w-4" />
+            Create New Team
+          </button>
+        )}
+      </div>
+
+      {teams && teams.length > 0 && (
+        <div>
+          <p className="mb-2 text-sm font-medium text-gray-300">
+            Or join an existing team:
+          </p>
+          <div className="space-y-2">
+            {teams.map((team) => (
+              <div
+                key={team._id}
+                className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-800 px-3 py-2"
+              >
+                <div>
+                  <p className="text-white">{team.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {team.members.length} member(s)
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleJoinTeam(team._id)}
+                  className="rounded-lg bg-gray-700 px-3 py-1 text-sm text-white hover:bg-gray-600"
+                >
+                  Join
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SubmitSection({
+  hackathonId,
+  hackathon,
+}: CompetitorPanelProps) {
+  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId });
+  const latestSubmission = useQuery(
+    api.submissions.getLatestForTeam,
+    myTeam ? { hackathonId, teamId: myTeam._id } : "skip"
+  );
+  const createSubmission = useMutation(api.submissions.create);
+
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [projectUrl, setProjectUrl] = useState("");
+  const [demoUrl, setDemoUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+
+  useEffect(() => {
+    if (!latestSubmission || !hackathon.submissionFrequencyMinutes) return;
+
+    const cooldownMs = hackathon.submissionFrequencyMinutes * 60 * 1000;
+    const updateCooldown = () => {
+      const elapsed = Date.now() - latestSubmission.submittedAt;
+      const remaining = Math.max(0, cooldownMs - elapsed);
+      setCooldownRemaining(remaining);
+    };
+
+    updateCooldown();
+    const interval = setInterval(updateCooldown, 1000);
+    return () => clearInterval(interval);
+  }, [latestSubmission, hackathon.submissionFrequencyMinutes]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!myTeam) return;
+
+    setIsSubmitting(true);
+    try {
+      await createSubmission({
+        hackathonId,
+        teamId: myTeam._id,
+        name,
+        description,
+        projectUrl,
+        demoUrl: demoUrl || undefined,
+      });
+      toast.success("Submission created!");
+      setName("");
+      setDescription("");
+      setProjectUrl("");
+      setDemoUrl("");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to submit"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const isOnCooldown = cooldownRemaining > 0;
+  const cooldownMinutes = Math.ceil(cooldownRemaining / 60000);
+  const cooldownSeconds = Math.ceil((cooldownRemaining % 60000) / 1000);
+
+  return (
+    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+      <h3 className="mb-4 text-lg font-semibold text-white">
+        <Send className="mr-2 inline h-5 w-5 text-emerald-400" />
+        Submit Project
+      </h3>
+
+      {!myTeam ? (
+        <p className="text-sm text-gray-500">
+          Join a team before submitting a project.
+        </p>
+      ) : (
+        <>
+          {isOnCooldown && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-600/10 px-3 py-2 text-sm text-yellow-400">
+              <Clock className="h-4 w-4" />
+              Cooldown: {cooldownMinutes > 0
+                ? `${cooldownMinutes}m ${cooldownSeconds}s`
+                : `${cooldownSeconds}s`}{" "}
+              remaining
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-300">
+                Project Name
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="My Cool Project"
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-300">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What does your project do?"
+                rows={3}
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-300">
+                Project URL
+              </label>
+              <input
+                type="url"
+                value={projectUrl}
+                onChange={(e) => setProjectUrl(e.target.value)}
+                placeholder="https://github.com/..."
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-300">
+                Demo URL{" "}
+                <span className="text-gray-500">(optional)</span>
+              </label>
+              <input
+                type="url"
+                value={demoUrl}
+                onChange={(e) => setDemoUrl(e.target.value)}
+                placeholder="https://my-demo.vercel.app"
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting || isOnCooldown}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-500 disabled:opacity-50"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Project"}
+            </button>
+          </form>
+        </>
+      )}
+    </div>
+  );
+}
+
+function MySubmissionsSection({
+  hackathonId,
+}: {
+  hackathonId: Id<"hackathons">;
+}) {
+  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId });
+  const submissions = useQuery(
+    api.submissions.listForTeam,
+    myTeam ? { teamId: myTeam._id } : "skip"
+  );
+
+  return (
+    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+      <h3 className="mb-4 text-lg font-semibold text-white">
+        My Submissions
+      </h3>
+      {!myTeam ? (
+        <p className="text-sm text-gray-500">Join a team to see submissions.</p>
+      ) : !submissions ? (
+        <p className="text-sm text-gray-500">Loading...</p>
+      ) : submissions.length === 0 ? (
+        <p className="text-sm text-gray-500">No submissions yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {submissions.map((sub) => (
+            <div
+              key={sub._id}
+              className="rounded-lg border border-gray-700 bg-gray-800 p-3"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="font-medium text-white">{sub.name}</p>
+                  <p className="text-sm text-gray-400">{sub.description}</p>
+                </div>
+                <div className="flex gap-2">
+                  <a
+                    href={sub.projectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-400 hover:text-emerald-300"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Submitted {format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
