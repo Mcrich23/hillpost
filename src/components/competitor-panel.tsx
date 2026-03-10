@@ -14,6 +14,7 @@ import {
   Send,
   Clock,
   ExternalLink,
+  Eye,
 } from "lucide-react";
 
 interface CompetitorPanelProps {
@@ -32,6 +33,7 @@ export function CompetitorPanel({
       <TeamSection hackathonId={hackathonId} />
       <SubmitSection hackathonId={hackathonId} hackathon={hackathon} />
       <MySubmissionsSection hackathonId={hackathonId} />
+      <AllSubmissionsSection hackathonId={hackathonId} />
     </div>
   );
 }
@@ -401,6 +403,75 @@ function MySubmissionsSection({
                   >
                     <ExternalLink className="h-4 w-4" />
                   </a>
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Submitted {format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AllSubmissionsSection({
+  hackathonId,
+}: {
+  hackathonId: Id<"hackathons">;
+}) {
+  const submissions = useQuery(api.submissions.list, { hackathonId });
+  const teams = useQuery(api.teams.list, { hackathonId });
+
+  const teamNameById = new Map(
+    (teams ?? []).map((team) => [team._id, team.name] as const)
+  );
+
+  return (
+    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+      <h3 className="mb-4 text-lg font-semibold text-white">
+        <Eye className="mr-2 inline h-5 w-5 text-emerald-400" />
+        All Team Submissions
+      </h3>
+      {!submissions || !teams ? (
+        <p className="text-sm text-gray-500">Loading...</p>
+      ) : submissions.length === 0 ? (
+        <p className="text-sm text-gray-500">No submissions yet.</p>
+      ) : (
+        <div className="space-y-2">
+          {submissions.map((sub) => (
+            <div
+              key={sub._id}
+              className="rounded-lg border border-gray-700 bg-gray-800 p-3"
+            >
+              <div className="mb-1 text-xs font-medium uppercase tracking-wide text-emerald-400">
+                {teamNameById.get(sub.teamId) ?? "Unknown Team"}
+              </div>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="font-medium text-white">{sub.name}</p>
+                  <p className="text-sm text-gray-400">{sub.description}</p>
+                </div>
+                <div className="flex gap-2">
+                  <a
+                    href={sub.projectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-400 hover:text-emerald-300"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                  {sub.demoUrl && (
+                    <a
+                      href={sub.demoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-400 hover:text-emerald-300"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
                 </div>
               </div>
               <p className="mt-1 text-xs text-gray-500">
