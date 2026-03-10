@@ -51,8 +51,9 @@ export const create = mutation({
       const cooldownMs = hackathon.submissionFrequencyMinutes * 60 * 1000;
       const timeSinceLastSubmission = Date.now() - existingSubmission.submittedAt;
       if (timeSinceLastSubmission < cooldownMs) {
-        const remainingMinutes = Math.ceil(
-          (cooldownMs - timeSinceLastSubmission) / 60000
+        const remainingMinutes = Math.max(
+          1,
+          Math.ceil((cooldownMs - timeSinceLastSubmission) / 60000)
         );
         throw new Error(
           `Rate limited. Please wait ${remainingMinutes} more minute(s) before submitting again.`
