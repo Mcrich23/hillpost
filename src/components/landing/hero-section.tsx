@@ -24,7 +24,7 @@ export function HeroSection() {
         {/* Title */}
         <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl">
           Hacker of the Hill{" "}
-          <span className="inline-block animate-bounce">👑</span>
+          <span className="inline-block animate-bounce" role="img" aria-hidden="true">👑</span>
         </h1>
 
         {/* Subtitle */}

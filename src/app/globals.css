@@ -10,7 +10,7 @@
   --color-muted-foreground: #9ca3af;
   --color-accent: #059669;
   --color-accent-foreground: #ecfdf5;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
