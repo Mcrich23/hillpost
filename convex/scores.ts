@@ -100,6 +100,21 @@ export const submit = mutation({
 export const getForSubmission = query({
   args: { submissionId: v.id("submissions") },
   handler: async (ctx, args) => {
+    // Require authentication and hackathon membership to view scores
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return [];
+
+    const submission = await ctx.db.get(args.submissionId);
+    if (!submission) return [];
+
+    const membership = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
+      )
+      .first();
+    if (!membership) return [];
+
     return await ctx.db
       .query("scores")
       .withIndex("by_submissionId", (q) =>

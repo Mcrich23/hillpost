@@ -54,8 +54,9 @@ export default function HackathonDetailPage() {
 
   const copyCompetitorJoinLink = async () => {
     if (!hackathon || !("competitorJoinCode" in hackathon)) return;
+    const code = (hackathon as { competitorJoinCode: string }).competitorJoinCode;
     try {
-      const link = `${window.location.origin}/join/${(hackathon as any).competitorJoinCode}`;
+      const link = `${window.location.origin}/join/${code}`;
       await navigator.clipboard.writeText(link);
       setCopiedJoinLink(true);
       toast.success("Join link copied!");
@@ -372,14 +373,16 @@ export default function HackathonDetailPage() {
                   </p>
                 </div>
               )
-            ) : role === "organizer" && "competitorJoinCode" in hackathon ? (
+            ) : role === "organizer" && "competitorJoinCode" in hackathon ? (() => {
+              const joinCode = (hackathon as { competitorJoinCode: string }).competitorJoinCode;
+              return (
               <div className="flex flex-col justify-center rounded-xl border border-gray-800 bg-gray-900 p-6">
                 <h3 className="mb-2 text-sm font-medium text-gray-300">
                   Competitor Join Code
                 </h3>
                 <div className="flex items-center gap-3">
                   <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-xl tracking-widest text-emerald-400">
-                    {(hackathon as any).competitorJoinCode}
+                    {joinCode}
                   </code>
                   <button
                     onClick={copyCompetitorJoinLink}
@@ -394,7 +397,7 @@ export default function HackathonDetailPage() {
                     )}
                   </button>
                   <QrCodeButton
-                    path={`/join/${(hackathon as any).competitorJoinCode}`}
+                    path={`/join/${joinCode}`}
                     label="Competitor Join QR"
                   />
                 </div>
@@ -402,7 +405,8 @@ export default function HackathonDetailPage() {
                   Share this code, copy the join link, or show the QR code to invite competitors.
                 </p>
               </div>
-            ) : null}
+              );
+            })() : null}
           </div>
 
           {categories && categories.length > 0 && (
