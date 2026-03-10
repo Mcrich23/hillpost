@@ -13,8 +13,10 @@ import {
   Loader2,
   LogIn,
   ArrowLeft,
+  ArrowRight,
   Code,
   Gavel,
+  CheckCircle,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -25,6 +27,12 @@ export default function JoinByLinkPage() {
   const joinCode = params.code as string;
 
   const hackathon = useQuery(api.hackathons.getByJoinCode, { joinCode });
+  const membership = useQuery(
+    api.members.getMyMembership,
+    hackathon?._id && user?.id
+      ? { hackathonId: hackathon._id, userId: user.id }
+      : "skip"
+  );
   const joinHackathon = useMutation(api.hackathons.join);
 
   const [isJoining, setIsJoining] = useState(false);
@@ -81,13 +89,74 @@ export default function JoinByLinkPage() {
       toast.success("Successfully joined the hackathon!");
       router.push(`/hackathon/${hackathonId}`);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to join hackathon"
-      );
+      const message =
+        error instanceof Error ? error.message : "Failed to join hackathon";
+      if (message.includes("Already a member")) {
+        toast.info("You're already a member — redirecting...");
+        router.push(`/hackathon/${hackathon._id}`);
+      } else {
+        toast.error(message);
+      }
     } finally {
       setIsJoining(false);
     }
   };
+
+  // Already a member — show a friendly message instead of the join form
+  if (membership) {
+    const roleBadgeClass =
+      membership.role === "organizer"
+        ? "border-purple-500/30 bg-purple-600/20 text-purple-400"
+        : membership.role === "judge"
+          ? "border-blue-500/30 bg-blue-600/20 text-blue-400"
+          : "border-emerald-500/30 bg-emerald-600/20 text-emerald-400";
+
+    return (
+      <div className="mx-auto max-w-md px-4 py-16">
+        <div className="rounded-xl border border-gray-800 bg-gray-900 p-8">
+          <div className="mb-6 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600/20 text-emerald-400">
+              <CheckCircle className="h-7 w-7" />
+            </div>
+            <h1 className="text-2xl font-bold text-white">
+              You&apos;re already in!
+            </h1>
+            <p className="mt-2 text-sm text-gray-400">
+              You&apos;re already a member of <span className="font-medium text-white">{hackathon.name}</span>.
+            </p>
+          </div>
+
+          <div className="mb-6 flex items-center justify-center gap-2">
+            <span className="text-sm text-gray-400">Your role:</span>
+            <span
+              className={cn(
+                "rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize",
+                roleBadgeClass
+              )}
+            >
+              {membership.role}
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Link
+              href={`/hackathon/${hackathon._id}`}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+            >
+              Go to Hackathon
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/dashboard"
+              className="text-center text-sm text-gray-400 hover:text-white"
+            >
+              Go to Dashboard instead
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">

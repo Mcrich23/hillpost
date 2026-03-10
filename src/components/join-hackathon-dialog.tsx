@@ -51,9 +51,21 @@ export function JoinHackathonDialog({
       onClose();
       router.push(`/hackathon/${hackathonId}`);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to join hackathon"
-      );
+      const message =
+        error instanceof Error ? error.message : "Failed to join hackathon";
+      if (message.includes("Already a member")) {
+        toast.info("You're already a member — taking you there now.");
+        setJoinCode("");
+        onClose();
+        // Look up the hackathon to redirect
+        const lookupHackathon = async () => {
+          // Redirect via the join link page which will handle the lookup
+          router.push(`/join/${joinCode.trim()}`);
+        };
+        await lookupHackathon();
+      } else {
+        toast.error(message);
+      }
     } finally {
       setIsSubmitting(false);
     }
