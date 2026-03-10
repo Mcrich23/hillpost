@@ -1,9 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 async function verifyOrganizer(
-  ctx: { auth: { getUserIdentity: () => Promise<{ subject: string } | null> }; db: any },
-  hackathonId: any
+  ctx: MutationCtx,
+  hackathonId: Id<"hackathons">
 ) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
@@ -11,7 +13,7 @@ async function verifyOrganizer(
   }
   const membership = await ctx.db
     .query("hackathonMembers")
-    .withIndex("by_hackathonId_userId", (q: any) =>
+    .withIndex("by_hackathonId_userId", (q) =>
       q.eq("hackathonId", hackathonId).eq("userId", identity.subject)
     )
     .first();
@@ -74,16 +76,12 @@ export const update = mutation({
 
     await verifyOrganizer(ctx, category.hackathonId);
 
-    const { categoryId, ...updates } = args;
-    const filteredUpdates: Record<string, string | number> = {};
-    for (const [key, value] of Object.entries(updates)) {
-      if (value !== undefined) {
-        filteredUpdates[key] = value;
-      }
-    }
-
-    await ctx.db.patch(categoryId, filteredUpdates);
-    return categoryId;
+    await ctx.db.patch(args.categoryId, {
+      ...(args.name !== undefined && { name: args.name }),
+      ...(args.description !== undefined && { description: args.description }),
+      ...(args.maxScore !== undefined && { maxScore: args.maxScore }),
+    });
+    return args.categoryId;
   },
 });
 

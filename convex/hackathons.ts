@@ -136,16 +136,17 @@ export const update = mutation({
       throw new Error("Only organizers can update hackathons");
     }
 
-    const { hackathonId, ...updates } = args;
-    const filteredUpdates: Record<string, string | number | boolean> = {};
-    for (const [key, value] of Object.entries(updates)) {
-      if (value !== undefined) {
-        filteredUpdates[key] = value;
-      }
-    }
-
-    await ctx.db.patch(hackathonId, filteredUpdates);
-    return hackathonId;
+    await ctx.db.patch(args.hackathonId, {
+      ...(args.name !== undefined && { name: args.name }),
+      ...(args.description !== undefined && { description: args.description }),
+      ...(args.startDate !== undefined && { startDate: args.startDate }),
+      ...(args.endDate !== undefined && { endDate: args.endDate }),
+      ...(args.submissionFrequencyMinutes !== undefined && {
+        submissionFrequencyMinutes: args.submissionFrequencyMinutes,
+      }),
+      ...(args.isActive !== undefined && { isActive: args.isActive }),
+    });
+    return args.hackathonId;
   },
 });
 
