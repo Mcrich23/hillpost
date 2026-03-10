@@ -24,6 +24,11 @@ export const create = mutation({
       throw new Error("Only competitors and organizers can create teams");
     }
 
+    // Prevent competitors already on a team from creating another
+    if (membership.role === "competitor" && membership.teamId) {
+      throw new Error("You are already on a team. Leave your current team first.");
+    }
+
     const teamId = await ctx.db.insert("teams", {
       hackathonId: args.hackathonId,
       name: args.name,

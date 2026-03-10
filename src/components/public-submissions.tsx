@@ -4,7 +4,6 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { format } from "date-fns";
 import { ExternalLink, Layers, Pencil, X } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +16,6 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const teams = useQuery(api.teams.list, { hackathonId });
   const updateSubmissionOrganizer = useMutation(api.submissions.updateSubmissionOrganizer);
-  const { user } = useUser();
 
   const [editingId, setEditingId] = useState<Id<"submissions"> | null>(null);
   const [editName, setEditName] = useState("");
