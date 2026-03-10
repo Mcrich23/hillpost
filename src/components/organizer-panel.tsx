@@ -19,6 +19,7 @@ import {
   ChevronUp,
   Link as LinkIcon,
 } from "lucide-react";
+import { QrCodeButton } from "@/components/qr-code-overlay";
 
 interface OrganizerPanelProps {
   hackathonId: Id<"hackathons">;
@@ -373,6 +374,10 @@ function HackathonInfoSection({
                   <LinkIcon className="h-4 w-4" />
                 )}
               </button>
+              <QrCodeButton
+                url={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${hackathon.competitorJoinCode}`}
+                label="Competitor Join QR"
+              />
             </div>
           </div>
           <div className="flex-1">
@@ -405,6 +410,10 @@ function HackathonInfoSection({
                   <LinkIcon className="h-4 w-4" />
                 )}
               </button>
+              <QrCodeButton
+                url={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${hackathon.judgeJoinCode}`}
+                label="Judge Join QR"
+              />
             </div>
           </div>
         </div>

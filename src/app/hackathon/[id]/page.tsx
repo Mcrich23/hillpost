@@ -29,6 +29,7 @@ import { OrganizerPanel } from "@/components/organizer-panel";
 import { CompetitorPanel } from "@/components/competitor-panel";
 import { JudgePanel } from "@/components/judge-panel";
 import { PublicSubmissions } from "@/components/public-submissions";
+import { QrCodeButton } from "@/components/qr-code-overlay";
 
 type Tab = "overview" | "submissions"| "compete" | "judge" | "manage";
 
@@ -365,9 +366,13 @@ export default function HackathonDetailPage() {
                       <LinkIcon className="h-4 w-4" />
                     )}
                   </button>
+                  <QrCodeButton
+                    url={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${hackathon.competitorJoinCode}`}
+                    label="Competitor Join QR"
+                  />
                 </div>
                 <p className="mt-2 text-xs text-gray-500">
-                  Share this code or copy the join link to invite competitors.
+                  Share this code, copy the join link, or show the QR code to invite competitors.
                 </p>
               </div>
             ) : null}
