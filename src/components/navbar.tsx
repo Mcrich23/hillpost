@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
-import { useConvexAuth } from "convex/react";
+import { SignInButton, SignUpButton, UserButton, useAuth, useUser } from "@clerk/nextjs";
 import { Crown, LayoutDashboard, Trophy, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const { user } = useUser();
+  const isAuthenticated = !!isSignedIn;
+  const isLoading = !isLoaded;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
