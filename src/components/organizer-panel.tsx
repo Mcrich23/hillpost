@@ -26,8 +26,8 @@ interface OrganizerPanelProps {
   hackathon: {
     name: string;
     description: string;
-    competitorJoinCode: string;
-    judgeJoinCode: string;
+    competitorJoinCode?: string;
+    judgeJoinCode?: string;
     startDate: number;
     endDate: number;
     isActive: boolean;
@@ -79,6 +79,7 @@ function HackathonInfoSection({
   const [newCooldown, setNewCooldown] = useState(hackathon.submissionFrequencyMinutes);
 
   const copyCompetitorCode = async () => {
+    if (!hackathon.competitorJoinCode) return;
     try {
       await navigator.clipboard.writeText(hackathon.competitorJoinCode);
       setCopiedCompetitor(true);
@@ -91,6 +92,7 @@ function HackathonInfoSection({
   };
 
   const copyJudgeCode = async () => {
+    if (!hackathon.judgeJoinCode) return;
     try {
       await navigator.clipboard.writeText(hackathon.judgeJoinCode);
       setCopiedJudge(true);
@@ -103,6 +105,7 @@ function HackathonInfoSection({
   };
 
   const copyCompetitorLink = async () => {
+    if (!hackathon.competitorJoinCode) return;
     try {
       const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
       await navigator.clipboard.writeText(link);
@@ -116,6 +119,7 @@ function HackathonInfoSection({
   };
 
   const copyJudgeLink = async () => {
+    if (!hackathon.judgeJoinCode) return;
     try {
       const link = `${window.location.origin}/join/${hackathon.judgeJoinCode}`;
       await navigator.clipboard.writeText(link);
@@ -359,6 +363,7 @@ function HackathonInfoSection({
           )}
         </div>
 
+        {hackathon.competitorJoinCode && hackathon.judgeJoinCode && (
         <div className="flex flex-col gap-4 sm:flex-row border-t border-gray-800 pt-4">
           <div className="flex-1">
             <label className="text-sm font-medium text-gray-300">
@@ -437,6 +442,7 @@ function HackathonInfoSection({
             </div>
           </div>
         </div>
+        )}
 
         <div className="flex items-center justify-between">
           <div>
