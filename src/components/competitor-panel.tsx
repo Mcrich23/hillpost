@@ -459,7 +459,7 @@ function AllSubmissionsSection({
                     href={sub.projectUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Open project URL for ${sub.name}`}
+                    aria-label={`View project for ${sub.name} in new tab`}
                     className="text-emerald-400 hover:text-emerald-300"
                   >
                     <ExternalLink className="h-4 w-4" />
@@ -469,7 +469,7 @@ function AllSubmissionsSection({
                       href={sub.demoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`Open demo URL for ${sub.name}`}
+                      aria-label={`View demo for ${sub.name} in new tab`}
                       className="text-emerald-400 hover:text-emerald-300"
                     >
                       <ExternalLink className="h-4 w-4" />
