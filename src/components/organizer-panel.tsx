@@ -377,6 +377,7 @@ function HackathonInfoSection({
                 onClick={copyCompetitorCode}
                 className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
                 title="Copy code"
+                aria-label="Copy competitor code"
               >
                 {copiedCompetitor ? (
                   <Check className="h-4 w-4 text-emerald-400" />
@@ -388,6 +389,7 @@ function HackathonInfoSection({
                 onClick={copyCompetitorLink}
                 className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
                 title="Copy join link"
+                aria-label="Copy competitor join link"
               >
                 {copiedCompetitorLink ? (
                   <Check className="h-4 w-4 text-emerald-400" />
@@ -413,6 +415,7 @@ function HackathonInfoSection({
                 onClick={copyJudgeCode}
                 className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
                 title="Copy code"
+                aria-label="Copy judge code"
               >
                 {copiedJudge ? (
                   <Check className="h-4 w-4 text-emerald-400" />
@@ -424,6 +427,7 @@ function HackathonInfoSection({
                 onClick={copyJudgeLink}
                 className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
                 title="Copy join link"
+                aria-label="Copy judge join link"
               >
                 {copiedJudgeLink ? (
                   <Check className="h-4 w-4 text-emerald-400" />

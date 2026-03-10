@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface JoinHackathonDialogProps {
   isOpen: boolean;
@@ -41,27 +40,23 @@ export function JoinHackathonDialog({
 
     setIsSubmitting(true);
     try {
-      const hackathonId = await joinHackathon({
+      const result = await joinHackathon({
         joinCode: joinCode.trim(),
         userId: user.id,
         userName: user.fullName ?? user.username ?? "Unknown",
       });
-      toast.success("Successfully joined the hackathon!");
+      if (result.alreadyMember) {
+        toast.info("You're already a member — redirecting to hackathon.");
+      } else {
+        toast.success("Successfully joined the hackathon!");
+      }
       setJoinCode("");
       onClose();
-      router.push(`/hackathon/${hackathonId}`);
+      router.push(`/hackathon/${result.hackathonId}`);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to join hackathon";
-      if (message.includes("Already a member")) {
-        const trimmedCode = joinCode.trim();
-        toast.info("You're already a member — taking you there now.");
-        setJoinCode("");
-        onClose();
-        router.push(`/join/${trimmedCode}`);
-      } else {
-        toast.error(message);
-      }
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

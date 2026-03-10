@@ -85,22 +85,21 @@ export default function JoinByLinkPage() {
 
     setIsJoining(true);
     try {
-      const hackathonId = await joinHackathon({
+      const result = await joinHackathon({
         joinCode,
         userId: user.id,
         userName: user.fullName ?? user.username ?? "Unknown",
       });
-      toast.success("Successfully joined the hackathon!");
-      router.push(`/hackathon/${hackathonId}`);
+      if (result.alreadyMember) {
+        toast.info("You're already a member — redirecting...");
+      } else {
+        toast.success("Successfully joined the hackathon!");
+      }
+      router.push(`/hackathon/${result.hackathonId}`);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to join hackathon";
-      if (message.includes("Already a member")) {
-        toast.info("You're already a member — redirecting...");
-        router.push(`/hackathon/${hackathon._id}`);
-      } else {
-        toast.error(message);
-      }
+      toast.error(message);
     } finally {
       setIsJoining(false);
     }
