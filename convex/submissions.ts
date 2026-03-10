@@ -12,6 +12,9 @@ export const create = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
     const userId = args.userId;
 
     // Verify user is a competitor member on this team

@@ -35,13 +35,18 @@ export function JoinHackathonDialog({
       return;
     }
 
+    if (!user?.id) {
+      toast.error("Please sign in first");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const hackathonId = await joinHackathon({
         joinCode: joinCode.trim(),
         role,
-        userId: user?.id ?? "",
-        userName: user?.fullName ?? user?.username ?? "Unknown",
+        userId: user.id,
+        userName: user.fullName ?? user.username ?? "Unknown",
       });
       toast.success("Successfully joined the hackathon!");
       setJoinCode("");

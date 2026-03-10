@@ -53,9 +53,9 @@ function TeamSection({
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!teamName.trim()) return;
+    if (!teamName.trim() || !user?.id) return;
     try {
-      await createTeam({ hackathonId, name: teamName.trim(), userId: user?.id ?? "" });
+      await createTeam({ hackathonId, name: teamName.trim(), userId: user.id });
       toast.success("Team created!");
       setTeamName("");
       setShowCreateForm(false);
@@ -67,8 +67,9 @@ function TeamSection({
   };
 
   const handleJoinTeam = async (teamId: Id<"teams">) => {
+    if (!user?.id) return;
     try {
-      await joinTeam({ teamId, userId: user?.id ?? "" });
+      await joinTeam({ teamId, userId: user.id });
       toast.success("Joined team!");
     } catch (error) {
       toast.error(
@@ -78,8 +79,9 @@ function TeamSection({
   };
 
   const handleLeaveTeam = async () => {
+    if (!user?.id) return;
     try {
-      await leaveTeam({ hackathonId, userId: user?.id ?? "" });
+      await leaveTeam({ hackathonId, userId: user.id });
       toast.success("Left team");
     } catch (error) {
       toast.error(
@@ -235,7 +237,7 @@ function SubmitSection({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!myTeam) return;
+    if (!myTeam || !user?.id) return;
 
     setIsSubmitting(true);
     try {
@@ -246,7 +248,7 @@ function SubmitSection({
         description,
         projectUrl,
         demoUrl: demoUrl || undefined,
-        userId: user?.id ?? "",
+        userId: user.id,
       });
       toast.success("Submission created!");
       setName("");

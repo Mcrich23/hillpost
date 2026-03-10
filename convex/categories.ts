@@ -8,6 +8,9 @@ async function verifyOrganizer(
   hackathonId: Id<"hackathons">,
   userId: string
 ) {
+  if (!userId) {
+    throw new Error("Not authenticated");
+  }
   const membership = await ctx.db
     .query("hackathonMembers")
     .withIndex("by_hackathonId_userId", (q) =>

@@ -21,6 +21,9 @@ export const create = mutation({
     userName: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
     const userId = args.userId;
 
     let joinCode = generateJoinCode();
@@ -115,6 +118,9 @@ export const update = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
 
     const hackathon = await ctx.db.get(args.hackathonId);
     if (!hackathon) {
@@ -157,6 +163,9 @@ export const join = mutation({
     userName: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
     const userId = args.userId;
 
     const hackathon = await ctx.db

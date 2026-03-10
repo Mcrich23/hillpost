@@ -160,6 +160,7 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
   };
 
   const handleSubmitScore = async (categoryId: Id<"categories">, maxScore: number) => {
+    if (!user?.id) return;
     setSubmitting(categoryId);
     try {
       const score = getCurrentScore(categoryId, maxScore);
@@ -169,7 +170,7 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
         categoryId,
         score,
         feedback: feedback || undefined,
-        userId: user?.id ?? "",
+        userId: user.id,
       });
       toast.success("Score submitted!");
     } catch (error) {

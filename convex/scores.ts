@@ -10,6 +10,9 @@ export const submit = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
     const judgeId = args.userId;
 
     const submission = await ctx.db.get(args.submissionId);

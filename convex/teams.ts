@@ -8,6 +8,9 @@ export const create = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
     const userId = args.userId;
 
     // Verify user is a member of this hackathon
@@ -111,6 +114,10 @@ export const joinTeam = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
+
     const team = await ctx.db.get(args.teamId);
     if (!team) {
       throw new Error("Team not found");
@@ -141,6 +148,10 @@ export const leaveTeam = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
+
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>

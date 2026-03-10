@@ -43,6 +43,10 @@ export const updateRole = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
+
     const member = await ctx.db.get(args.memberId);
     if (!member) {
       throw new Error("Member not found");
@@ -72,6 +76,10 @@ export const removeMember = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
+
     const member = await ctx.db.get(args.memberId);
     if (!member) {
       throw new Error("Member not found");

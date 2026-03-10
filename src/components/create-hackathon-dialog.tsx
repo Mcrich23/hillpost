@@ -38,6 +38,11 @@ export function CreateHackathonDialog({
       return;
     }
 
+    if (!user?.id) {
+      toast.error("Please sign in first");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const hackathonId = await createHackathon({
@@ -46,8 +51,8 @@ export function CreateHackathonDialog({
         startDate: new Date(startDate).getTime(),
         endDate: new Date(endDate).getTime(),
         submissionFrequencyMinutes: submissionFrequency,
-        userId: user?.id ?? "",
-        userName: user?.fullName ?? user?.username ?? "Unknown",
+        userId: user.id,
+        userName: user.fullName ?? user.username ?? "Unknown",
       });
       toast.success("Hackathon created successfully!");
       resetForm();

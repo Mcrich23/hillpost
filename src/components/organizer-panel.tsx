@@ -59,11 +59,12 @@ function HackathonInfoSection({
   };
 
   const toggleActive = async () => {
+    if (!user?.id) return;
     try {
       await updateHackathon({
         hackathonId,
         isActive: !hackathon.isActive,
-        userId: user?.id ?? "",
+        userId: user.id,
       });
       toast.success(
         hackathon.isActive ? "Hackathon deactivated" : "Hackathon activated"
@@ -154,14 +155,14 @@ function CategoriesSection({
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName || !newDescription) return;
+    if (!newName || !newDescription || !user?.id) return;
     try {
       await createCategory({
         hackathonId,
         name: newName,
         description: newDescription,
         maxScore: newMaxScore,
-        userId: user?.id ?? "",
+        userId: user.id,
       });
       toast.success("Category added");
       setNewName("");
@@ -176,13 +177,14 @@ function CategoriesSection({
   };
 
   const handleEdit = async (categoryId: Id<"categories">) => {
+    if (!user?.id) return;
     try {
       await updateCategory({
         categoryId,
         name: editName,
         description: editDescription,
         maxScore: editMaxScore,
-        userId: user?.id ?? "",
+        userId: user.id,
       });
       toast.success("Category updated");
       setEditingId(null);
@@ -194,8 +196,9 @@ function CategoriesSection({
   };
 
   const handleRemove = async (categoryId: Id<"categories">) => {
+    if (!user?.id) return;
     try {
-      await removeCategory({ categoryId, userId: user?.id ?? "" });
+      await removeCategory({ categoryId, userId: user.id });
       toast.success("Category removed");
     } catch (error) {
       toast.error(
@@ -376,8 +379,9 @@ function MembersSection({
     memberId: Id<"hackathonMembers">,
     newRole: "organizer" | "judge" | "competitor"
   ) => {
+    if (!user?.id) return;
     try {
-      await updateRole({ memberId, role: newRole, userId: user?.id ?? "" });
+      await updateRole({ memberId, role: newRole, userId: user.id });
       toast.success("Role updated");
       setChangingRole(null);
     } catch (error) {
@@ -388,8 +392,9 @@ function MembersSection({
   };
 
   const handleRemove = async (memberId: Id<"hackathonMembers">) => {
+    if (!user?.id) return;
     try {
-      await removeMember({ memberId, userId: user?.id ?? "" });
+      await removeMember({ memberId, userId: user.id });
       toast.success("Member removed");
     } catch (error) {
       toast.error(
