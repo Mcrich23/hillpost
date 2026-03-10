@@ -1,0 +1,116 @@
+import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+
+async function verifyOrganizer(
+  ctx: { auth: { getUserIdentity: () => Promise<{ subject: string } | null> }; db: any },
+  hackathonId: any
+) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const membership = await ctx.db
+    .query("hackathonMembers")
+    .withIndex("by_hackathonId_userId", (q: any) =>
+      q.eq("hackathonId", hackathonId).eq("userId", identity.subject)
+    )
+    .first();
+  if (!membership || membership.role !== "organizer") {
+    throw new Error("Only organizers can manage categories");
+  }
+  return identity;
+}
+
+export const create = mutation({
+  args: {
+    hackathonId: v.id("hackathons"),
+    name: v.string(),
+    description: v.string(),
+    maxScore: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await verifyOrganizer(ctx, args.hackathonId);
+
+    // Get the next order number
+    const existing = await ctx.db
+      .query("categories")
+      .withIndex("by_hackathonId", (q) => q.eq("hackathonId", args.hackathonId))
+      .collect();
+    const maxOrder = existing.reduce((max, c) => Math.max(max, c.order), -1);
+
+    return await ctx.db.insert("categories", {
+      hackathonId: args.hackathonId,
+      name: args.name,
+      description: args.description,
+      maxScore: args.maxScore,
+      order: maxOrder + 1,
+    });
+  },
+});
+
+export const list = query({
+  args: { hackathonId: v.id("hackathons") },
+  handler: async (ctx, args) => {
+    const categories = await ctx.db
+      .query("categories")
+      .withIndex("by_hackathonId", (q) => q.eq("hackathonId", args.hackathonId))
+      .collect();
+    return categories.sort((a, b) => a.order - b.order);
+  },
+});
+
+export const update = mutation({
+  args: {
+    categoryId: v.id("categories"),
+    name: v.optional(v.string()),
+    description: v.optional(v.string()),
+    maxScore: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const category = await ctx.db.get(args.categoryId);
+    if (!category) {
+      throw new Error("Category not found");
+    }
+
+    await verifyOrganizer(ctx, category.hackathonId);
+
+    const { categoryId, ...updates } = args;
+    const filteredUpdates: Record<string, string | number> = {};
+    for (const [key, value] of Object.entries(updates)) {
+      if (value !== undefined) {
+        filteredUpdates[key] = value;
+      }
+    }
+
+    await ctx.db.patch(categoryId, filteredUpdates);
+    return categoryId;
+  },
+});
+
+export const remove = mutation({
+  args: { categoryId: v.id("categories") },
+  handler: async (ctx, args) => {
+    const category = await ctx.db.get(args.categoryId);
+    if (!category) {
+      throw new Error("Category not found");
+    }
+
+    await verifyOrganizer(ctx, category.hackathonId);
+
+    await ctx.db.delete(args.categoryId);
+  },
+});
+
+export const reorder = mutation({
+  args: {
+    hackathonId: v.id("hackathons"),
+    categoryIds: v.array(v.id("categories")),
+  },
+  handler: async (ctx, args) => {
+    await verifyOrganizer(ctx, args.hackathonId);
+
+    await Promise.all(
+      args.categoryIds.map((id, index) => ctx.db.patch(id, { order: index }))
+    );
+  },
+});
