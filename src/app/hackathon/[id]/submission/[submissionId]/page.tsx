@@ -1,24 +1,66 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Layers, Users, Clock } from "lucide-react";
+import { ArrowLeft, ExternalLink, Layers, Users, Clock, Pencil, X } from "lucide-react";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export default function SubmissionDetailPage() {
   const params = useParams();
+  const { user } = useUser();
   const hackathonId = params.id as Id<"hackathons">;
   const submissionId = params.submissionId as Id<"submissions">;
 
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const submission = useQuery(api.submissions.get, { submissionId });
+  const membership = useQuery(api.members.getMyMembership, { hackathonId, userId: user?.id });
+  const updateSubmissionOrganizer = useMutation(api.submissions.updateSubmissionOrganizer);
   
   // We only fetch team if submission is loaded, using undefined check
   const teamId = submission?.teamId;
   const team = useQuery(api.teams.get, teamId ? { teamId } : "skip");
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editProjUrl, setEditProjUrl] = useState("");
+  const [editDemoUrl, setEditDemoUrl] = useState("");
+
+  const startEditing = () => {
+    if (!submission) return;
+    setEditName(submission.name);
+    setEditDesc(submission.description);
+    setEditProjUrl(submission.projectUrl);
+    setEditDemoUrl(submission.demoUrl || "");
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!user?.id || !editName.trim() || !editDesc.trim() || !editProjUrl.trim() || !submission) return;
+    try {
+      await updateSubmissionOrganizer({
+        submissionId: submission._id,
+        name: editName,
+        description: editDesc,
+        projectUrl: editProjUrl,
+        demoUrl: editDemoUrl || undefined,
+        userId: user.id,
+      });
+      toast.success("Submission updated");
+      setIsEditing(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update submission");
+    }
+  };
+  
+  // We only fetch team if submission is loaded, using undefined check
 
   if (hackathon === undefined || submission === undefined || (teamId && team === undefined)) {
     return (
@@ -59,9 +101,20 @@ export default function SubmissionDetailPage() {
 
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Layers className="h-8 w-8 text-emerald-400" />
-              <h1 className="text-3xl font-bold text-white tracking-tight">{submission.name}</h1>
+            <div className="flex items-center gap-3 mb-2 w-full justify-between">
+              <div className="flex items-center gap-3">
+                <Layers className="h-8 w-8 text-emerald-400" />
+                <h1 className="text-3xl font-bold text-white tracking-tight">{submission.name}</h1>
+              </div>
+              {membership?.role === "organizer" && (
+                <button
+                  onClick={startEditing}
+                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+                  title="Edit Submission"
+                >
+                  <Pencil className="h-5 w-5" />
+                </button>
+              )}
             </div>
             
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mt-4">
@@ -150,6 +203,103 @@ export default function SubmissionDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Edit Submission Sheet */}
+      <div
+        className={cn(
+          "fixed inset-0 z-50 flex justify-end transition-all duration-300",
+          isEditing ? "visible opacity-100" : "invisible opacity-0"
+        )}
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+          onClick={() => setIsEditing(false)}
+        />
+        
+        {/* Slide-over panel */}
+        <div
+          className={cn(
+            "relative z-10 w-full max-w-md bg-gray-900 border-l border-gray-800 shadow-2xl h-full flex flex-col transform transition-transform duration-300 ease-in-out",
+            isEditing ? "translate-x-0" : "translate-x-full"
+          )}
+        >
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+              <h2 className="text-lg font-semibold text-white">Edit Submission</h2>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-300">
+                    Project Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-300">
+                    Description
+                  </label>
+                  <textarea
+                    value={editDesc}
+                    onChange={(e) => setEditDesc(e.target.value)}
+                    rows={4}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-300">
+                    Project URL
+                  </label>
+                  <input
+                    type="url"
+                    value={editProjUrl}
+                    onChange={(e) => setEditProjUrl(e.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-300">
+                    Demo URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={editDemoUrl}
+                    onChange={(e) => setEditDemoUrl(e.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-800 p-6 flex justify-end gap-3 shrink-0">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={!editName.trim() || !editDesc.trim() || !editProjUrl.trim()}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save Changes
+              </button>
+            </div>
+        </div>
+      </div>
     </div>
   );
 }
