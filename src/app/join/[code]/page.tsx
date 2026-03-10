@@ -104,13 +104,6 @@ export default function JoinByLinkPage() {
 
   // Already a member — show a friendly message instead of the join form
   if (membership && hackathon) {
-    const roleBadgeClass =
-      membership.role === "organizer"
-        ? "border-purple-500/30 bg-purple-600/20 text-purple-400"
-        : membership.role === "judge"
-          ? "border-blue-500/30 bg-blue-600/20 text-blue-400"
-          : "border-emerald-500/30 bg-emerald-600/20 text-emerald-400";
-
     return (
       <div className="mx-auto max-w-md px-4 py-16">
         <div className="rounded-xl border border-gray-800 bg-gray-900 p-8">
@@ -124,18 +117,6 @@ export default function JoinByLinkPage() {
             <p className="mt-2 text-sm text-gray-400">
               You&apos;re already a member of <span className="font-medium text-white">{hackathon.name}</span>.
             </p>
-          </div>
-
-          <div className="mb-6 flex items-center justify-center gap-2">
-            <span className="text-sm text-gray-400">Your role:</span>
-            <span
-              className={cn(
-                "rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize",
-                roleBadgeClass
-              )}
-            >
-              {membership.role}
-            </span>
           </div>
 
           <div className="flex flex-col gap-3">
