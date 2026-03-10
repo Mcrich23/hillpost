@@ -64,12 +64,12 @@ export function Navbar() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <SignInButton mode="modal">
+              <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                 <button className="rounded-lg px-4 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white">
                   Sign In
                 </button>
               </SignInButton>
-              <SignUpButton mode="modal">
+              <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                 <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500">
                   Sign Up
                 </button>
@@ -117,12 +117,12 @@ export function Navbar() {
           )}
           {!isAuthenticated && !isLoading && (
             <div className="flex flex-col gap-2 pt-2">
-              <SignInButton mode="modal">
+              <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                 <button className="w-full rounded-lg px-4 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white">
                   Sign In
                 </button>
               </SignInButton>
-              <SignUpButton mode="modal">
+              <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                 <button className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500">
                   Sign Up
                 </button>

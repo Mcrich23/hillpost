@@ -1,10 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { SignUpButton } from "@clerk/nextjs";
+import { SignUpButton, useUser } from "@clerk/nextjs";
+import { useConvexAuth } from "convex/react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 
 export function HeroSection() {
+  const { isAuthenticated } = useConvexAuth();
+  const { user } = useUser();
+
   return (
     <section className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden px-4 text-center">
       {/* Background gradient effects */}
@@ -40,12 +44,22 @@ export function HeroSection() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <SignUpButton mode="modal">
-            <button className="group flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/30">
-              Get Started
+          {isAuthenticated && user ? (
+            <Link
+              href="/dashboard"
+              className="group flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/30"
+            >
+              Go to Dashboard
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </button>
-          </SignUpButton>
+            </Link>
+          ) : (
+            <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
+              <button className="group flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/30">
+                Get Started
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </button>
+            </SignUpButton>
+          )}
           <Link
             href="#features"
             className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800/50 px-8 py-3.5 text-base font-semibold text-gray-300 transition-all hover:border-gray-600 hover:bg-gray-700/50 hover:text-white"
