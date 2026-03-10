@@ -59,6 +59,7 @@ export default defineSchema({
     demoUrl: v.optional(v.string()),
     submittedAt: v.number(),
     submittedBy: v.string(),
+    submissionVersion: v.optional(v.number()),
   })
     .index("by_hackathonId", ["hackathonId"])
     .index("by_teamId", ["teamId"])

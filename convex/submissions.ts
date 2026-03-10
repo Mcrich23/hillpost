@@ -61,6 +61,15 @@ export const create = mutation({
       }
     }
 
+    // Calculate submission version
+    const allSubmissions = await ctx.db
+      .query("submissions")
+      .withIndex("by_hackathonId_teamId", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("teamId", args.teamId)
+      )
+      .collect();
+    const submissionVersion = allSubmissions.length + 1;
+
     return await ctx.db.insert("submissions", {
       hackathonId: args.hackathonId,
       teamId: args.teamId,
@@ -70,6 +79,7 @@ export const create = mutation({
       demoUrl: args.demoUrl,
       submittedAt: Date.now(),
       submittedBy: userId,
+      submissionVersion,
     });
   },
 });
@@ -130,5 +140,21 @@ export const getLatestForTeam = query({
       )
       .order("desc")
       .first();
+  },
+});
+
+export const getSubmissionCount = query({
+  args: {
+    hackathonId: v.id("hackathons"),
+    teamId: v.id("teams"),
+  },
+  handler: async (ctx, args) => {
+    const submissions = await ctx.db
+      .query("submissions")
+      .withIndex("by_hackathonId_teamId", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("teamId", args.teamId)
+      )
+      .collect();
+    return submissions.length;
   },
 });

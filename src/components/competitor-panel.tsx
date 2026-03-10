@@ -211,6 +211,10 @@ function SubmitSection({
     api.submissions.getLatestForTeam,
     myTeam ? { hackathonId, teamId: myTeam._id } : "skip"
   );
+  const submissionCount = useQuery(
+    api.submissions.getSubmissionCount,
+    myTeam ? { hackathonId, teamId: myTeam._id } : "skip"
+  );
   const createSubmission = useMutation(api.submissions.create);
 
   const [name, setName] = useState("");
@@ -219,6 +223,20 @@ function SubmitSection({
   const [demoUrl, setDemoUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [hasAutoFilled, setHasAutoFilled] = useState(false);
+
+  const hasExistingSubmission = (submissionCount ?? 0) > 0;
+
+  // Auto-fill form from latest submission
+  useEffect(() => {
+    if (latestSubmission && !hasAutoFilled) {
+      setName(latestSubmission.name);
+      setDescription(latestSubmission.description);
+      setProjectUrl(latestSubmission.projectUrl);
+      setDemoUrl(latestSubmission.demoUrl ?? "");
+      setHasAutoFilled(true);
+    }
+  }, [latestSubmission, hasAutoFilled]);
 
   useEffect(() => {
     if (!latestSubmission || !hackathon.submissionFrequencyMinutes) return;
@@ -250,11 +268,8 @@ function SubmitSection({
         demoUrl: demoUrl || undefined,
         userId: user.id,
       });
-      toast.success("Submission created!");
-      setName("");
-      setDescription("");
-      setProjectUrl("");
-      setDemoUrl("");
+      toast.success(hasExistingSubmission ? "Project resubmitted!" : "Submission created!");
+      setHasAutoFilled(false);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to submit"
@@ -270,10 +285,17 @@ function SubmitSection({
 
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-      <h3 className="mb-4 text-lg font-semibold text-white">
-        <Send className="mr-2 inline h-5 w-5 text-emerald-400" />
-        Submit Project
-      </h3>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white">
+          <Send className="mr-2 inline h-5 w-5 text-emerald-400" />
+          {hasExistingSubmission ? "Resubmit Project" : "Submit Project"}
+        </h3>
+        {hasExistingSubmission && (
+          <span className="rounded-full bg-emerald-600/20 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+            {submissionCount} submission{submissionCount !== 1 ? "s" : ""} so far
+          </span>
+        )}
+      </div>
 
       {!myTeam ? (
         <p className="text-sm text-gray-500">
@@ -348,7 +370,11 @@ function SubmitSection({
               disabled={isSubmitting || isOnCooldown}
               className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-500 disabled:opacity-50"
             >
-              {isSubmitting ? "Submitting..." : "Submit Project"}
+              {isSubmitting
+                ? "Submitting..."
+                : hasExistingSubmission
+                  ? "Resubmit Project"
+                  : "Submit Project"}
             </button>
           </form>
         </>
@@ -371,9 +397,16 @@ function MySubmissionsSection({
 
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-      <h3 className="mb-4 text-lg font-semibold text-white">
-        My Submissions
-      </h3>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white">
+          My Submissions
+        </h3>
+        {submissions && submissions.length > 0 && (
+          <span className="rounded-full bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-300">
+            {submissions.length} total
+          </span>
+        )}
+      </div>
       {!myTeam ? (
         <p className="text-sm text-gray-500">Join a team to see submissions.</p>
       ) : !submissions ? (
@@ -389,7 +422,14 @@ function MySubmissionsSection({
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-medium text-white">{sub.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-white">{sub.name}</p>
+                    {sub.submissionVersion && (
+                      <span className="rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-400">
+                        v{sub.submissionVersion}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-400">{sub.description}</p>
                 </div>
                 <div className="flex gap-2">

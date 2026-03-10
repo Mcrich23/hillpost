@@ -61,6 +61,11 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                       <span className="rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-300">
                         {teamMap.get(sub.teamId) ?? "Unknown Team"}
                       </span>
+                      {sub.submissionVersion && (
+                        <span className="rounded-full bg-gray-600 px-2 py-0.5 text-xs text-gray-400">
+                          v{sub.submissionVersion}
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1 text-sm text-gray-400">
                       {sub.description}
