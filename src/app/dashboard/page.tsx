@@ -97,7 +97,11 @@ export default function DashboardPage() {
               />
             ))}
           </div>
-        ) : hackathons.filter((h): h is NonNullable<typeof h> => h !== null).length === 0 ? (
+        ) : (() => {
+          const validHackathons = hackathons.filter(
+            (h): h is NonNullable<typeof h> => h !== null
+          );
+          return validHackathons.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-900 py-16">
             <Sparkles className="mb-4 h-16 w-16 text-gray-700" />
             <h3 className="text-lg font-medium text-gray-400">
@@ -109,9 +113,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {hackathons
-              .filter((h): h is NonNullable<typeof h> => h !== null)
-              .map((h) => (
+            {validHackathons.map((h) => (
               <button
                 key={h._id}
                 onClick={() => router.push(`/hackathon/${h._id}`)}
@@ -155,7 +157,8 @@ export default function DashboardPage() {
               </button>
             ))}
           </div>
-        )}
+        );
+        })()}
       </div>
 
       <CreateHackathonDialog
