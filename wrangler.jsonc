@@ -9,5 +9,10 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
+  },
+  "vars": {
+    "NEXT_PUBLIC_CONVEX_URL": "https://frugal-weasel-98.convex.cloud",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsuaGlsbHBvc3QuZGV2JA",
+    "NEXT_PUBLIC_CONVEX_SITE_URL": "https://frugal-weasel-98.convex.site"
   }
 }
