@@ -375,7 +375,7 @@ function HackathonInfoSection({
                 )}
               </button>
               <QrCodeButton
-                url={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${hackathon.competitorJoinCode}`}
+                path={`/join/${hackathon.competitorJoinCode}`}
                 label="Competitor Join QR"
               />
             </div>
@@ -411,7 +411,7 @@ function HackathonInfoSection({
                 )}
               </button>
               <QrCodeButton
-                url={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${hackathon.judgeJoinCode}`}
+                path={`/join/${hackathon.judgeJoinCode}`}
                 label="Judge Join QR"
               />
             </div>

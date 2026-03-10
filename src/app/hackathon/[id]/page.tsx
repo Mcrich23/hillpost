@@ -367,7 +367,7 @@ export default function HackathonDetailPage() {
                     )}
                   </button>
                   <QrCodeButton
-                    url={`${typeof window !== "undefined" ? window.location.origin : ""}/join/${hackathon.competitorJoinCode}`}
+                    path={`/join/${hackathon.competitorJoinCode}`}
                     label="Competitor Join QR"
                   />
                 </div>

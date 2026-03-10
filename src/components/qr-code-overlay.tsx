@@ -1,21 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { QrCode, X } from "lucide-react";
 
 interface QrCodeOverlayProps {
-  url: string;
+  /** Path portion of the URL, e.g. "/join/ABC123". Origin is resolved client-side. */
+  path: string;
   label: string;
 }
 
-export function QrCodeButton({ url, label }: QrCodeOverlayProps) {
+export function QrCodeButton({ path, label }: QrCodeOverlayProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [fullUrl, setFullUrl] = useState("");
+
+  const open = useCallback(() => {
+    setFullUrl(`${window.location.origin}${path}`);
+    setIsOpen(true);
+  }, [path]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
 
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={open}
         className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
         title={`Show QR code for ${label}`}
       >
@@ -41,11 +57,11 @@ export function QrCodeButton({ url, label }: QrCodeOverlayProps) {
             <h3 className="text-lg font-semibold text-white">{label}</h3>
 
             <div className="rounded-xl bg-white p-4">
-              <QRCodeSVG value={url} size={256} />
+              <QRCodeSVG value={fullUrl} size={256} />
             </div>
 
             <p className="max-w-[280px] break-all text-center text-xs text-gray-400">
-              {url}
+              {fullUrl}
             </p>
           </div>
         </div>
