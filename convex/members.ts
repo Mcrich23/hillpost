@@ -138,3 +138,39 @@ export const removeMember = mutation({
     await ctx.db.delete(args.memberId);
   },
 });
+
+export const leaveHackathon = mutation({
+  args: {
+    hackathonId: v.id("hackathons"),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const hackathon = await ctx.db.get(args.hackathonId);
+    if (!hackathon) {
+      throw new Error("Hackathon not found");
+    }
+
+    // The original creator cannot leave their own hackathon
+    if (hackathon.organizerId === args.userId) {
+      throw new Error("The creator cannot leave their own hackathon");
+    }
+
+    // Find the membership to delete
+    const member = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId)
+      )
+      .first();
+
+    if (!member) {
+      throw new Error("You are not a member of this hackathon");
+    }
+
+    await ctx.db.delete(member._id);
+  },
+});

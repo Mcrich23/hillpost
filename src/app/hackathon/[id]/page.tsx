@@ -1,9 +1,9 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -20,6 +20,7 @@ import {
   Layers,
   Users,
   Star,
+  LogOut,
 } from "lucide-react";
 import { OrganizerPanel } from "@/components/organizer-panel";
 import { CompetitorPanel } from "@/components/competitor-panel";
@@ -38,6 +39,9 @@ export default function HackathonDetailPage() {
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
+  const leaveHackathon = useMutation(api.members.leaveHackathon);
+  const router = useRouter();
+  const [isLeaving, setIsLeaving] = useState(false);
 
   const [activeTab, setActiveTab] = React.useState<Tab>("overview");
 
@@ -62,6 +66,21 @@ export default function HackathonDetailPage() {
       </div>
     );
   }
+
+  const handleLeave = async () => {
+    if (!user?.id || hackathon?.organizerId === user.id) return;
+    
+    if (confirm("Are you sure you want to leave this hackathon?")) {
+      setIsLeaving(true);
+      try {
+        await leaveHackathon({ hackathonId, userId: user.id });
+        router.push("/dashboard");
+      } catch (error) {
+        console.error("Failed to leave hackathon:", error);
+        setIsLeaving(false);
+      }
+    }
+  };
 
   if (!hackathon) {
     return (
@@ -131,17 +150,29 @@ export default function HackathonDetailPage() {
             <h1 className="text-3xl font-bold text-white">{hackathon.name}</h1>
             <p className="mt-1 text-gray-400">{hackathon.description}</p>
           </div>
-          {hackathon.isActive ? (
-            <span className="flex items-center gap-1 rounded-full bg-emerald-600/20 px-3 py-1 text-sm text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              Active
-            </span>
-          ) : (
-            <span className="flex items-center gap-1 rounded-full bg-gray-600/20 px-3 py-1 text-sm text-gray-400">
-              <span className="h-2 w-2 rounded-full bg-gray-400" />
-              Inactive
-            </span>
-          )}
+          <div className="flex flex-col items-end gap-2">
+            {hackathon.isActive ? (
+              <span className="flex items-center gap-1 rounded-full bg-emerald-600/20 px-3 py-1 text-sm text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                Active
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 rounded-full bg-gray-600/20 px-3 py-1 text-sm text-gray-400">
+                <span className="h-2 w-2 rounded-full bg-gray-400" />
+                Inactive
+              </span>
+            )}
+            {membership && hackathon.organizerId !== user?.id && (
+              <button
+                onClick={handleLeave}
+                disabled={isLeaving}
+                className="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 outline-none transition-colors hover:bg-red-500/20 disabled:opacity-50"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                {isLeaving ? "Leaving..." : "Leave Hackathon"}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-400">
