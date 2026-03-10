@@ -35,13 +35,6 @@ export function Navbar() {
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
               </Link>
-              <Link
-                href="/leaderboard"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
-              >
-                <Trophy className="h-4 w-4" />
-                Leaderboard
-              </Link>
             </>
           )}
         </div>

@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   Trophy,
@@ -18,6 +18,8 @@ import {
   Calendar,
   Clock,
   Layers,
+  Users,
+  Star,
 } from "lucide-react";
 import { OrganizerPanel } from "@/components/organizer-panel";
 import { CompetitorPanel } from "@/components/competitor-panel";
@@ -32,8 +34,26 @@ export default function HackathonDetailPage() {
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId, userId: user?.id });
+  
+  const submissions = useQuery(api.submissions.list, { hackathonId });
+  const allMembers = useQuery(api.members.listMembers, { hackathonId });
+  const categories = useQuery(api.categories.list, { hackathonId });
 
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [activeTab, setActiveTab] = React.useState<Tab>("overview");
+
+  const role = membership?.role;
+
+  // Calculate pending submissions for the judge badge
+  const pendingSubmissionsCount = React.useMemo(() => {
+    if (role !== "judge" && role !== "organizer") return 0;
+    if (membership?.status === "pending" || membership?.status === "rejected") return 0;
+    if (!submissions || !user?.id) return 0;
+
+    return submissions.filter((sub) => {
+      const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
+      return !hasJudged;
+    }).length;
+  }, [role, membership?.status, submissions, user?.id]);
 
   if (hackathon === undefined || membership === undefined) {
     return (
@@ -60,9 +80,7 @@ export default function HackathonDetailPage() {
     );
   }
 
-  const role = membership?.role;
-
-  const tabs: { id: Tab; label: string; icon: React.ReactNode; show: boolean }[] = [
+  const tabs: { id: Tab; label: string; icon: React.ReactNode; show: boolean; badge?: number }[] = [
     {
       id: "overview",
       label: "Overview",
@@ -92,6 +110,7 @@ export default function HackathonDetailPage() {
       label: "Judge",
       icon: <Gavel className="h-4 w-4" />,
       show: role === "judge" || role === "organizer",
+      badge: pendingSubmissionsCount,
     },
   ];
 
@@ -161,7 +180,7 @@ export default function HackathonDetailPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+                "relative flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
                 activeTab === tab.id
                   ? "bg-gray-800 text-white"
                   : "text-gray-400 hover:text-white"
@@ -169,41 +188,154 @@ export default function HackathonDetailPage() {
             >
               {tab.icon}
               {tab.label}
+              {tab.badge !== undefined && tab.badge > 0 && (
+                <span className="ml-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                  {tab.badge}
+                </span>
+              )}
             </button>
           ))}
       </div>
 
       {/* Tab content */}
       {activeTab === "overview" && (
-        <div className="space-y-4">
-          <Link
-            href={`/hackathon/${hackathonId}/leaderboard`}
-            className="group flex items-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-5 transition-colors hover:border-emerald-500/50"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-600/20 text-yellow-400">
-              <Trophy className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="font-semibold text-white group-hover:text-emerald-400">
-                View Leaderboard
+        <div className="space-y-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-center transition-colors hover:border-gray-700">
+              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600/20 text-blue-400">
+                <Users className="h-5 w-5" />
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {allMembers?.filter((m) => m.role === "competitor").length ?? "-"}
               </p>
-              <p className="text-sm text-gray-400">
-                See real-time rankings and scores
-              </p>
+              <p className="text-xs text-gray-500">Builders</p>
             </div>
-          </Link>
+            
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-center transition-colors hover:border-gray-700">
+              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600/20 text-emerald-400">
+                <Layers className="h-5 w-5" />
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {submissions?.length ?? "-"}
+              </p>
+              <p className="text-xs text-gray-500">Projects</p>
+            </div>
+            
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-center transition-colors hover:border-gray-700">
+              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-purple-600/20 text-purple-400">
+                <Star className="h-5 w-5" />
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {categories?.length ?? "-"}
+              </p>
+              <p className="text-xs text-gray-500">Categories</p>
+            </div>
+            
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-center transition-colors hover:border-gray-700">
+              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-600/20 text-yellow-400">
+                <Clock className="h-5 w-5" />
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24)))}
+              </p>
+              <p className="text-xs text-gray-500">Days Left</p>
+            </div>
+          </div>
 
-          {role === "organizer" && (
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-              <h3 className="mb-2 text-sm font-medium text-gray-300">
-                Competitor Join Code
-              </h3>
-              <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-lg tracking-widest text-emerald-400">
-                {hackathon.competitorJoinCode}
-              </code>
-              <p className="mt-2 text-xs text-gray-500">
-                Share this code with participants to join
-              </p>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Link
+              href={`/hackathon/${hackathonId}/leaderboard`}
+              className="group flex flex-col justify-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-6 transition-colors hover:border-emerald-500/50"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-600/20 text-yellow-400">
+                  <Trophy className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="font-semibold text-lg text-white group-hover:text-emerald-400">
+                    View Leaderboard
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    See real-time rankings and scores
+                  </p>
+                </div>
+              </div>
+            </Link>
+
+            {role === "judge" && membership?.status === "approved" ? (
+              <div className="flex flex-col justify-center rounded-xl border border-gray-800 bg-gray-900 p-6">
+                <h3 className="mb-4 text-sm font-medium text-gray-300">
+                  Judging Status
+                </h3>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600/20 text-emerald-400">
+                    <Gavel className="h-6 w-6" />
+                  </div>
+                  <div>
+                    {pendingSubmissionsCount > 0 ? (
+                      <>
+                        <p className="text-xl font-bold text-white">
+                          {pendingSubmissionsCount} Project{pendingSubmissionsCount === 1 ? "" : "s"}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          Waiting to be scored
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xl font-bold text-white">All Caught Up</p>
+                        <p className="text-sm text-gray-400">
+                          Check back later for more
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {pendingSubmissionsCount > 0 && (
+                  <button
+                    onClick={() => setActiveTab("judge")}
+                    className="mt-6 w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+                  >
+                    Start Judging
+                  </button>
+                )}
+              </div>
+            ) : (role === "organizer" || role === "competitor") ? (
+              <div className="flex flex-col justify-center rounded-xl border border-gray-800 bg-gray-900 p-6">
+                <h3 className="mb-2 text-sm font-medium text-gray-300">
+                  Competitor Join Code
+                </h3>
+                <div className="flex items-center gap-3">
+                  <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-xl tracking-widest text-emerald-400">
+                    {hackathon.competitorJoinCode}
+                  </code>
+                </div>
+                <p className="mt-2 text-xs text-gray-500">
+                  Share this code with teammates to grant them competitor access.
+                </p>
+              </div>
+            ) : null}
+          </div>
+
+          {categories && categories.length > 0 && (
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <div className="mb-4 flex items-center justify-between border-b border-gray-800 pb-4">
+                <h3 className="text-lg font-semibold text-white">Judging Criteria</h3>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {categories.map((cat) => (
+                  <div key={cat._id} className="rounded-lg border border-gray-700 bg-gray-800 p-4 transition-colors hover:border-gray-600">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="font-medium text-white">{cat.name}</p>
+                      <span className="text-xs font-medium text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                        {cat.maxScore} pts
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-400 leading-relaxed">{cat.description}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
