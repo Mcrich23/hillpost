@@ -21,6 +21,27 @@ export const getMyMembership = query({
   },
 });
 
+export const syncUserProfile = mutation({
+  args: {
+    hackathonId: v.id("hackathons"),
+    userImageUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUserId(ctx);
+
+    const membership = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+      )
+      .first();
+
+    if (membership && membership.userImageUrl !== args.userImageUrl) {
+      await ctx.db.patch(membership._id, { userImageUrl: args.userImageUrl });
+    }
+  },
+});
+
 export const listMembers = query({
   args: { hackathonId: v.id("hackathons") },
   handler: async (ctx, args) => {

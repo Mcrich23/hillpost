@@ -23,6 +23,7 @@ export const create = mutation({
     const identity = await requireAuthIdentity(ctx);
     const userId = identity.subject;
     const userName = identity.name ?? identity.nickname ?? "Unknown";
+    const userImageUrl = identity.pictureUrl ?? undefined;
 
     let competitorJoinCode = generateJoinCode();
     let judgeJoinCode = generateJoinCode();
@@ -66,6 +67,7 @@ export const create = mutation({
       hackathonId,
       userId,
       userName,
+      userImageUrl,
       role: "organizer",
       status: "approved",
       joinedAt: now,
@@ -191,6 +193,7 @@ export const join = mutation({
     const identity = await requireAuthIdentity(ctx);
     const userId = identity.subject;
     const userName = identity.name ?? identity.nickname ?? "Unknown";
+    const userImageUrl = identity.pictureUrl ?? undefined;
 
     let hackathon = await ctx.db
       .query("hackathons")
@@ -228,6 +231,7 @@ export const join = mutation({
       hackathonId: hackathon._id,
       userId,
       userName,
+      userImageUrl,
       role,
       status,
       joinedAt: Date.now(),
