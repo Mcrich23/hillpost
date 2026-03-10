@@ -55,18 +55,12 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-        <h3 className="mb-4 text-lg font-semibold text-white">
-          <Layers className="mr-2 inline h-5 w-5 text-emerald-400" />
-          Submitted Projects
-        </h3>
-
-        {!submissions || !teams ? (
-          <p className="text-sm text-gray-500">Loading submissions...</p>
-        ) : submissions.length === 0 ? (
-          <p className="text-sm text-gray-500">No projects submitted yet.</p>
-        ) : (
-          <div className="space-y-3">
+      {!submissions || !teams ? (
+        <p className="text-sm text-gray-500">Loading submissions...</p>
+      ) : submissions.length === 0 ? (
+        <p className="text-sm text-gray-500">No projects submitted yet.</p>
+      ) : (
+        <div className="space-y-3">
             {submissions.map((sub) => (
               <div
                 key={sub._id}
@@ -120,7 +114,6 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
             ))}
           </div>
         )}
-      </div>
 
       {/* Edit Submission Sheet */}
       <div
