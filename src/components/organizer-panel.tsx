@@ -17,7 +17,9 @@ import {
   Shield,
   UserX,
   ChevronUp,
+  Link as LinkIcon,
 } from "lucide-react";
+import { QrCodeButton } from "@/components/qr-code-overlay";
 
 interface OrganizerPanelProps {
   hackathonId: Id<"hackathons">;
@@ -56,6 +58,8 @@ function HackathonInfoSection({
   const { user } = useUser();
   const [copiedCompetitor, setCopiedCompetitor] = useState(false);
   const [copiedJudge, setCopiedJudge] = useState(false);
+  const [copiedCompetitorLink, setCopiedCompetitorLink] = useState(false);
+  const [copiedJudgeLink, setCopiedJudgeLink] = useState(false);
   
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(hackathon.name);
@@ -75,17 +79,53 @@ function HackathonInfoSection({
   const [newCooldown, setNewCooldown] = useState(hackathon.submissionFrequencyMinutes);
 
   const copyCompetitorCode = async () => {
-    await navigator.clipboard.writeText(hackathon.competitorJoinCode);
-    setCopiedCompetitor(true);
-    toast.success("Competitor code copied!");
-    setTimeout(() => setCopiedCompetitor(false), 2000);
+    try {
+      await navigator.clipboard.writeText(hackathon.competitorJoinCode);
+      setCopiedCompetitor(true);
+      toast.success("Competitor code copied!");
+      setTimeout(() => setCopiedCompetitor(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy competitor code to clipboard:", error);
+      toast.error("Failed to copy code. Please try again.");
+    }
   };
 
   const copyJudgeCode = async () => {
-    await navigator.clipboard.writeText(hackathon.judgeJoinCode);
-    setCopiedJudge(true);
-    toast.success("Judge code copied!");
-    setTimeout(() => setCopiedJudge(false), 2000);
+    try {
+      await navigator.clipboard.writeText(hackathon.judgeJoinCode);
+      setCopiedJudge(true);
+      toast.success("Judge code copied!");
+      setTimeout(() => setCopiedJudge(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy judge code to clipboard:", error);
+      toast.error("Failed to copy code. Please try again.");
+    }
+  };
+
+  const copyCompetitorLink = async () => {
+    try {
+      const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
+      await navigator.clipboard.writeText(link);
+      setCopiedCompetitorLink(true);
+      toast.success("Competitor join link copied!");
+      setTimeout(() => setCopiedCompetitorLink(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy competitor link to clipboard:", error);
+      toast.error("Failed to copy link. Please try again.");
+    }
+  };
+
+  const copyJudgeLink = async () => {
+    try {
+      const link = `${window.location.origin}/join/${hackathon.judgeJoinCode}`;
+      await navigator.clipboard.writeText(link);
+      setCopiedJudgeLink(true);
+      toast.success("Judge join link copied!");
+      setTimeout(() => setCopiedJudgeLink(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy judge link to clipboard:", error);
+      toast.error("Failed to copy link. Please try again.");
+    }
   };
 
   const toggleActive = async () => {
@@ -336,6 +376,8 @@ function HackathonInfoSection({
               <button
                 onClick={copyCompetitorCode}
                 className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                title="Copy code"
+                aria-label="Copy competitor code"
               >
                 {copiedCompetitor ? (
                   <Check className="h-4 w-4 text-emerald-400" />
@@ -343,6 +385,22 @@ function HackathonInfoSection({
                   <Copy className="h-4 w-4" />
                 )}
               </button>
+              <button
+                onClick={copyCompetitorLink}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                title="Copy join link"
+                aria-label="Copy competitor join link"
+              >
+                {copiedCompetitorLink ? (
+                  <Check className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <LinkIcon className="h-4 w-4" />
+                )}
+              </button>
+              <QrCodeButton
+                path={`/join/${hackathon.competitorJoinCode}`}
+                label="Competitor Join QR"
+              />
             </div>
           </div>
           <div className="flex-1">
@@ -356,6 +414,8 @@ function HackathonInfoSection({
               <button
                 onClick={copyJudgeCode}
                 className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                title="Copy code"
+                aria-label="Copy judge code"
               >
                 {copiedJudge ? (
                   <Check className="h-4 w-4 text-emerald-400" />
@@ -363,6 +423,22 @@ function HackathonInfoSection({
                   <Copy className="h-4 w-4" />
                 )}
               </button>
+              <button
+                onClick={copyJudgeLink}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                title="Copy join link"
+                aria-label="Copy judge join link"
+              >
+                {copiedJudgeLink ? (
+                  <Check className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <LinkIcon className="h-4 w-4" />
+                )}
+              </button>
+              <QrCodeButton
+                path={`/join/${hackathon.judgeJoinCode}`}
+                label="Judge Join QR"
+              />
             </div>
           </div>
         </div>

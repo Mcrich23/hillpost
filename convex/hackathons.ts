@@ -204,7 +204,7 @@ export const join = mutation({
       )
       .first();
     if (existing) {
-      throw new Error("Already a member of this hackathon");
+      return { hackathonId: hackathon._id, alreadyMember: true };
     }
 
     await ctx.db.insert("hackathonMembers", {
@@ -216,7 +216,7 @@ export const join = mutation({
       joinedAt: Date.now(),
     });
 
-    return hackathon._id;
+    return { hackathonId: hackathon._id, alreadyMember: false };
   },
 });
 

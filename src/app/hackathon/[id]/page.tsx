@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import React, { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Trophy,
   Settings,
@@ -20,12 +21,15 @@ import {
   Layers,
   Users,
   Star,
+  Check,
+  Link as LinkIcon,
   LogOut,
 } from "lucide-react";
 import { OrganizerPanel } from "@/components/organizer-panel";
 import { CompetitorPanel } from "@/components/competitor-panel";
 import { JudgePanel } from "@/components/judge-panel";
 import { PublicSubmissions } from "@/components/public-submissions";
+import { QrCodeButton } from "@/components/qr-code-overlay";
 
 type Tab = "overview" | "submissions"| "compete" | "judge" | "manage";
 
@@ -44,8 +48,23 @@ export default function HackathonDetailPage() {
   const [isLeaving, setIsLeaving] = useState(false);
 
   const [activeTab, setActiveTab] = React.useState<Tab>("overview");
+  const [copiedJoinLink, setCopiedJoinLink] = useState(false);
 
   const role = membership?.role;
+
+  const copyCompetitorJoinLink = async () => {
+    if (!hackathon) return;
+    try {
+      const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
+      await navigator.clipboard.writeText(link);
+      setCopiedJoinLink(true);
+      toast.success("Join link copied!");
+      setTimeout(() => setCopiedJoinLink(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy join link to clipboard:", error);
+      toast.error("Failed to copy join link. Please try again.");
+    }
+  };
 
   // Calculate pending submissions for the judge badge
   const pendingSubmissionsCount = React.useMemo(() => {
@@ -362,9 +381,25 @@ export default function HackathonDetailPage() {
                   <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-xl tracking-widest text-emerald-400">
                     {hackathon.competitorJoinCode}
                   </code>
+                  <button
+                    onClick={copyCompetitorJoinLink}
+                    className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                    title="Copy join link"
+                    aria-label="Copy join link"
+                  >
+                    {copiedJoinLink ? (
+                      <Check className="h-4 w-4 text-emerald-400" />
+                    ) : (
+                      <LinkIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                  <QrCodeButton
+                    path={`/join/${hackathon.competitorJoinCode}`}
+                    label="Competitor Join QR"
+                  />
                 </div>
                 <p className="mt-2 text-xs text-gray-500">
-                  Share this code with teammates to grant them competitor access.
+                  Share this code, copy the join link, or show the QR code to invite competitors.
                 </p>
               </div>
             ) : null}
