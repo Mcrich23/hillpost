@@ -25,6 +25,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
   const teams = useQuery(api.teams.list, { hackathonId });
+  const membership = useQuery(api.members.getMyMembership, { hackathonId, userId: user?.id });
   const [expandedId, setExpandedId] = useState<Id<"submissions"> | null>(null);
   const [view, setView] = useState<"pending" | "judged">("pending");
 
@@ -36,6 +37,36 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
     const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
     return view === "pending" ? !hasJudged : hasJudged;
   });
+
+  if (membership === undefined) {
+    return <p className="text-sm text-gray-500">Loading...</p>;
+  }
+
+  if (membership?.role === "judge" && membership?.status === "pending") {
+    return (
+      <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-8 text-center">
+        <h3 className="mb-2 text-lg font-semibold text-yellow-500">
+          Pending Approval
+        </h3>
+        <p className="text-sm text-yellow-400/80">
+          Your judge application is currently pending approval by the organizer. You will be able to start scoring projects once you are approved.
+        </p>
+      </div>
+    );
+  }
+
+  if (membership?.role === "judge" && membership?.status === "rejected") {
+    return (
+      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-8 text-center">
+        <h3 className="mb-2 text-lg font-semibold text-red-500">
+          Application Rejected
+        </h3>
+        <p className="text-sm text-red-400/80">
+          Unfortunately, your application to be a judge for this hackathon was not approved.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -23,7 +23,6 @@ export function JoinHackathonDialog({
   const joinHackathon = useMutation(api.hackathons.join);
 
   const [joinCode, setJoinCode] = useState("");
-  const [role, setRole] = useState<"judge" | "competitor">("competitor");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -44,13 +43,11 @@ export function JoinHackathonDialog({
     try {
       const hackathonId = await joinHackathon({
         joinCode: joinCode.trim(),
-        role,
         userId: user.id,
         userName: user.fullName ?? user.username ?? "Unknown",
       });
       toast.success("Successfully joined the hackathon!");
       setJoinCode("");
-      setRole("competitor");
       onClose();
       router.push(`/hackathon/${hackathonId}`);
     } catch (error) {
@@ -90,47 +87,12 @@ export function JoinHackathonDialog({
               onChange={(e) => setJoinCode(e.target.value.slice(0, 6))}
               placeholder="Enter 6-character code"
               maxLength={6}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-center text-lg font-mono tracking-widest text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="w-full mb-4 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-center text-lg font-mono tracking-widest text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
               required
             />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              Join as
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setRole("competitor")}
-                className={cn(
-                  "rounded-lg border px-4 py-3 text-sm font-medium transition-colors",
-                  role === "competitor"
-                    ? "border-emerald-500 bg-emerald-600/20 text-emerald-400"
-                    : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
-                )}
-              >
-                🏗️ Competitor
-                <p className="mt-1 text-xs text-gray-500">
-                  Build & submit projects
-                </p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("judge")}
-                className={cn(
-                  "rounded-lg border px-4 py-3 text-sm font-medium transition-colors",
-                  role === "judge"
-                    ? "border-emerald-500 bg-emerald-600/20 text-emerald-400"
-                    : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
-                )}
-              >
-                ⚖️ Judge
-                <p className="mt-1 text-xs text-gray-500">
-                  Score submissions
-                </p>
-              </button>
-            </div>
+            <p className="text-xs text-gray-400 text-center">
+              Your role will be assigned based on the join code provided by the organizer.
+            </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">

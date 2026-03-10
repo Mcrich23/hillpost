@@ -26,19 +26,28 @@ export const create = mutation({
     }
     const userId = args.userId;
 
-    let joinCode = generateJoinCode();
-    // Ensure uniqueness
-    let existing = await ctx.db
-      .query("hackathons")
-      .withIndex("by_joinCode", (q) => q.eq("joinCode", joinCode))
-      .first();
-    while (existing) {
-      joinCode = generateJoinCode();
-      existing = await ctx.db
+    let competitorJoinCode = generateJoinCode();
+    let judgeJoinCode = generateJoinCode();
+
+    // Ensure uniqueness for both
+    const ensureUnique = async (code: string, field: "competitorJoinCode" | "judgeJoinCode") => {
+      let uniqueCode = code;
+      let existing = await ctx.db
         .query("hackathons")
-        .withIndex("by_joinCode", (q) => q.eq("joinCode", joinCode))
+        .withIndex(`by_${field}` as any, (q) => q.eq(field, uniqueCode))
         .first();
-    }
+      while (existing) {
+        uniqueCode = generateJoinCode();
+        existing = await ctx.db
+          .query("hackathons")
+          .withIndex(`by_${field}` as any, (q) => q.eq(field, uniqueCode))
+          .first();
+      }
+      return uniqueCode;
+    };
+
+    competitorJoinCode = await ensureUnique(competitorJoinCode, "competitorJoinCode");
+    judgeJoinCode = await ensureUnique(judgeJoinCode, "judgeJoinCode");
 
     const now = Date.now();
     const hackathonId = await ctx.db.insert("hackathons", {
@@ -49,7 +58,8 @@ export const create = mutation({
       endDate: args.endDate,
       submissionFrequencyMinutes: args.submissionFrequencyMinutes ?? 60,
       isActive: true,
-      joinCode,
+      competitorJoinCode,
+      judgeJoinCode,
       createdAt: now,
     });
 
@@ -59,6 +69,7 @@ export const create = mutation({
       userId,
       userName: args.userName,
       role: "organizer",
+      status: "approved",
       joinedAt: now,
     });
 
@@ -155,10 +166,6 @@ export const update = mutation({
 export const join = mutation({
   args: {
     joinCode: v.string(),
-    role: v.union(
-      v.literal("judge"),
-      v.literal("competitor")
-    ),
     userId: v.string(),
     userName: v.string(),
   },
@@ -168,10 +175,23 @@ export const join = mutation({
     }
     const userId = args.userId;
 
-    const hackathon = await ctx.db
+    let hackathon = await ctx.db
       .query("hackathons")
-      .withIndex("by_joinCode", (q) => q.eq("joinCode", args.joinCode))
+      .withIndex("by_competitorJoinCode", (q) => q.eq("competitorJoinCode", args.joinCode))
       .first();
+    
+    let role: "competitor" | "judge" = "competitor";
+    let status: "approved" | "pending" | "rejected" = "approved";
+
+    if (!hackathon) {
+      hackathon = await ctx.db
+        .query("hackathons")
+        .withIndex("by_judgeJoinCode", (q) => q.eq("judgeJoinCode", args.joinCode))
+        .first();
+      role = "judge";
+      status = "pending";
+    }
+
     if (!hackathon) {
       throw new Error("Invalid join code");
     }
@@ -191,7 +211,8 @@ export const join = mutation({
       hackathonId: hackathon._id,
       userId,
       userName: args.userName,
-      role: args.role,
+      role,
+      status,
       joinedAt: Date.now(),
     });
 
@@ -202,9 +223,16 @@ export const join = mutation({
 export const getByJoinCode = query({
   args: { joinCode: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    let hackathon = await ctx.db
       .query("hackathons")
-      .withIndex("by_joinCode", (q) => q.eq("joinCode", args.joinCode))
+      .withIndex("by_competitorJoinCode", (q) => q.eq("competitorJoinCode", args.joinCode))
       .first();
+    if (!hackathon) {
+      hackathon = await ctx.db
+        .query("hackathons")
+        .withIndex("by_judgeJoinCode", (q) => q.eq("judgeJoinCode", args.joinCode))
+        .first();
+    }
+    return hackathon;
   },
 });

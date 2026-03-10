@@ -10,10 +10,12 @@ export default defineSchema({
     endDate: v.number(),
     submissionFrequencyMinutes: v.number(),
     isActive: v.boolean(),
-    joinCode: v.string(),
+    competitorJoinCode: v.string(),
+    judgeJoinCode: v.string(),
     createdAt: v.number(),
   })
-    .index("by_joinCode", ["joinCode"])
+    .index("by_competitorJoinCode", ["competitorJoinCode"])
+    .index("by_judgeJoinCode", ["judgeJoinCode"])
     .index("by_organizerId", ["organizerId"]),
 
   hackathonMembers: defineTable({
@@ -26,6 +28,7 @@ export default defineSchema({
       v.literal("competitor")
     ),
     teamId: v.optional(v.id("teams")),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected")),
     joinedAt: v.number(),
   })
     .index("by_hackathonId", ["hackathonId"])

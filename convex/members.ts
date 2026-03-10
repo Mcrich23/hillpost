@@ -70,6 +70,38 @@ export const updateRole = mutation({
   },
 });
 
+export const updateStatus = mutation({
+  args: {
+    memberId: v.id("hackathonMembers"),
+    status: v.union(v.literal("approved"), v.literal("rejected")),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (!args.userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const member = await ctx.db.get(args.memberId);
+    if (!member) {
+      throw new Error("Member not found");
+    }
+
+    // Verify caller is an organizer
+    const callerMembership = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", member.hackathonId).eq("userId", args.userId)
+      )
+      .first();
+    if (!callerMembership || callerMembership.role !== "organizer") {
+      throw new Error("Only organizers can update member status");
+    }
+
+    await ctx.db.patch(args.memberId, { status: args.status });
+    return args.memberId;
+  },
+});
+
 export const removeMember = mutation({
   args: {
     memberId: v.id("hackathonMembers"),

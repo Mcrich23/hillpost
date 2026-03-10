@@ -21,8 +21,8 @@ import {
 interface OrganizerPanelProps {
   hackathonId: Id<"hackathons">;
   hackathon: {
-    name: string;
-    joinCode: string;
+    competitorJoinCode: string;
+    judgeJoinCode: string;
     startDate: number;
     endDate: number;
     isActive: boolean;
@@ -49,15 +49,23 @@ function HackathonInfoSection({
 }: OrganizerPanelProps) {
   const updateHackathon = useMutation(api.hackathons.update);
   const { user } = useUser();
-  const [copied, setCopied] = useState(false);
+  const [copiedCompetitor, setCopiedCompetitor] = useState(false);
+  const [copiedJudge, setCopiedJudge] = useState(false);
   const [isEditingCooldown, setIsEditingCooldown] = useState(false);
   const [newCooldown, setNewCooldown] = useState(hackathon.submissionFrequencyMinutes);
 
-  const copyJoinCode = async () => {
-    await navigator.clipboard.writeText(hackathon.joinCode);
-    setCopied(true);
-    toast.success("Join code copied!");
-    setTimeout(() => setCopied(false), 2000);
+  const copyCompetitorCode = async () => {
+    await navigator.clipboard.writeText(hackathon.competitorJoinCode);
+    setCopiedCompetitor(true);
+    toast.success("Competitor code copied!");
+    setTimeout(() => setCopiedCompetitor(false), 2000);
+  };
+
+  const copyJudgeCode = async () => {
+    await navigator.clipboard.writeText(hackathon.judgeJoinCode);
+    setCopiedJudge(true);
+    toast.success("Judge code copied!");
+    setTimeout(() => setCopiedJudge(false), 2000);
   };
 
   const toggleActive = async () => {
@@ -101,24 +109,46 @@ function HackathonInfoSection({
         Hackathon Info
       </h3>
       <div className="space-y-4">
-        <div>
-          <label className="text-sm font-medium text-gray-300">
-            Join Code
-          </label>
-          <div className="mt-1 flex items-center gap-2">
-            <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-lg tracking-widest text-emerald-400">
-              {hackathon.joinCode}
-            </code>
-            <button
-              onClick={copyJoinCode}
-              className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
-            >
-              {copied ? (
-                <Check className="h-4 w-4 text-emerald-400" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </button>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex-1">
+            <label className="text-sm font-medium text-gray-300">
+              Competitor Join Code
+            </label>
+            <div className="mt-1 flex items-center gap-2">
+              <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-lg tracking-widest text-emerald-400">
+                {hackathon.competitorJoinCode}
+              </code>
+              <button
+                onClick={copyCompetitorCode}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                {copiedCompetitor ? (
+                  <Check className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </div>
+          <div className="flex-1">
+            <label className="text-sm font-medium text-gray-300">
+              Judge Join Code
+            </label>
+            <div className="mt-1 flex items-center gap-2">
+              <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-lg tracking-widest text-blue-400 border-blue-500/30">
+                {hackathon.judgeJoinCode}
+              </code>
+              <button
+                onClick={copyJudgeCode}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                {copiedJudge ? (
+                  <Check className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -430,6 +460,7 @@ function MembersSection({
 }) {
   const members = useQuery(api.members.listMembers, { hackathonId });
   const updateRole = useMutation(api.members.updateRole);
+  const updateStatus = useMutation(api.members.updateStatus);
   const removeMember = useMutation(api.members.removeMember);
   const { user } = useUser();
 
@@ -447,6 +478,21 @@ function MembersSection({
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to update role"
+      );
+    }
+  };
+
+  const handleStatusChange = async (
+    memberId: Id<"hackathonMembers">,
+    newStatus: "approved" | "rejected"
+  ) => {
+    if (!user?.id) return;
+    try {
+      await updateStatus({ memberId, status: newStatus, userId: user.id });
+      toast.success(`Judge ${newStatus}`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update status"
       );
     }
   };
@@ -500,9 +546,34 @@ function MembersSection({
                 >
                   {member.role}
                 </span>
+                {member.status === "pending" && (
+                  <span className="rounded-full border border-yellow-500/30 bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-500">
+                    pending approval
+                  </span>
+                )}
+                {member.status === "rejected" && (
+                  <span className="rounded-full border border-red-500/30 bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-500">
+                    rejected
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-1">
-                {changingRole === member._id ? (
+                {member.status === "pending" ? (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleStatusChange(member._id, "approved")}
+                      className="rounded bg-emerald-600/20 px-2 py-1 text-xs text-emerald-400 hover:bg-emerald-600/40"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange(member._id, "rejected")}
+                      className="rounded bg-red-600/20 px-2 py-1 text-xs text-red-400 hover:bg-red-600/40"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                ) : changingRole === member._id ? (
                   <div className="flex gap-1">
                     {(["organizer", "judge", "competitor"] as const).map((r) => (
                       <button

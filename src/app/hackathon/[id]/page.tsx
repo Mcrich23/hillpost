@@ -196,10 +196,10 @@ export default function HackathonDetailPage() {
           {role === "organizer" && (
             <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
               <h3 className="mb-2 text-sm font-medium text-gray-300">
-                Join Code
+                Competitor Join Code
               </h3>
               <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-lg tracking-widest text-emerald-400">
-                {hackathon.joinCode}
+                {hackathon.competitorJoinCode}
               </code>
               <p className="mt-2 text-xs text-gray-500">
                 Share this code with participants to join
