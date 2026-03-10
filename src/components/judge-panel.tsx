@@ -21,30 +21,74 @@ interface JudgePanelProps {
 }
 
 export function JudgePanel({ hackathonId }: JudgePanelProps) {
+  const { user } = useUser();
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
   const teams = useQuery(api.teams.list, { hackathonId });
   const [expandedId, setExpandedId] = useState<Id<"submissions"> | null>(null);
+  const [view, setView] = useState<"pending" | "judged">("pending");
 
   const teamMap = new Map(teams?.map((t) => [t._id, t.name]) ?? []);
+
+  const displayedSubmissions = submissions?.filter((sub) => {
+    if (!user?.id) return false;
+    // Handle older records that might lack judgedBy while migrating
+    const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
+    return view === "pending" ? !hasJudged : hasJudged;
+  });
 
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-        <h3 className="mb-4 text-lg font-semibold text-white">
-          <Star className="mr-2 inline h-5 w-5 text-emerald-400" />
-          Submissions to Judge
-        </h3>
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-white">
+            <Star className="mr-2 inline h-5 w-5 text-emerald-400" />
+            Judging Dashboard
+          </h3>
+        </div>
 
-        {!submissions || !categories ? (
+        <div className="mb-6 flex space-x-2 border-b border-gray-800 pb-4">
+          <button
+            onClick={() => {
+              setView("pending");
+              setExpandedId(null);
+            }}
+            className={cn(
+              "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+              view === "pending"
+                ? "bg-emerald-600 text-white"
+                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"
+            )}
+          >
+            Pending Judging
+          </button>
+          <button
+            onClick={() => {
+              setView("judged");
+              setExpandedId(null);
+            }}
+            className={cn(
+              "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+              view === "judged"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"
+            )}
+          >
+            Previously Judged
+          </button>
+        </div>
+
+        {!displayedSubmissions || !categories ? (
           <p className="text-sm text-gray-500">Loading...</p>
-        ) : submissions.length === 0 ? (
+        ) : displayedSubmissions.length === 0 ? (
           <p className="text-sm text-gray-500">
-            No submissions to judge yet.
+            {view === "pending"
+              ? "No pending submissions to judge. Great job!"
+              : "You haven't judged any submissions yet."}
           </p>
         ) : (
           <div className="space-y-3">
-            {submissions.map((sub) => (
+            {displayedSubmissions.map((sub) => (
               <div
                 key={sub._id}
                 className="rounded-lg border border-gray-700 bg-gray-800"
@@ -61,6 +105,11 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                       <span className="rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-300">
                         {teamMap.get(sub.teamId) ?? "Unknown Team"}
                       </span>
+                      {sub.submissionCount !== undefined && sub.submissionCount > 1 && (
+                        <span className="rounded-full bg-blue-600/20 px-2 py-0.5 text-xs text-blue-400 border border-blue-500/30">
+                          Resubmitted (v{sub.submissionCount})
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1 text-sm text-gray-400">
                       {sub.description}

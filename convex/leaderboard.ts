@@ -76,7 +76,19 @@ export const get = query({
 
         // Overall average score across all categories and judges
         const totalScore = scores.reduce((sum, s) => sum + s.score, 0);
-        const averageScore = scores.length > 0 ? totalScore / scores.length : 0;
+        let averageScore = scores.length > 0 ? totalScore / scores.length : 0;
+
+        // Apply threshold logic for resubmissions
+        if (
+          latestSubmission.baselineScore !== undefined &&
+          latestSubmission.baselineJudgeCount !== undefined
+        ) {
+          const currentJudges = (latestSubmission.judgedBy || []).length;
+          const threshold = latestSubmission.baselineJudgeCount * 0.75;
+          if (currentJudges < threshold) {
+            averageScore = Math.max(averageScore, latestSubmission.baselineScore);
+          }
+        }
 
         // Count unique judges
         const uniqueJudges = new Set(scores.map((s) => s.judgeId));

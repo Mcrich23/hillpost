@@ -59,6 +59,10 @@ export default defineSchema({
     demoUrl: v.optional(v.string()),
     submittedAt: v.number(),
     submittedBy: v.string(),
+    submissionCount: v.optional(v.number()),
+    judgedBy: v.optional(v.array(v.string())), // Array of judge UIDs who have scored this iteration
+    baselineScore: v.optional(v.number()),
+    baselineJudgeCount: v.optional(v.number()),
   })
     .index("by_hackathonId", ["hackathonId"])
     .index("by_teamId", ["teamId"])

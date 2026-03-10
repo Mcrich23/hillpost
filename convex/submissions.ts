@@ -40,17 +40,16 @@ export const create = mutation({
       throw new Error("Hackathon not found");
     }
 
-    const latestSubmission = await ctx.db
+    const existingSubmission = await ctx.db
       .query("submissions")
       .withIndex("by_hackathonId_teamId", (q) =>
         q.eq("hackathonId", args.hackathonId).eq("teamId", args.teamId)
       )
-      .order("desc")
       .first();
 
-    if (latestSubmission) {
+    if (existingSubmission) {
       const cooldownMs = hackathon.submissionFrequencyMinutes * 60 * 1000;
-      const timeSinceLastSubmission = Date.now() - latestSubmission.submittedAt;
+      const timeSinceLastSubmission = Date.now() - existingSubmission.submittedAt;
       if (timeSinceLastSubmission < cooldownMs) {
         const remainingMinutes = Math.ceil(
           (cooldownMs - timeSinceLastSubmission) / 60000
@@ -59,6 +58,36 @@ export const create = mutation({
           `Rate limited. Please wait ${remainingMinutes} more minute(s) before submitting again.`
         );
       }
+
+      // Calculate baseline score
+      const scores = await ctx.db
+        .query("scores")
+        .withIndex("by_submissionId", (q) => q.eq("submissionId", existingSubmission._id))
+        .collect();
+
+      let baselineScore = undefined;
+      let baselineJudgeCount = (existingSubmission.judgedBy || []).length;
+
+      if (scores.length > 0) {
+        const totalScore = scores.reduce((sum, s) => sum + s.score, 0);
+        baselineScore = totalScore / scores.length;
+      }
+
+      // Update existing submission
+      await ctx.db.patch(existingSubmission._id, {
+        name: args.name,
+        description: args.description,
+        projectUrl: args.projectUrl,
+        demoUrl: args.demoUrl,
+        submittedAt: Date.now(),
+        submittedBy: userId,
+        submissionCount: (existingSubmission.submissionCount || 1) + 1,
+        judgedBy: [],
+        baselineScore,
+        baselineJudgeCount,
+      });
+
+      return existingSubmission._id;
     }
 
     return await ctx.db.insert("submissions", {
@@ -70,6 +99,8 @@ export const create = mutation({
       demoUrl: args.demoUrl,
       submittedAt: Date.now(),
       submittedBy: userId,
+      submissionCount: 1,
+      judgedBy: [],
     });
   },
 });

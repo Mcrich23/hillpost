@@ -61,10 +61,19 @@ export const submit = mutation({
         feedback: args.feedback,
         scoredAt: Date.now(),
       });
+
+      // Ensure judge is in judgedBy array
+      const judgedBy = submission.judgedBy || [];
+      if (!judgedBy.includes(judgeId)) {
+        await ctx.db.patch(submission._id, {
+          judgedBy: [...judgedBy, judgeId],
+        });
+      }
+
       return existing._id;
     }
 
-    return await ctx.db.insert("scores", {
+    const scoreId = await ctx.db.insert("scores", {
       submissionId: args.submissionId,
       categoryId: args.categoryId,
       judgeId,
@@ -72,6 +81,15 @@ export const submit = mutation({
       feedback: args.feedback,
       scoredAt: Date.now(),
     });
+
+    const judgedBy = submission.judgedBy || [];
+    if (!judgedBy.includes(judgeId)) {
+      await ctx.db.patch(submission._id, {
+        judgedBy: [...judgedBy, judgeId],
+      });
+    }
+
+    return scoreId;
   },
 });
 
