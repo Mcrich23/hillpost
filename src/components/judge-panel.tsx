@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -130,8 +131,10 @@ interface ScoringFormProps {
 }
 
 function ScoringForm({ submissionId, categories }: ScoringFormProps) {
+  const { user } = useUser();
   const myScores = useQuery(api.scores.getMyScoresForSubmission, {
     submissionId,
+    userId: user?.id,
   });
   const submitScore = useMutation(api.scores.submit);
 
@@ -166,6 +169,7 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
         categoryId,
         score,
         feedback: feedback || undefined,
+        userId: user?.id ?? "",
       });
       toast.success("Score submitted!");
     } catch (error) {

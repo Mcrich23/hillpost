@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import {
@@ -40,7 +41,8 @@ function TeamSection({
 }: {
   hackathonId: Id<"hackathons">;
 }) {
-  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId });
+  const { user } = useUser();
+  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId, userId: user?.id });
   const teams = useQuery(api.teams.list, { hackathonId });
   const createTeam = useMutation(api.teams.create);
   const joinTeam = useMutation(api.teams.joinTeam);
@@ -53,7 +55,7 @@ function TeamSection({
     e.preventDefault();
     if (!teamName.trim()) return;
     try {
-      await createTeam({ hackathonId, name: teamName.trim() });
+      await createTeam({ hackathonId, name: teamName.trim(), userId: user?.id ?? "" });
       toast.success("Team created!");
       setTeamName("");
       setShowCreateForm(false);
@@ -66,7 +68,7 @@ function TeamSection({
 
   const handleJoinTeam = async (teamId: Id<"teams">) => {
     try {
-      await joinTeam({ teamId });
+      await joinTeam({ teamId, userId: user?.id ?? "" });
       toast.success("Joined team!");
     } catch (error) {
       toast.error(
@@ -77,7 +79,7 @@ function TeamSection({
 
   const handleLeaveTeam = async () => {
     try {
-      await leaveTeam({ hackathonId });
+      await leaveTeam({ hackathonId, userId: user?.id ?? "" });
       toast.success("Left team");
     } catch (error) {
       toast.error(
@@ -201,7 +203,8 @@ function SubmitSection({
   hackathonId,
   hackathon,
 }: CompetitorPanelProps) {
-  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId });
+  const { user } = useUser();
+  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId, userId: user?.id });
   const latestSubmission = useQuery(
     api.submissions.getLatestForTeam,
     myTeam ? { hackathonId, teamId: myTeam._id } : "skip"
@@ -243,6 +246,7 @@ function SubmitSection({
         description,
         projectUrl,
         demoUrl: demoUrl || undefined,
+        userId: user?.id ?? "",
       });
       toast.success("Submission created!");
       setName("");
@@ -356,7 +360,8 @@ function MySubmissionsSection({
 }: {
   hackathonId: Id<"hackathons">;
 }) {
-  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId });
+  const { user } = useUser();
+  const myTeam = useQuery(api.teams.getMyTeam, { hackathonId, userId: user?.id });
   const submissions = useQuery(
     api.submissions.listForTeam,
     myTeam ? { teamId: myTeam._id } : "skip"

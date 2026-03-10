@@ -2,17 +2,19 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
 export const getMyMembership = query({
-  args: { hackathonId: v.id("hackathons") },
+  args: {
+    hackathonId: v.id("hackathons"),
+    userId: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    if (!args.userId) {
       return null;
     }
 
     return await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", identity.subject)
+        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId!)
       )
       .first();
   },
@@ -38,13 +40,9 @@ export const updateRole = mutation({
       v.literal("judge"),
       v.literal("competitor")
     ),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
     const member = await ctx.db.get(args.memberId);
     if (!member) {
       throw new Error("Member not found");
@@ -56,7 +54,7 @@ export const updateRole = mutation({
       .withIndex("by_hackathonId_userId", (q) =>
         q
           .eq("hackathonId", member.hackathonId)
-          .eq("userId", identity.subject)
+          .eq("userId", args.userId)
       )
       .first();
     if (!callerMembership || callerMembership.role !== "organizer") {
@@ -69,13 +67,11 @@ export const updateRole = mutation({
 });
 
 export const removeMember = mutation({
-  args: { memberId: v.id("hackathonMembers") },
+  args: {
+    memberId: v.id("hackathonMembers"),
+    userId: v.string(),
+  },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
     const member = await ctx.db.get(args.memberId);
     if (!member) {
       throw new Error("Member not found");
@@ -87,7 +83,7 @@ export const removeMember = mutation({
       .withIndex("by_hackathonId_userId", (q) =>
         q
           .eq("hackathonId", member.hackathonId)
-          .eq("userId", identity.subject)
+          .eq("userId", args.userId)
       )
       .first();
     if (!callerMembership || callerMembership.role !== "organizer") {
@@ -95,7 +91,7 @@ export const removeMember = mutation({
     }
 
     // Prevent removing yourself
-    if (member.userId === identity.subject) {
+    if (member.userId === args.userId) {
       throw new Error("You cannot remove yourself");
     }
 

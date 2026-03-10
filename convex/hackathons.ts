@@ -17,13 +17,11 @@ export const create = mutation({
     startDate: v.number(),
     endDate: v.number(),
     submissionFrequencyMinutes: v.optional(v.number()),
+    userId: v.string(),
+    userName: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const userId = identity.subject;
+    const userId = args.userId;
 
     let joinCode = generateJoinCode();
     // Ensure uniqueness
@@ -56,7 +54,7 @@ export const create = mutation({
     await ctx.db.insert("hackathonMembers", {
       hackathonId,
       userId,
-      userName: identity.name ?? "Unknown",
+      userName: args.userName,
       role: "organizer",
       joinedAt: now,
     });
@@ -80,13 +78,14 @@ export const list = query({
 });
 
 export const listMine = query({
-  args: {},
-  handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+  args: {
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (!args.userId) {
       return [];
     }
-    const userId = identity.subject;
+    const userId = args.userId;
 
     const memberships = await ctx.db
       .query("hackathonMembers")
@@ -113,12 +112,9 @@ export const update = mutation({
     endDate: v.optional(v.number()),
     submissionFrequencyMinutes: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
 
     const hackathon = await ctx.db.get(args.hackathonId);
     if (!hackathon) {
@@ -129,7 +125,7 @@ export const update = mutation({
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", identity.subject)
+        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId)
       )
       .first();
     if (!membership || membership.role !== "organizer") {
@@ -157,13 +153,11 @@ export const join = mutation({
       v.literal("judge"),
       v.literal("competitor")
     ),
+    userId: v.string(),
+    userName: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const userId = identity.subject;
+    const userId = args.userId;
 
     const hackathon = await ctx.db
       .query("hackathons")
@@ -187,7 +181,7 @@ export const join = mutation({
     await ctx.db.insert("hackathonMembers", {
       hackathonId: hackathon._id,
       userId,
-      userName: identity.name ?? "Unknown",
+      userName: args.userName,
       role: args.role,
       joinedAt: Date.now(),
     });

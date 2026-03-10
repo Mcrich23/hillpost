@@ -5,22 +5,18 @@ import type { Id } from "./_generated/dataModel";
 
 async function verifyOrganizer(
   ctx: MutationCtx,
-  hackathonId: Id<"hackathons">
+  hackathonId: Id<"hackathons">,
+  userId: string
 ) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) {
-    throw new Error("Not authenticated");
-  }
   const membership = await ctx.db
     .query("hackathonMembers")
     .withIndex("by_hackathonId_userId", (q) =>
-      q.eq("hackathonId", hackathonId).eq("userId", identity.subject)
+      q.eq("hackathonId", hackathonId).eq("userId", userId)
     )
     .first();
   if (!membership || membership.role !== "organizer") {
     throw new Error("Only organizers can manage categories");
   }
-  return identity;
 }
 
 export const create = mutation({
@@ -29,9 +25,10 @@ export const create = mutation({
     name: v.string(),
     description: v.string(),
     maxScore: v.number(),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await verifyOrganizer(ctx, args.hackathonId);
+    await verifyOrganizer(ctx, args.hackathonId, args.userId);
 
     // Get the next order number
     const existing = await ctx.db
@@ -67,6 +64,7 @@ export const update = mutation({
     name: v.optional(v.string()),
     description: v.optional(v.string()),
     maxScore: v.optional(v.number()),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
     const category = await ctx.db.get(args.categoryId);
@@ -74,7 +72,7 @@ export const update = mutation({
       throw new Error("Category not found");
     }
 
-    await verifyOrganizer(ctx, category.hackathonId);
+    await verifyOrganizer(ctx, category.hackathonId, args.userId);
 
     await ctx.db.patch(args.categoryId, {
       ...(args.name !== undefined && { name: args.name }),
@@ -86,14 +84,17 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { categoryId: v.id("categories") },
+  args: {
+    categoryId: v.id("categories"),
+    userId: v.string(),
+  },
   handler: async (ctx, args) => {
     const category = await ctx.db.get(args.categoryId);
     if (!category) {
       throw new Error("Category not found");
     }
 
-    await verifyOrganizer(ctx, category.hackathonId);
+    await verifyOrganizer(ctx, category.hackathonId, args.userId);
 
     await ctx.db.delete(args.categoryId);
   },
@@ -103,9 +104,10 @@ export const reorder = mutation({
   args: {
     hackathonId: v.id("hackathons"),
     categoryIds: v.array(v.id("categories")),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await verifyOrganizer(ctx, args.hackathonId);
+    await verifyOrganizer(ctx, args.hackathonId, args.userId);
 
     await Promise.all(
       args.categoryIds.map((id, index) => ctx.db.patch(id, { order: index }))

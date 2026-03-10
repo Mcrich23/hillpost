@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -47,6 +48,7 @@ function HackathonInfoSection({
   hackathon,
 }: OrganizerPanelProps) {
   const updateHackathon = useMutation(api.hackathons.update);
+  const { user } = useUser();
   const [copied, setCopied] = useState(false);
 
   const copyJoinCode = async () => {
@@ -61,6 +63,7 @@ function HackathonInfoSection({
       await updateHackathon({
         hackathonId,
         isActive: !hackathon.isActive,
+        userId: user?.id ?? "",
       });
       toast.success(
         hackathon.isActive ? "Hackathon deactivated" : "Hackathon activated"
@@ -138,6 +141,7 @@ function CategoriesSection({
   const createCategory = useMutation(api.categories.create);
   const updateCategory = useMutation(api.categories.update);
   const removeCategory = useMutation(api.categories.remove);
+  const { user } = useUser();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"categories"> | null>(null);
@@ -157,6 +161,7 @@ function CategoriesSection({
         name: newName,
         description: newDescription,
         maxScore: newMaxScore,
+        userId: user?.id ?? "",
       });
       toast.success("Category added");
       setNewName("");
@@ -177,6 +182,7 @@ function CategoriesSection({
         name: editName,
         description: editDescription,
         maxScore: editMaxScore,
+        userId: user?.id ?? "",
       });
       toast.success("Category updated");
       setEditingId(null);
@@ -189,7 +195,7 @@ function CategoriesSection({
 
   const handleRemove = async (categoryId: Id<"categories">) => {
     try {
-      await removeCategory({ categoryId });
+      await removeCategory({ categoryId, userId: user?.id ?? "" });
       toast.success("Category removed");
     } catch (error) {
       toast.error(
@@ -362,6 +368,7 @@ function MembersSection({
   const members = useQuery(api.members.listMembers, { hackathonId });
   const updateRole = useMutation(api.members.updateRole);
   const removeMember = useMutation(api.members.removeMember);
+  const { user } = useUser();
 
   const [changingRole, setChangingRole] = useState<Id<"hackathonMembers"> | null>(null);
 
@@ -370,7 +377,7 @@ function MembersSection({
     newRole: "organizer" | "judge" | "competitor"
   ) => {
     try {
-      await updateRole({ memberId, role: newRole });
+      await updateRole({ memberId, role: newRole, userId: user?.id ?? "" });
       toast.success("Role updated");
       setChangingRole(null);
     } catch (error) {
@@ -382,7 +389,7 @@ function MembersSection({
 
   const handleRemove = async (memberId: Id<"hackathonMembers">) => {
     try {
-      await removeMember({ memberId });
+      await removeMember({ memberId, userId: user?.id ?? "" });
       toast.success("Member removed");
     } catch (error) {
       toast.error(

@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { SignUpButton, useUser } from "@clerk/nextjs";
-import { useConvexAuth } from "convex/react";
+import { SignUpButton, useAuth, useUser } from "@clerk/nextjs";
 import { ArrowRight, ChevronDown } from "lucide-react";
 
 export function HeroSection() {
-  const { isAuthenticated } = useConvexAuth();
+  const { isSignedIn } = useAuth();
   const { user } = useUser();
 
   return (
@@ -44,7 +43,7 @@ export function HeroSection() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          {isAuthenticated && user ? (
+          {isSignedIn && user ? (
             <Link
               href="/dashboard"
               className="group flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/30"

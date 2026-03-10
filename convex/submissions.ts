@@ -9,13 +9,10 @@ export const create = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const userId = identity.subject;
+    const userId = args.userId;
 
     // Verify user is a competitor member on this team
     const membership = await ctx.db

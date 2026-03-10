@@ -4,6 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useState } from "react";
@@ -25,9 +26,10 @@ type Tab = "overview" | "manage" | "compete" | "judge";
 
 export default function HackathonDetailPage() {
   const params = useParams();
+  const { user } = useUser();
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
-  const membership = useQuery(api.members.getMyMembership, { hackathonId });
+  const membership = useQuery(api.members.getMyMembership, { hackathonId, userId: user?.id });
 
   const [activeTab, setActiveTab] = useState<Tab>("overview");
 

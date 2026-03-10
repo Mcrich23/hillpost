@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ export function JoinHackathonDialog({
   onClose,
 }: JoinHackathonDialogProps) {
   const router = useRouter();
+  const { user } = useUser();
   const joinHackathon = useMutation(api.hackathons.join);
 
   const [joinCode, setJoinCode] = useState("");
@@ -38,6 +40,8 @@ export function JoinHackathonDialog({
       const hackathonId = await joinHackathon({
         joinCode: joinCode.trim(),
         role,
+        userId: user?.id ?? "",
+        userName: user?.fullName ?? user?.username ?? "Unknown",
       });
       toast.success("Successfully joined the hackathon!");
       setJoinCode("");

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ export function CreateHackathonDialog({
   onClose,
 }: CreateHackathonDialogProps) {
   const router = useRouter();
+  const { user } = useUser();
   const createHackathon = useMutation(api.hackathons.create);
 
   const [name, setName] = useState("");
@@ -44,6 +46,8 @@ export function CreateHackathonDialog({
         startDate: new Date(startDate).getTime(),
         endDate: new Date(endDate).getTime(),
         submissionFrequencyMinutes: submissionFrequency,
+        userId: user?.id ?? "",
+        userName: user?.fullName ?? user?.username ?? "Unknown",
       });
       toast.success("Hackathon created successfully!");
       resetForm();

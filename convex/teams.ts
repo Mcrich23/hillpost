@@ -5,13 +5,10 @@ export const create = mutation({
   args: {
     hackathonId: v.id("hackathons"),
     name: v.string(),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const userId = identity.subject;
+    const userId = args.userId;
 
     // Verify user is a member of this hackathon
     const membership = await ctx.db
@@ -76,17 +73,19 @@ export const get = query({
 });
 
 export const getMyTeam = query({
-  args: { hackathonId: v.id("hackathons") },
+  args: {
+    hackathonId: v.id("hackathons"),
+    userId: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    if (!args.userId) {
       return null;
     }
 
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", identity.subject)
+        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId!)
       )
       .first();
 
@@ -109,13 +108,9 @@ export const getMyTeam = query({
 export const joinTeam = mutation({
   args: {
     teamId: v.id("teams"),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
     const team = await ctx.db.get(args.teamId);
     if (!team) {
       throw new Error("Team not found");
@@ -124,7 +119,7 @@ export const joinTeam = mutation({
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", team.hackathonId).eq("userId", identity.subject)
+        q.eq("hackathonId", team.hackathonId).eq("userId", args.userId)
       )
       .first();
     if (!membership) {
@@ -143,17 +138,13 @@ export const joinTeam = mutation({
 export const leaveTeam = mutation({
   args: {
     hackathonId: v.id("hackathons"),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", identity.subject)
+        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId)
       )
       .first();
     if (!membership) {

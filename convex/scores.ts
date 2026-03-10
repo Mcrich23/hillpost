@@ -7,13 +7,10 @@ export const submit = mutation({
     categoryId: v.id("categories"),
     score: v.number(),
     feedback: v.optional(v.string()),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const judgeId = identity.subject;
+    const judgeId = args.userId;
 
     const submission = await ctx.db.get(args.submissionId);
     if (!submission) {
@@ -88,10 +85,12 @@ export const getForSubmission = query({
 });
 
 export const getMyScoresForSubmission = query({
-  args: { submissionId: v.id("submissions") },
+  args: {
+    submissionId: v.id("submissions"),
+    userId: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    if (!args.userId) {
       return [];
     }
 
@@ -102,6 +101,6 @@ export const getMyScoresForSubmission = query({
       )
       .collect();
 
-    return allScores.filter((s) => s.judgeId === identity.subject);
+    return allScores.filter((s) => s.judgeId === args.userId);
   },
 });
