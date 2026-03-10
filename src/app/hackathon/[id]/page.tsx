@@ -17,12 +17,14 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
+  Layers,
 } from "lucide-react";
 import { OrganizerPanel } from "@/components/organizer-panel";
 import { CompetitorPanel } from "@/components/competitor-panel";
 import { JudgePanel } from "@/components/judge-panel";
+import { PublicSubmissions } from "@/components/public-submissions";
 
-type Tab = "overview" | "manage" | "compete" | "judge";
+type Tab = "overview" | "submissions" | "manage" | "compete" | "judge";
 
 export default function HackathonDetailPage() {
   const params = useParams();
@@ -65,6 +67,12 @@ export default function HackathonDetailPage() {
       id: "overview",
       label: "Overview",
       icon: <Trophy className="h-4 w-4" />,
+      show: true,
+    },
+    {
+      id: "submissions",
+      label: "Submissions",
+      icon: <Layers className="h-4 w-4" />,
       show: true,
     },
     {
@@ -199,6 +207,10 @@ export default function HackathonDetailPage() {
             </div>
           )}
         </div>
+      )}
+
+      {activeTab === "submissions" && (
+        <PublicSubmissions hackathonId={hackathonId} />
       )}
 
       {activeTab === "manage" && role === "organizer" && (
