@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { getAuthUserId, requireAuthUserId, getAuthUserName } from "./auth";
+import { getAuthUserId, requireAuthUserId, requireAuthIdentity } from "./auth";
 
 function generateJoinCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -20,8 +20,9 @@ export const create = mutation({
     submissionFrequencyMinutes: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuthUserId(ctx);
-    const userName = await getAuthUserName(ctx);
+    const identity = await requireAuthIdentity(ctx);
+    const userId = identity.subject;
+    const userName = identity.name ?? identity.nickname ?? "Unknown";
 
     let competitorJoinCode = generateJoinCode();
     let judgeJoinCode = generateJoinCode();
@@ -187,8 +188,9 @@ export const join = mutation({
     joinCode: v.string(),
   },
   handler: async (ctx, args) => {
-    const userId = await requireAuthUserId(ctx);
-    const userName = await getAuthUserName(ctx);
+    const identity = await requireAuthIdentity(ctx);
+    const userId = identity.subject;
+    const userName = identity.name ?? identity.nickname ?? "Unknown";
 
     let hackathon = await ctx.db
       .query("hackathons")

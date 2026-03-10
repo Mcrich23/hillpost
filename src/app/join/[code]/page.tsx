@@ -37,9 +37,10 @@ export default function JoinByLinkPage() {
 
   const [isJoining, setIsJoining] = useState(false);
 
-  // Membership query is running when hackathon and user are known but result hasn't arrived
+  // Membership query is running when hackathon is known but result hasn't arrived yet
+  // (auth is handled server-side; `user?.id` is only checked for the client-side join guard)
   const isMembershipLoading =
-    hackathon !== undefined && hackathon !== null && user?.id && membership === undefined;
+    hackathon !== undefined && hackathon !== null && membership === undefined;
 
   // The join code type is determined by the backend via roleForCode
   const isCompetitorCode = hackathon?.roleForCode === "competitor";
