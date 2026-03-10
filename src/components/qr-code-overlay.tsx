@@ -52,8 +52,10 @@ export function QrCodeButton({ path, label }: QrCodeOverlayProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <button
+              type="button"
               onClick={() => setIsOpen(false)}
               className="absolute right-3 top-3 rounded-lg p-1 text-gray-400 hover:bg-gray-800 hover:text-white"
+              aria-label="Close"
             >
               <X className="h-5 w-5" />
             </button>

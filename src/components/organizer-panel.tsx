@@ -79,17 +79,27 @@ function HackathonInfoSection({
   const [newCooldown, setNewCooldown] = useState(hackathon.submissionFrequencyMinutes);
 
   const copyCompetitorCode = async () => {
-    await navigator.clipboard.writeText(hackathon.competitorJoinCode);
-    setCopiedCompetitor(true);
-    toast.success("Competitor code copied!");
-    setTimeout(() => setCopiedCompetitor(false), 2000);
+    try {
+      await navigator.clipboard.writeText(hackathon.competitorJoinCode);
+      setCopiedCompetitor(true);
+      toast.success("Competitor code copied!");
+      setTimeout(() => setCopiedCompetitor(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy competitor code to clipboard:", error);
+      toast.error("Failed to copy code. Please try again.");
+    }
   };
 
   const copyJudgeCode = async () => {
-    await navigator.clipboard.writeText(hackathon.judgeJoinCode);
-    setCopiedJudge(true);
-    toast.success("Judge code copied!");
-    setTimeout(() => setCopiedJudge(false), 2000);
+    try {
+      await navigator.clipboard.writeText(hackathon.judgeJoinCode);
+      setCopiedJudge(true);
+      toast.success("Judge code copied!");
+      setTimeout(() => setCopiedJudge(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy judge code to clipboard:", error);
+      toast.error("Failed to copy code. Please try again.");
+    }
   };
 
   const copyCompetitorLink = async () => {

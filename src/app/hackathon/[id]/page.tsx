@@ -385,6 +385,7 @@ export default function HackathonDetailPage() {
                     onClick={copyCompetitorJoinLink}
                     className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
                     title="Copy join link"
+                    aria-label="Copy join link"
                   >
                     {copiedJoinLink ? (
                       <Check className="h-4 w-4 text-emerald-400" />
