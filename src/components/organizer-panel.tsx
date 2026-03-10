@@ -50,6 +50,8 @@ function HackathonInfoSection({
   const updateHackathon = useMutation(api.hackathons.update);
   const { user } = useUser();
   const [copied, setCopied] = useState(false);
+  const [isEditingCooldown, setIsEditingCooldown] = useState(false);
+  const [newCooldown, setNewCooldown] = useState(hackathon.submissionFrequencyMinutes);
 
   const copyJoinCode = async () => {
     await navigator.clipboard.writeText(hackathon.joinCode);
@@ -72,6 +74,23 @@ function HackathonInfoSection({
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to update"
+      );
+    }
+  };
+
+  const saveCooldown = async () => {
+    if (!user?.id || newCooldown < 0) return;
+    try {
+      await updateHackathon({
+        hackathonId,
+        submissionFrequencyMinutes: newCooldown,
+        userId: user.id,
+      });
+      toast.success("Cooldown updated");
+      setIsEditingCooldown(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update cooldown"
       );
     }
   };
@@ -125,8 +144,49 @@ function HackathonInfoSection({
           </button>
         </div>
 
-        <div className="text-sm text-gray-400">
-          Submission cooldown: {hackathon.submissionFrequencyMinutes} minutes
+        <div className="flex items-center justify-between border-t border-gray-800 pt-4">
+          <div>
+            <label className="text-sm font-medium text-gray-300">Submission Cooldown</label>
+            <p className="text-xs text-gray-500">
+              Time (in minutes) competitors must wait before resubmitting.
+            </p>
+          </div>
+          {isEditingCooldown ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={0}
+                value={newCooldown}
+                onChange={(e) => setNewCooldown(Number(e.target.value))}
+                className="w-20 rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+              />
+              <button
+                onClick={saveCooldown}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setIsEditingCooldown(false)}
+                className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-white">{hackathon.submissionFrequencyMinutes} minutes</span>
+              <button
+                onClick={() => {
+                  setNewCooldown(hackathon.submissionFrequencyMinutes);
+                  setIsEditingCooldown(true);
+                }}
+                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
