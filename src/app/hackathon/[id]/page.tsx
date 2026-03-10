@@ -135,7 +135,7 @@ export default function HackathonDetailPage() {
       id: "submissions",
       label: "Submissions",
       icon: <Layers className="h-4 w-4" />,
-      show: true,
+      show: role == "organizer",
     },
     {
       id: "compete",
