@@ -83,7 +83,7 @@ export const get = query({
           latestSubmission.baselineScore !== undefined &&
           latestSubmission.baselineJudgeCount !== undefined
         ) {
-          const currentJudges = (latestSubmission.judgedBy || []).length;
+          const currentJudges = latestSubmission.judgedBy.length;
           const threshold = latestSubmission.baselineJudgeCount * 0.75;
           if (currentJudges < threshold) {
             averageScore = Math.max(averageScore, latestSubmission.baselineScore);

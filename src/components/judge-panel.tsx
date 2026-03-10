@@ -105,7 +105,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                       <span className="rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-300">
                         {teamMap.get(sub.teamId) ?? "Unknown Team"}
                       </span>
-                      {sub.submissionCount !== undefined && sub.submissionCount > 1 && (
+                      {sub.submissionCount > 1 && (
                         <span className="rounded-full bg-blue-600/20 px-2 py-0.5 text-xs text-blue-400 border border-blue-500/30">
                           Resubmitted (v{sub.submissionCount})
                         </span>

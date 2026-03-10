@@ -63,10 +63,9 @@ export const submit = mutation({
       });
 
       // Ensure judge is in judgedBy array
-      const judgedBy = submission.judgedBy || [];
-      if (!judgedBy.includes(judgeId)) {
+      if (!submission.judgedBy.includes(judgeId)) {
         await ctx.db.patch(submission._id, {
-          judgedBy: [...judgedBy, judgeId],
+          judgedBy: [...submission.judgedBy, judgeId],
         });
       }
 
@@ -82,10 +81,9 @@ export const submit = mutation({
       scoredAt: Date.now(),
     });
 
-    const judgedBy = submission.judgedBy || [];
-    if (!judgedBy.includes(judgeId)) {
+    if (!submission.judgedBy.includes(judgeId)) {
       await ctx.db.patch(submission._id, {
-        judgedBy: [...judgedBy, judgeId],
+        judgedBy: [...submission.judgedBy, judgeId],
       });
     }
 

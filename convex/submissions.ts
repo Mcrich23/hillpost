@@ -66,7 +66,7 @@ export const create = mutation({
         .collect();
 
       let baselineScore = undefined;
-      let baselineJudgeCount = (existingSubmission.judgedBy || []).length;
+      let baselineJudgeCount = existingSubmission.judgedBy.length;
 
       if (scores.length > 0) {
         const totalScore = scores.reduce((sum, s) => sum + s.score, 0);
@@ -81,7 +81,7 @@ export const create = mutation({
         demoUrl: args.demoUrl,
         submittedAt: Date.now(),
         submittedBy: userId,
-        submissionCount: (existingSubmission.submissionCount || 1) + 1,
+        submissionCount: existingSubmission.submissionCount + 1,
         judgedBy: [],
         baselineScore,
         baselineJudgeCount,
