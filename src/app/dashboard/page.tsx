@@ -10,7 +10,6 @@ import { format } from "date-fns";
 import {
   Plus,
   LogIn,
-  Trophy,
   Calendar,
   Sparkles,
 } from "lucide-react";

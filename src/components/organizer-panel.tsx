@@ -14,7 +14,6 @@ import {
   Trash2,
   Shield,
   UserX,
-  ChevronDown,
   ChevronUp,
 } from "lucide-react";
 
