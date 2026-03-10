@@ -54,10 +54,11 @@ export function JoinHackathonDialog({
       const message =
         error instanceof Error ? error.message : "Failed to join hackathon";
       if (message.includes("Already a member")) {
+        const trimmedCode = joinCode.trim();
         toast.info("You're already a member — taking you there now.");
         setJoinCode("");
         onClose();
-        router.push(`/join/${joinCode.trim()}`);
+        router.push(`/join/${trimmedCode}`);
       } else {
         toast.error(message);
       }

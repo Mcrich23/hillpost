@@ -31,6 +31,7 @@ export function QrCodeButton({ path, label }: QrCodeOverlayProps) {
   return (
     <>
       <button
+        type="button"
         onClick={open}
         className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
         title={`Show QR code for ${label}`}
@@ -41,6 +42,9 @@ export function QrCodeButton({ path, label }: QrCodeOverlayProps) {
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label={label}
           onClick={() => setIsOpen(false)}
         >
           <div

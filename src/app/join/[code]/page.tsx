@@ -37,6 +37,10 @@ export default function JoinByLinkPage() {
 
   const [isJoining, setIsJoining] = useState(false);
 
+  // Membership query is running when hackathon and user are known but result hasn't arrived
+  const isMembershipLoading =
+    hackathon !== undefined && hackathon !== null && user?.id && membership === undefined;
+
   // Determine role based on which code matches
   const isCompetitorCode = hackathon?.competitorJoinCode === joinCode;
   const role = isCompetitorCode ? "competitor" : "judge";
@@ -198,7 +202,7 @@ export default function JoinByLinkPage() {
         <div className="flex flex-col gap-3">
           <button
             onClick={handleJoin}
-            disabled={isJoining}
+            disabled={isJoining || !!isMembershipLoading}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
           >
             {isJoining ? (

@@ -92,19 +92,29 @@ function HackathonInfoSection({
   };
 
   const copyCompetitorLink = async () => {
-    const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
-    await navigator.clipboard.writeText(link);
-    setCopiedCompetitorLink(true);
-    toast.success("Competitor join link copied!");
-    setTimeout(() => setCopiedCompetitorLink(false), 2000);
+    try {
+      const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
+      await navigator.clipboard.writeText(link);
+      setCopiedCompetitorLink(true);
+      toast.success("Competitor join link copied!");
+      setTimeout(() => setCopiedCompetitorLink(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy competitor link to clipboard:", error);
+      toast.error("Failed to copy link. Please try again.");
+    }
   };
 
   const copyJudgeLink = async () => {
-    const link = `${window.location.origin}/join/${hackathon.judgeJoinCode}`;
-    await navigator.clipboard.writeText(link);
-    setCopiedJudgeLink(true);
-    toast.success("Judge join link copied!");
-    setTimeout(() => setCopiedJudgeLink(false), 2000);
+    try {
+      const link = `${window.location.origin}/join/${hackathon.judgeJoinCode}`;
+      await navigator.clipboard.writeText(link);
+      setCopiedJudgeLink(true);
+      toast.success("Judge join link copied!");
+      setTimeout(() => setCopiedJudgeLink(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy judge link to clipboard:", error);
+      toast.error("Failed to copy link. Please try again.");
+    }
   };
 
   const toggleActive = async () => {

@@ -54,11 +54,16 @@ export default function HackathonDetailPage() {
 
   const copyCompetitorJoinLink = async () => {
     if (!hackathon) return;
-    const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
-    await navigator.clipboard.writeText(link);
-    setCopiedJoinLink(true);
-    toast.success("Join link copied!");
-    setTimeout(() => setCopiedJoinLink(false), 2000);
+    try {
+      const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
+      await navigator.clipboard.writeText(link);
+      setCopiedJoinLink(true);
+      toast.success("Join link copied!");
+      setTimeout(() => setCopiedJoinLink(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy join link to clipboard:", error);
+      toast.error("Failed to copy join link. Please try again.");
+    }
   };
 
   // Calculate pending submissions for the judge badge
