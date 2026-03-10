@@ -6,7 +6,7 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Trophy } from "lucide-react";
+import { ArrowLeft, Trophy, ExternalLink } from "lucide-react";
 
 export default function LeaderboardPage() {
   const params = useParams();
@@ -113,7 +113,7 @@ export default function LeaderboardPage() {
                     {name}
                   </th>
                 ))}
-                <th className="px-4 py-3 text-center font-medium">Judges</th>
+                <th className="px-4 py-3 text-center font-medium"></th>
               </tr>
             </thead>
             <tbody>
@@ -184,9 +184,16 @@ export default function LeaderboardPage() {
                     </td>
                   ))}
                   <td className="px-4 py-3 text-center">
-                    <span className="text-sm text-gray-400">
-                      {entry.totalJudgeCount}
-                    </span>
+                    {entry.latestSubmission ? (
+                      <Link
+                        href={`/hackathon/${hackathonId}/submission/${entry.latestSubmission._id}`}
+                        className="inline-flex items-center gap-1 rounded-md bg-emerald-600/10 px-3 py-1.5 text-sm font-medium text-emerald-400 transition-colors hover:bg-emerald-600/20"
+                      >
+                        View
+                      </Link>
+                    ) : (
+                      <span className="text-sm text-gray-500">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
