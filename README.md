@@ -1,4 +1,4 @@
-# 👑 Hacker of the Hill
+# 👑 Hillpost
 
 A **king-of-the-hill** style hackathon judging platform where competitors submit projects, judges score in real-time, and a live leaderboard shows who reigns supreme.
 

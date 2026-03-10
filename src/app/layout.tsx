@@ -5,7 +5,7 @@ import { Navbar } from "@/components/navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Hacker of the Hill",
+  title: "Hillpost",
   description: "King-of-the-hill style hackathon judging platform",
 };
 

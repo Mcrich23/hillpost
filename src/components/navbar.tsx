@@ -20,7 +20,7 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
           <Crown className="h-7 w-7 text-emerald-500" />
           <span className="text-lg font-bold text-white">
-            Hacker of the Hill
+            Hillpost
           </span>
         </Link>
 
