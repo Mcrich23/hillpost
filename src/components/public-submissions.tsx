@@ -61,7 +61,11 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
         <p className="text-sm text-gray-500">No projects submitted yet.</p>
       ) : (
         <div className="space-y-3">
-            {submissions.map((sub) => (
+            {submissions.map((sub) => {
+              const projectHref = safeHref(sub.projectUrl);
+              const demoHref = safeHref(sub.demoUrl);
+              const deployedHref = safeHref(sub.deployedUrl);
+              return (
               <div
                 key={sub._id}
                 className="flex flex-col gap-2 rounded-lg border border-gray-700 bg-gray-800 p-4 transition-colors hover:border-gray-600"
@@ -85,9 +89,9 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         <Pencil className="h-4 w-4" />
                       </button>
                     )}
-                    {safeHref(sub.projectUrl) && (
+                    {projectHref && (
                       <a
-                        href={safeHref(sub.projectUrl)}
+                        href={projectHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 rounded-md bg-emerald-600/10 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:bg-emerald-600/20 transition-colors"
@@ -96,9 +100,9 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         Project
                       </a>
                     )}
-                    {safeHref(sub.demoUrl) && (
+                    {demoHref && (
                       <a
-                        href={safeHref(sub.demoUrl)}
+                        href={demoHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 rounded-md bg-blue-600/10 px-3 py-1.5 text-sm font-medium text-blue-400 hover:bg-blue-600/20 transition-colors"
@@ -107,9 +111,9 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         Video
                       </a>
                     )}
-                    {safeHref(sub.deployedUrl) && (
+                    {deployedHref && (
                       <a
-                        href={safeHref(sub.deployedUrl)}
+                        href={deployedHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 rounded-md bg-purple-600/10 px-3 py-1.5 text-sm font-medium text-purple-400 hover:bg-purple-600/20 transition-colors"
@@ -124,7 +128,8 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                   Updated {format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

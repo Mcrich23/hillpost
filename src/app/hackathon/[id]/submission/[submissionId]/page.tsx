@@ -87,6 +87,10 @@ export default function SubmissionDetailPage() {
     );
   }
 
+  const projectHref = safeHref(submission.projectUrl);
+  const demoHref = safeHref(submission.demoUrl);
+  const deployedHref = safeHref(submission.deployedUrl);
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Header & Back Navigation */}
@@ -133,9 +137,9 @@ export default function SubmissionDetailPage() {
 
           {/* Action Links */}
           <div className="flex flex-wrap gap-3 shrink-0">
-            {safeHref(submission.projectUrl) && (
+            {projectHref && (
               <a
-                href={safeHref(submission.projectUrl)}
+                href={projectHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 shadow-sm shadow-emerald-900/20"
@@ -144,9 +148,9 @@ export default function SubmissionDetailPage() {
                 View Project
               </a>
             )}
-            {safeHref(submission.demoUrl) && (
+            {demoHref && (
               <a
-                href={safeHref(submission.demoUrl)}
+                href={demoHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
@@ -155,9 +159,9 @@ export default function SubmissionDetailPage() {
                 Watch Video
               </a>
             )}
-            {safeHref(submission.deployedUrl) && (
+            {deployedHref && (
               <a
-                href={safeHref(submission.deployedUrl)}
+                href={deployedHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"

@@ -8,10 +8,12 @@ export function cn(...inputs: ClassValue[]) {
 /** Returns the URL only if it uses http: or https:; otherwise returns undefined. */
 export function safeHref(url: string | undefined): string | undefined {
   if (!url) return undefined;
+  const trimmed = url.trim();
+  if (!trimmed) return undefined;
   try {
-    const parsed = new URL(url);
+    const parsed = new URL(trimmed);
     if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-      return url;
+      return parsed.href;
     }
   } catch {
     // invalid URL

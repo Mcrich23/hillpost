@@ -119,7 +119,11 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
           </p>
         ) : (
           <div className="space-y-3">
-            {displayedSubmissions.map((sub) => (
+            {displayedSubmissions.map((sub) => {
+              const projectHref = safeHref(sub.projectUrl);
+              const demoHref = safeHref(sub.demoUrl);
+              const deployedHref = safeHref(sub.deployedUrl);
+              return (
               <div
                 key={sub._id}
                 className="rounded-lg border border-gray-700 bg-gray-800"
@@ -152,9 +156,9 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                           "MMM d, yyyy h:mm a"
                         )}
                       </span>
-                      {safeHref(sub.projectUrl) && (
+                      {projectHref && (
                         <a
-                          href={safeHref(sub.projectUrl)}
+                          href={projectHref}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
@@ -164,9 +168,9 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                           Project
                         </a>
                       )}
-                      {safeHref(sub.demoUrl) && (
+                      {demoHref && (
                         <a
-                          href={safeHref(sub.demoUrl)}
+                          href={demoHref}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
@@ -176,9 +180,9 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                           Video
                         </a>
                       )}
-                      {safeHref(sub.deployedUrl) && (
+                      {deployedHref && (
                         <a
-                          href={safeHref(sub.deployedUrl)}
+                          href={deployedHref}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
@@ -206,7 +210,8 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
