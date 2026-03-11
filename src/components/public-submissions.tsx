@@ -4,7 +4,6 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { format } from "date-fns";
 import { ExternalLink, Layers, Pencil, X } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +16,6 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const teams = useQuery(api.teams.list, { hackathonId });
   const updateSubmissionOrganizer = useMutation(api.submissions.updateSubmissionOrganizer);
-  const { user } = useUser();
 
   const [editingId, setEditingId] = useState<Id<"submissions"> | null>(null);
   const [editName, setEditName] = useState("");
@@ -25,7 +23,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
   const [editProjUrl, setEditProjUrl] = useState("");
   const [editDemoUrl, setEditDemoUrl] = useState("");
 
-  const startEditing = (sub: any) => {
+  const startEditing = (sub: { _id: Id<"submissions">; name: string; description: string; projectUrl: string; demoUrl?: string }) => {
     setEditingId(sub._id);
     setEditName(sub.name);
     setEditDesc(sub.description);
@@ -34,7 +32,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
   };
 
   const handleSave = async (submissionId: Id<"submissions">) => {
-    if (!user?.id || !editName.trim() || !editDesc.trim() || !editProjUrl.trim()) return;
+    if (!editName.trim() || !editDesc.trim() || !editProjUrl.trim()) return;
     try {
       await updateSubmissionOrganizer({
         submissionId,
@@ -42,7 +40,6 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
         description: editDesc,
         projectUrl: editProjUrl,
         demoUrl: editDemoUrl || undefined,
-        userId: user.id,
       });
       toast.success("Submission updated");
       setEditingId(null);

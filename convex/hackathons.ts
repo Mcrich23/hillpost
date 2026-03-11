@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAuthUserId, getAuthUserId, getAuthUserName } from "./auth";
 
 function generateJoinCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -17,38 +18,50 @@ export const create = mutation({
     startDate: v.number(),
     endDate: v.number(),
     submissionFrequencyMinutes: v.optional(v.number()),
-    userId: v.string(),
-    userName: v.string(),
     userImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
-    const userId = args.userId;
+    const userId = await requireAuthUserId(ctx);
+    const userName = await getAuthUserName(ctx);
 
     let competitorJoinCode = generateJoinCode();
     let judgeJoinCode = generateJoinCode();
 
     // Ensure uniqueness for both
-    const ensureUnique = async (code: string, field: "competitorJoinCode" | "judgeJoinCode") => {
+    const ensureUniqueCompetitor = async (code: string): Promise<string> => {
       let uniqueCode = code;
       let existing = await ctx.db
         .query("hackathons")
-        .withIndex(`by_${field}` as any, (q) => q.eq(field, uniqueCode))
+        .withIndex("by_competitorJoinCode", (q) => q.eq("competitorJoinCode", uniqueCode))
         .first();
       while (existing) {
         uniqueCode = generateJoinCode();
         existing = await ctx.db
           .query("hackathons")
-          .withIndex(`by_${field}` as any, (q) => q.eq(field, uniqueCode))
+          .withIndex("by_competitorJoinCode", (q) => q.eq("competitorJoinCode", uniqueCode))
           .first();
       }
       return uniqueCode;
     };
 
-    competitorJoinCode = await ensureUnique(competitorJoinCode, "competitorJoinCode");
-    judgeJoinCode = await ensureUnique(judgeJoinCode, "judgeJoinCode");
+    const ensureUniqueJudge = async (code: string): Promise<string> => {
+      let uniqueCode = code;
+      let existing = await ctx.db
+        .query("hackathons")
+        .withIndex("by_judgeJoinCode", (q) => q.eq("judgeJoinCode", uniqueCode))
+        .first();
+      while (existing) {
+        uniqueCode = generateJoinCode();
+        existing = await ctx.db
+          .query("hackathons")
+          .withIndex("by_judgeJoinCode", (q) => q.eq("judgeJoinCode", uniqueCode))
+          .first();
+      }
+      return uniqueCode;
+    };
+
+    competitorJoinCode = await ensureUniqueCompetitor(competitorJoinCode);
+    judgeJoinCode = await ensureUniqueJudge(judgeJoinCode);
 
     const now = Date.now();
     const hackathonId = await ctx.db.insert("hackathons", {
@@ -68,7 +81,7 @@ export const create = mutation({
     await ctx.db.insert("hackathonMembers", {
       hackathonId,
       userId,
-      userName: args.userName,
+      userName,
       userImageUrl: args.userImageUrl,
       role: "organizer",
       status: "approved",
@@ -82,26 +95,52 @@ export const create = mutation({
 export const get = query({
   args: { hackathonId: v.id("hackathons") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.hackathonId);
+    const hackathon = await ctx.db.get(args.hackathonId);
+    if (!hackathon) return null;
+
+    const userId = await getAuthUserId(ctx);
+
+    let competitorJoinCode: string | undefined;
+    let judgeJoinCode: string | undefined;
+
+    if (userId) {
+      const membership = await ctx.db
+        .query("hackathonMembers")
+        .withIndex("by_hackathonId_userId", (q) =>
+          q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+        )
+        .first();
+
+      if (membership?.role === "organizer") {
+        competitorJoinCode = hackathon.competitorJoinCode;
+        judgeJoinCode = hackathon.judgeJoinCode;
+      } else if (membership?.role === "competitor") {
+        competitorJoinCode = hackathon.competitorJoinCode;
+      }
+    }
+
+    // Return a consistent shape; hidden codes are undefined
+    const { competitorJoinCode: _c, judgeJoinCode: _j, ...rest } = hackathon;
+    return { ...rest, competitorJoinCode, judgeJoinCode };
   },
 });
 
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("hackathons").collect();
+    const hackathons = await ctx.db.query("hackathons").collect();
+    // Strip all join codes from the public list
+    return hackathons.map(({ competitorJoinCode: _c, judgeJoinCode: _j, ...rest }) => rest);
   },
 });
 
 export const listMine = query({
-  args: {
-    userId: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    if (!args.userId) {
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
       return [];
     }
-    const userId = args.userId;
 
     const memberships = await ctx.db
       .query("hackathonMembers")
@@ -111,7 +150,38 @@ export const listMine = query({
     const hackathons = await Promise.all(
       memberships.map(async (m) => {
         const hackathon = await ctx.db.get(m.hackathonId);
-        return hackathon ? { ...hackathon, myRole: m.role } : null;
+        if (!hackathon) return null;
+
+        const { competitorJoinCode, judgeJoinCode, ...rest } = hackathon;
+
+        // Return a consistent shape for all roles; hide codes by setting them to undefined.
+        if (m.role === "organizer") {
+          // Organizers see both join codes.
+          return {
+            ...rest,
+            competitorJoinCode,
+            judgeJoinCode,
+            myRole: m.role,
+          };
+        }
+
+        if (m.role === "competitor") {
+          // Competitors see only competitorJoinCode.
+          return {
+            ...rest,
+            competitorJoinCode,
+            judgeJoinCode: undefined,
+            myRole: m.role,
+          };
+        }
+
+        // Judges see neither join code.
+        return {
+          ...rest,
+          competitorJoinCode: undefined,
+          judgeJoinCode: undefined,
+          myRole: m.role,
+        };
       })
     );
 
@@ -128,12 +198,9 @@ export const update = mutation({
     endDate: v.optional(v.number()),
     submissionFrequencyMinutes: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
-    userId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
+    const userId = await requireAuthUserId(ctx);
 
     const hackathon = await ctx.db.get(args.hackathonId);
     if (!hackathon) {
@@ -144,7 +211,7 @@ export const update = mutation({
     const membership = await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId_userId", (q) =>
-        q.eq("hackathonId", args.hackathonId).eq("userId", args.userId)
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
       )
       .first();
     if (!membership || membership.role !== "organizer") {
@@ -168,15 +235,11 @@ export const update = mutation({
 export const join = mutation({
   args: {
     joinCode: v.string(),
-    userId: v.string(),
-    userName: v.string(),
     userImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (!args.userId) {
-      throw new Error("Not authenticated");
-    }
-    const userId = args.userId;
+    const userId = await requireAuthUserId(ctx);
+    const userName = await getAuthUserName(ctx);
 
     let hackathon = await ctx.db
       .query("hackathons")
@@ -213,7 +276,7 @@ export const join = mutation({
     await ctx.db.insert("hackathonMembers", {
       hackathonId: hackathon._id,
       userId,
-      userName: args.userName,
+      userName,
       userImageUrl: args.userImageUrl,
       role,
       status,
@@ -231,12 +294,17 @@ export const getByJoinCode = query({
       .query("hackathons")
       .withIndex("by_competitorJoinCode", (q) => q.eq("competitorJoinCode", args.joinCode))
       .first();
+    let role: "competitor" | "judge" = "competitor";
     if (!hackathon) {
       hackathon = await ctx.db
         .query("hackathons")
         .withIndex("by_judgeJoinCode", (q) => q.eq("judgeJoinCode", args.joinCode))
         .first();
+      role = "judge";
     }
-    return hackathon;
+    if (!hackathon) return null;
+    // Strip both join codes — this query is used pre-join for display only
+    const { competitorJoinCode: _c, judgeJoinCode: _j, ...rest } = hackathon;
+    return { ...rest, role };
   },
 });

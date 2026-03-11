@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
-import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -26,8 +25,8 @@ interface OrganizerPanelProps {
   hackathon: {
     name: string;
     description: string;
-    competitorJoinCode: string;
-    judgeJoinCode: string;
+    competitorJoinCode: string | undefined;
+    judgeJoinCode: string | undefined;
     startDate: number;
     endDate: number;
     isActive: boolean;
@@ -55,7 +54,6 @@ function HackathonInfoSection({
   hackathon,
 }: OrganizerPanelProps) {
   const updateHackathon = useMutation(api.hackathons.update);
-  const { user } = useUser();
   const [copiedCompetitor, setCopiedCompetitor] = useState(false);
   const [copiedJudge, setCopiedJudge] = useState(false);
   const [copiedCompetitorLink, setCopiedCompetitorLink] = useState(false);
@@ -79,6 +77,7 @@ function HackathonInfoSection({
   const [newCooldown, setNewCooldown] = useState(hackathon.submissionFrequencyMinutes);
 
   const copyCompetitorCode = async () => {
+    if (!hackathon.competitorJoinCode) return;
     try {
       await navigator.clipboard.writeText(hackathon.competitorJoinCode);
       setCopiedCompetitor(true);
@@ -91,6 +90,7 @@ function HackathonInfoSection({
   };
 
   const copyJudgeCode = async () => {
+    if (!hackathon.judgeJoinCode) return;
     try {
       await navigator.clipboard.writeText(hackathon.judgeJoinCode);
       setCopiedJudge(true);
@@ -103,6 +103,7 @@ function HackathonInfoSection({
   };
 
   const copyCompetitorLink = async () => {
+    if (!hackathon.competitorJoinCode) return;
     try {
       const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
       await navigator.clipboard.writeText(link);
@@ -116,6 +117,7 @@ function HackathonInfoSection({
   };
 
   const copyJudgeLink = async () => {
+    if (!hackathon.judgeJoinCode) return;
     try {
       const link = `${window.location.origin}/join/${hackathon.judgeJoinCode}`;
       await navigator.clipboard.writeText(link);
@@ -129,12 +131,10 @@ function HackathonInfoSection({
   };
 
   const toggleActive = async () => {
-    if (!user?.id) return;
     try {
       await updateHackathon({
         hackathonId,
         isActive: !hackathon.isActive,
-        userId: user.id,
       });
       toast.success(
         hackathon.isActive ? "Hackathon deactivated" : "Hackathon activated"
@@ -147,12 +147,11 @@ function HackathonInfoSection({
   };
 
   const saveCooldown = async () => {
-    if (!user?.id || newCooldown < 0) return;
+    if (newCooldown < 0) return;
     try {
       await updateHackathon({
         hackathonId,
         submissionFrequencyMinutes: newCooldown,
-        userId: user.id,
       });
       toast.success("Cooldown updated");
       setIsEditingCooldown(false);
@@ -164,12 +163,11 @@ function HackathonInfoSection({
   };
 
   const saveName = async () => {
-    if (!user?.id || !newName.trim()) return;
+    if (!newName.trim()) return;
     try {
       await updateHackathon({
         hackathonId,
         name: newName.trim(),
-        userId: user.id,
       });
       toast.success("Name updated");
       setIsEditingName(false);
@@ -181,12 +179,11 @@ function HackathonInfoSection({
   };
 
   const saveDesc = async () => {
-    if (!user?.id || !newDesc.trim()) return;
+    if (!newDesc.trim()) return;
     try {
       await updateHackathon({
         hackathonId,
         description: newDesc.trim(),
-        userId: user.id,
       });
       toast.success("Description updated");
       setIsEditingDesc(false);
@@ -198,7 +195,7 @@ function HackathonInfoSection({
   };
 
   const saveDates = async () => {
-    if (!user?.id || !newStartDate || !newEndDate) return;
+    if (!newStartDate || !newEndDate) return;
     const start = new Date(newStartDate).getTime();
     const end = new Date(newEndDate).getTime();
     
@@ -212,7 +209,6 @@ function HackathonInfoSection({
         hackathonId,
         startDate: start,
         endDate: end,
-        userId: user.id,
       });
       toast.success("Dates updated");
       setIsEditingDates(false);
@@ -371,11 +367,12 @@ function HackathonInfoSection({
             </label>
             <div className="mt-1 flex items-center gap-2">
               <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-lg tracking-widest text-emerald-400">
-                {hackathon.competitorJoinCode}
+                {hackathon.competitorJoinCode ?? "—"}
               </code>
               <button
                 onClick={copyCompetitorCode}
-                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                disabled={!hackathon.competitorJoinCode}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50"
                 title="Copy code"
                 aria-label="Copy competitor code"
               >
@@ -387,7 +384,8 @@ function HackathonInfoSection({
               </button>
               <button
                 onClick={copyCompetitorLink}
-                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                disabled={!hackathon.competitorJoinCode}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50"
                 title="Copy join link"
                 aria-label="Copy competitor join link"
               >
@@ -397,10 +395,12 @@ function HackathonInfoSection({
                   <LinkIcon className="h-4 w-4" />
                 )}
               </button>
-              <QrCodeButton
-                path={`/join/${hackathon.competitorJoinCode}`}
-                label="Competitor Join QR"
-              />
+              {hackathon.competitorJoinCode && (
+                <QrCodeButton
+                  path={`/join/${hackathon.competitorJoinCode}`}
+                  label="Competitor Join QR"
+                />
+              )}
             </div>
           </div>
           <div className="flex-1">
@@ -409,11 +409,12 @@ function HackathonInfoSection({
             </label>
             <div className="mt-1 flex items-center gap-2">
               <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-lg tracking-widest text-blue-400 border-blue-500/30">
-                {hackathon.judgeJoinCode}
+                {hackathon.judgeJoinCode ?? "—"}
               </code>
               <button
                 onClick={copyJudgeCode}
-                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                disabled={!hackathon.judgeJoinCode}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50"
                 title="Copy code"
                 aria-label="Copy judge code"
               >
@@ -425,7 +426,8 @@ function HackathonInfoSection({
               </button>
               <button
                 onClick={copyJudgeLink}
-                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                disabled={!hackathon.judgeJoinCode}
+                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50"
                 title="Copy join link"
                 aria-label="Copy judge join link"
               >
@@ -435,10 +437,12 @@ function HackathonInfoSection({
                   <LinkIcon className="h-4 w-4" />
                 )}
               </button>
-              <QrCodeButton
-                path={`/join/${hackathon.judgeJoinCode}`}
-                label="Judge Join QR"
-              />
+              {hackathon.judgeJoinCode && (
+                <QrCodeButton
+                  path={`/join/${hackathon.judgeJoinCode}`}
+                  label="Judge Join QR"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -523,7 +527,6 @@ function CategoriesSection({
   const createCategory = useMutation(api.categories.create);
   const updateCategory = useMutation(api.categories.update);
   const removeCategory = useMutation(api.categories.remove);
-  const { user } = useUser();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"categories"> | null>(null);
@@ -536,14 +539,13 @@ function CategoriesSection({
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName || !newDescription || !user?.id) return;
+    if (!newName || !newDescription) return;
     try {
       await createCategory({
         hackathonId,
         name: newName,
         description: newDescription,
         maxScore: newMaxScore,
-        userId: user.id,
       });
       toast.success("Category added");
       setNewName("");
@@ -558,14 +560,12 @@ function CategoriesSection({
   };
 
   const handleEdit = async (categoryId: Id<"categories">) => {
-    if (!user?.id) return;
     try {
       await updateCategory({
         categoryId,
         name: editName,
         description: editDescription,
         maxScore: editMaxScore,
-        userId: user.id,
       });
       toast.success("Category updated");
       setEditingId(null);
@@ -577,9 +577,8 @@ function CategoriesSection({
   };
 
   const handleRemove = async (categoryId: Id<"categories">) => {
-    if (!user?.id) return;
     try {
-      await removeCategory({ categoryId, userId: user.id });
+      await removeCategory({ categoryId });
       toast.success("Category removed");
     } catch (error) {
       toast.error(
@@ -751,15 +750,13 @@ function PendingApprovalsSection({
 }) {
   const members = useQuery(api.members.listMembers, { hackathonId });
   const updateStatus = useMutation(api.members.updateStatus);
-  const { user } = useUser();
 
   const handleStatusChange = async (
     memberId: Id<"hackathonMembers">,
     newStatus: "approved" | "rejected"
   ) => {
-    if (!user?.id) return;
     try {
-      await updateStatus({ memberId, status: newStatus, userId: user.id });
+      await updateStatus({ memberId, status: newStatus });
       toast.success(`Judge ${newStatus}`);
     } catch (error) {
       toast.error(
@@ -824,9 +821,7 @@ function MembersSection({
 }) {
   const members = useQuery(api.members.listMembers, { hackathonId });
   const updateRole = useMutation(api.members.updateRole);
-  const updateStatus = useMutation(api.members.updateStatus);
   const removeMember = useMutation(api.members.removeMember);
-  const { user } = useUser();
 
   const [changingRole, setChangingRole] = useState<Id<"hackathonMembers"> | null>(null);
 
@@ -834,9 +829,8 @@ function MembersSection({
     memberId: Id<"hackathonMembers">,
     newRole: "organizer" | "judge" | "competitor"
   ) => {
-    if (!user?.id) return;
     try {
-      await updateRole({ memberId, role: newRole, userId: user.id });
+      await updateRole({ memberId, role: newRole });
       toast.success("Role updated");
       setChangingRole(null);
     } catch (error) {
@@ -846,25 +840,9 @@ function MembersSection({
     }
   };
 
-  const handleStatusChange = async (
-    memberId: Id<"hackathonMembers">,
-    newStatus: "approved" | "rejected"
-  ) => {
-    if (!user?.id) return;
-    try {
-      await updateStatus({ memberId, status: newStatus, userId: user.id });
-      toast.success(`Judge ${newStatus}`);
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update status"
-      );
-    }
-  };
-
   const handleRemove = async (memberId: Id<"hackathonMembers">) => {
-    if (!user?.id) return;
     try {
-      await removeMember({ memberId, userId: user.id });
+      await removeMember({ memberId });
       toast.success("Member removed");
     } catch (error) {
       toast.error(
@@ -977,20 +955,19 @@ function TeamsAndProjectsSection({
 }) {
   const teams = useQuery(api.teams.list, { hackathonId });
   const updateTeamName = useMutation(api.teams.updateTeamName);
-  const { user } = useUser();
 
   const [editingTeamId, setEditingTeamId] = useState<Id<"teams"> | null>(null);
   const [editTeamName, setEditTeamName] = useState("");
 
-  const startEditingTeam = (team: any) => {
+  const startEditingTeam = (team: { _id: Id<"teams">; name: string }) => {
     setEditingTeamId(team._id);
     setEditTeamName(team.name);
   };
 
   const handleSaveTeamName = async (teamId: Id<"teams">) => {
-    if (!user?.id || !editTeamName.trim()) return;
+    if (!editTeamName.trim()) return;
     try {
-      await updateTeamName({ teamId, name: editTeamName, userId: user.id });
+      await updateTeamName({ teamId, name: editTeamName });
       toast.success("Team name updated");
       setEditingTeamId(null);
     } catch (error) {
@@ -1052,7 +1029,7 @@ function TeamsAndProjectsSection({
 
                 {/* Team Members List */}
                 <div className="flex flex-wrap gap-2">
-                  {team.members?.map((m: any) => (
+                  {team.members?.map((m: { _id: string; userName: string }) => (
                     <span
                       key={m._id}
                       className="rounded-full bg-gray-700/50 px-2.5 py-0.5 text-xs text-gray-300"

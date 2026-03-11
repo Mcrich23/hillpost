@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -20,6 +20,7 @@ export function CreateHackathonDialog({
 }: CreateHackathonDialogProps) {
   const router = useRouter();
   const { user } = useUser();
+  const { isAuthenticated } = useConvexAuth();
   const createHackathon = useMutation(api.hackathons.create);
 
   const [name, setName] = useState("");
@@ -38,7 +39,7 @@ export function CreateHackathonDialog({
       return;
     }
 
-    if (!user?.id) {
+    if (!isAuthenticated) {
       toast.error("Please sign in first");
       return;
     }
@@ -51,9 +52,7 @@ export function CreateHackathonDialog({
         startDate: new Date(startDate).getTime(),
         endDate: new Date(endDate).getTime(),
         submissionFrequencyMinutes: submissionFrequency,
-        userId: user.id,
-        userName: user.fullName ?? user.username ?? "Unknown",
-        userImageUrl: user.imageUrl,
+        userImageUrl: user?.imageUrl,
       });
       toast.success("Hackathon created successfully!");
       resetForm();
@@ -177,7 +176,7 @@ export function CreateHackathonDialog({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isAuthenticated}
               className={cn(
                 "rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-500 disabled:opacity-50"
               )}

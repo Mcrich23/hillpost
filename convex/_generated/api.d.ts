@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
 import type * as categories from "../categories.js";
 import type * as hackathons from "../hackathons.js";
 import type * as leaderboard from "../leaderboard.js";
@@ -23,6 +24,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
   categories: typeof categories;
   hackathons: typeof hackathons;
   leaderboard: typeof leaderboard;

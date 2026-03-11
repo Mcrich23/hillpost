@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useParams, useRouter } from "next/navigation";
@@ -36,9 +36,10 @@ type Tab = "overview" | "submissions"| "compete" | "judge" | "manage";
 export default function HackathonDetailPage() {
   const params = useParams();
   const { user } = useUser();
+  const { isAuthenticated } = useConvexAuth();
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
-  const membership = useQuery(api.members.getMyMembership, { hackathonId, userId: user?.id });
+  const membership = useQuery(api.members.getMyMembership, { hackathonId });
   
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
@@ -49,15 +50,14 @@ export default function HackathonDetailPage() {
   const [isLeaving, setIsLeaving] = useState(false);
 
   React.useEffect(() => {
-    if (user?.id && membership) {
+    if (isAuthenticated && membership && user?.imageUrl) {
       // Sync profile picture
       syncProfile({
         hackathonId,
-        userId: user.id,
         userImageUrl: user.imageUrl,
       }).catch(console.error);
     }
-  }, [user?.id, user?.imageUrl, membership, hackathonId, syncProfile]);
+  }, [isAuthenticated, user?.imageUrl, membership, hackathonId, syncProfile]);
 
   const [activeTab, setActiveTab] = React.useState<Tab>("overview");
   const [copiedJoinLink, setCopiedJoinLink] = useState(false);
@@ -65,7 +65,7 @@ export default function HackathonDetailPage() {
   const role = membership?.role;
 
   const copyCompetitorJoinLink = async () => {
-    if (!hackathon) return;
+    if (!hackathon?.competitorJoinCode) return;
     try {
       const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
       await navigator.clipboard.writeText(link);
@@ -110,7 +110,7 @@ export default function HackathonDetailPage() {
     if (confirm("Are you sure you want to leave this hackathon?")) {
       setIsLeaving(true);
       try {
-        await leaveHackathon({ hackathonId, userId: user.id });
+        await leaveHackathon({ hackathonId });
         router.push("/dashboard");
       } catch (error) {
         console.error("Failed to leave hackathon:", error);
@@ -391,7 +391,7 @@ export default function HackathonDetailPage() {
                 </h3>
                 <div className="flex items-center gap-3">
                   <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-xl tracking-widest text-emerald-400">
-                    {hackathon.competitorJoinCode}
+                    {hackathon?.competitorJoinCode ?? "—"}
                   </code>
                   <button
                     onClick={copyCompetitorJoinLink}
@@ -405,10 +405,12 @@ export default function HackathonDetailPage() {
                       <LinkIcon className="h-4 w-4" />
                     )}
                   </button>
-                  <QrCodeButton
-                    path={`/join/${hackathon.competitorJoinCode}`}
-                    label="Competitor Join QR"
-                  />
+                  {hackathon?.competitorJoinCode && (
+                    <QrCodeButton
+                      path={`/join/${hackathon.competitorJoinCode}`}
+                      label="Competitor Join QR"
+                    />
+                  )}
                 </div>
                 <p className="mt-2 text-xs text-gray-500">
                   Share this code, copy the join link, or show the QR code to invite competitors.
