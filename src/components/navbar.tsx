@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { SignInButton, SignUpButton, UserButton, useAuth, useUser } from "@clerk/nextjs";
-import { Crown, LayoutDashboard, Trophy, Menu, X } from "lucide-react";
+import { Terminal, LayoutDashboard, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Navbar() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -14,44 +15,43 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 border-b border-[#1F1F1F] bg-black">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-          <Crown className="h-7 w-7 text-emerald-500" />
-          <span className="text-lg font-bold text-white">
-            Hillpost
+        <Link href="/" className="flex items-center gap-2 group">
+          <Terminal className="h-5 w-5 text-[#00FF41]" />
+          <span className="text-sm font-bold tracking-widest text-white uppercase group-hover:text-[#00FF41] transition-colors">
+            HILLPOST
           </span>
         </Link>
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-1 md:flex">
           {isAuthenticated && (
-            <>
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard
-              </Link>
-            </>
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors border border-transparent hover:border-[#1F1F1F]"
+            >
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              ~/dashboard
+            </Link>
           )}
         </div>
 
         {/* Auth Section */}
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           {isLoading ? (
-            <div className="h-8 w-20 animate-pulse rounded-lg bg-gray-800" />
+            <div className="h-7 w-20 bg-[#111111] border border-[#1F1F1F]" />
           ) : isAuthenticated && user ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-400">
+              <span className="text-xs text-[#555555]">
                 {user.firstName || user.username}
               </span>
               <UserButton
                 appearance={{
                   elements: {
-                    avatarBox: "h-8 w-8",
+                    avatarBox: "h-7 w-7 rounded-none",
                   },
                 }}
               />
@@ -59,12 +59,12 @@ export function Navbar() {
           ) : (
             <div className="flex items-center gap-2">
               <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                <button className="rounded-lg px-4 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white">
+                <button className="px-4 py-1.5 text-xs text-[#555555] uppercase tracking-wider border border-[#1F1F1F] hover:border-white hover:text-white transition-colors">
                   Sign In
                 </button>
               </SignInButton>
               <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
-                <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500">
+                <button className="px-4 py-1.5 text-xs font-bold text-black uppercase tracking-wider bg-[#00FF41] hover:bg-white transition-colors">
                   Sign Up
                 </button>
               </SignUpButton>
@@ -73,66 +73,59 @@ export function Navbar() {
         </div>
 
         {/* Mobile Menu Button */}
-        <button
-          className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-800 hover:text-white md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+        <div className="flex items-center gap-1 md:hidden">
+          <ThemeToggle />
+          <button
+            className="p-2 text-[#555555] hover:text-white transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
       <div
         className={cn(
-          "overflow-hidden border-t border-gray-800 transition-all duration-300 md:hidden",
+          "overflow-hidden border-t border-[#1F1F1F] transition-all duration-200 md:hidden",
           mobileMenuOpen ? "max-h-64" : "max-h-0 border-t-0"
         )}
       >
-        <div className="space-y-1 px-4 py-3">
+        <div className="space-y-1 px-4 py-3 bg-black">
           {isAuthenticated && (
-            <>
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard
-              </Link>
-              <Link
-                href="/leaderboard"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Trophy className="h-4 w-4" />
-                Leaderboard
-              </Link>
-            </>
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              ~/dashboard
+            </Link>
           )}
           {!isAuthenticated && !isLoading && (
             <div className="flex flex-col gap-2 pt-2">
               <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                <button className="w-full rounded-lg px-4 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-white">
+                <button className="w-full px-4 py-2 text-xs text-[#555555] uppercase tracking-wider border border-[#1F1F1F] hover:border-white hover:text-white transition-colors">
                   Sign In
                 </button>
               </SignInButton>
               <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
-                <button className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500">
+                <button className="w-full px-4 py-2 text-xs font-bold text-black uppercase tracking-wider bg-[#00FF41] hover:bg-white transition-colors">
                   Sign Up
                 </button>
               </SignUpButton>
             </div>
           )}
           {isAuthenticated && user && (
-            <div className="flex items-center gap-3 border-t border-gray-800 pt-3">
+            <div className="flex items-center gap-3 border-t border-[#1F1F1F] pt-3 mt-2">
               <UserButton
                 appearance={{
                   elements: {
-                    avatarBox: "h-8 w-8",
+                    avatarBox: "h-7 w-7 rounded-none",
                   },
                 }}
               />
-              <span className="text-sm text-gray-400">
+              <span className="text-xs text-[#555555]">
                 {user.firstName || user.username}
               </span>
             </div>

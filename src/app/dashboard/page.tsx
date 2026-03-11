@@ -7,15 +7,22 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import {
-  Plus,
-  LogIn,
-  Calendar,
-  Sparkles,
-  Loader2,
-} from "lucide-react";
+import { motion } from "framer-motion";
 import { CreateHackathonDialog } from "@/components/create-hackathon-dialog";
 import { JoinHackathonDialog } from "@/components/join-hackathon-dialog";
+
+const roleBadgeClass = (role: string) => {
+  switch (role) {
+    case "organizer":
+      return "border-[#FF6600] text-[#FF6600]";
+    case "judge":
+      return "border-[#00B4FF] text-[#00B4FF]";
+    case "competitor":
+      return "border-[#00FF41] text-[#00FF41]";
+    default:
+      return "border-[#555555] text-[#555555]";
+  }
+};
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -25,37 +32,32 @@ export default function DashboardPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
 
-  const roleBadgeClass = (role: string) => {
-    switch (role) {
-      case "organizer":
-        return "bg-purple-600/20 text-purple-400 border-purple-500/30";
-      case "judge":
-        return "bg-blue-600/20 text-blue-400 border-blue-500/30";
-      case "competitor":
-        return "bg-emerald-600/20 text-emerald-400 border-emerald-500/30";
-      default:
-        return "bg-gray-600/20 text-gray-400 border-gray-500/30";
-    }
-  };
-
   if (!isLoaded) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
-          <p className="text-sm text-gray-400">Loading your dashboard...</p>
+        <div className="text-xs text-[#555555] uppercase tracking-widest">
+          <span className="cursor-blink">▓▓▓░░░</span> LOADING...
         </div>
       </div>
     );
   }
 
+  const validHackathons = (hackathons ?? []).filter(
+    (h): h is NonNullable<typeof h> => h !== null
+  );
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">
-          Welcome{user?.firstName ? `, ${user.firstName}` : ""}!
+      {/* Header */}
+      <div className="mb-8 border-b border-[#1F1F1F] pb-6">
+        <div className="text-xs text-[#555555] uppercase tracking-widest mb-1">
+          ~/hillpost/dashboard
+        </div>
+        <h1 className="text-2xl font-bold text-white uppercase tracking-wide">
+          HELLO, {user?.firstName?.toUpperCase() || user?.username?.toUpperCase() || "USER"}
+          <span className="cursor-blink ml-2">▊</span>
         </h1>
-        <p className="mt-1 text-gray-400">
+        <p className="mt-1 text-xs text-[#555555] uppercase tracking-wider">
           Manage your hackathons and competitions
         </p>
       </div>
@@ -64,14 +66,16 @@ export default function DashboardPage() {
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <button
           onClick={() => setShowCreateDialog(true)}
-          className="group flex items-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-5 transition-colors hover:border-emerald-500/50 hover:bg-gray-900/80"
+          className="group flex items-center gap-4 border border-[#1F1F1F] bg-[#0A0A0A] p-5 text-left transition-colors hover:border-[#FF6600]"
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600/20 text-emerald-400 group-hover:bg-emerald-600/30">
-            <Plus className="h-6 w-6" />
+          <div className="text-2xl font-bold text-[#1F1F1F] group-hover:text-[#FF6600] transition-colors">
+            [ + ]
           </div>
-          <div className="text-left">
-            <p className="font-semibold text-white">Create Hackathon</p>
-            <p className="text-sm text-gray-400">
+          <div>
+            <p className="text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#FF6600] transition-colors">
+              CREATE HACKATHON
+            </p>
+            <p className="text-xs text-[#555555]">
               Organize a new competition
             </p>
           </div>
@@ -79,14 +83,16 @@ export default function DashboardPage() {
 
         <button
           onClick={() => setShowJoinDialog(true)}
-          className="group flex items-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-5 transition-colors hover:border-emerald-500/50 hover:bg-gray-900/80"
+          className="group flex items-center gap-4 border border-[#1F1F1F] bg-[#0A0A0A] p-5 text-left transition-colors hover:border-[#00B4FF]"
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-600/20 text-blue-400 group-hover:bg-blue-600/30">
-            <LogIn className="h-6 w-6" />
+          <div className="text-2xl font-bold text-[#1F1F1F] group-hover:text-[#00B4FF] transition-colors">
+            [ → ]
           </div>
-          <div className="text-left">
-            <p className="font-semibold text-white">Join Hackathon</p>
-            <p className="text-sm text-gray-400">
+          <div>
+            <p className="text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+              JOIN HACKATHON
+            </p>
+            <p className="text-xs text-[#555555]">
               Enter with a join code
             </p>
           </div>
@@ -95,81 +101,94 @@ export default function DashboardPage() {
 
       {/* My Hackathons */}
       <div>
-        <h2 className="mb-4 text-xl font-semibold text-white">
-          My Hackathons
-        </h2>
+        <div className="mb-4 flex items-center gap-3">
+          <span className="text-xs text-[#555555] uppercase tracking-widest">── MY HACKATHONS</span>
+          <div className="h-px flex-1 bg-[#1F1F1F]" />
+        </div>
 
         {hackathons === undefined ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-3">
             {[1, 2].map((i) => (
               <div
                 key={i}
-                className="h-40 animate-pulse rounded-xl border border-gray-800 bg-gray-900"
-              />
+                className="h-24 border border-[#1F1F1F] bg-[#0A0A0A]"
+              >
+                <div className="h-full flex items-center px-5">
+                  <div className="text-xs text-[#333333] uppercase tracking-widest cursor-blink">
+                    ░░░░░░░░░░░░░░░░
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-        ) : (() => {
-          const validHackathons = hackathons.filter(
-            (h): h is NonNullable<typeof h> => h !== null
-          );
-          return validHackathons.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-900 py-16">
-            <Sparkles className="mb-4 h-16 w-16 text-gray-700" />
-            <h3 className="text-lg font-medium text-gray-400">
-              No hackathons yet
+        ) : validHackathons.length === 0 ? (
+          <div className="flex flex-col items-center justify-center border border-[#1F1F1F] bg-[#0A0A0A] py-16">
+            <div className="mb-4 text-4xl text-[#1F1F1F] font-bold">[ ]</div>
+            <h3 className="text-sm font-bold text-[#555555] uppercase tracking-wider">
+              NO EVENTS FOUND
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-xs text-[#333333] uppercase tracking-wide">
               Create or join a hackathon to get started
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <motion.div
+            className="grid grid-cols-1 gap-3 md:grid-cols-2"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
+            }}
+          >
             {validHackathons.map((h) => (
-              <button
+              <motion.button
                 key={h._id}
+                variants={{
+                  hidden: { opacity: 0, y: 8 },
+                  visible: { opacity: 1, y: 0 },
+                }}
                 onClick={() => router.push(`/hackathon/${h._id}`)}
-                className="group rounded-xl border border-gray-800 bg-gray-900 p-5 text-left transition-colors hover:border-emerald-500/50"
+                className="group border border-[#1F1F1F] bg-[#0A0A0A] p-5 text-left transition-colors hover:border-white"
               >
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="font-semibold text-white group-hover:text-emerald-400">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#00FF41] transition-colors">
                     {h.name}
                   </h3>
                   <span
                     className={cn(
-                      "rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize",
+                      "tui-badge",
                       roleBadgeClass(h.myRole)
                     )}
                   >
-                    {h.myRole}
+                    {h.myRole.toUpperCase()}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <Calendar className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-xs text-[#555555]">
                   <span>
-                    {format(new Date(h.startDate), "MMM d")} –{" "}
+                    {format(new Date(h.startDate), "MMM d")} —{" "}
                     {format(new Date(h.endDate), "MMM d, yyyy")}
                   </span>
                 </div>
 
                 <div className="mt-3 flex items-center gap-2">
                   {h.isActive ? (
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-600/20 px-2 py-0.5 text-xs text-emerald-400">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                      Active
+                    <span className="flex items-center gap-1 text-xs text-[#00FF41] uppercase tracking-widest">
+                      <span className="status-pulse h-1.5 w-1.5 bg-[#00FF41] inline-block" />
+                      [● LIVE]
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 rounded-full bg-gray-600/20 px-2 py-0.5 text-xs text-gray-400">
-                      <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-                      Inactive
+                    <span className="flex items-center gap-1 text-xs text-[#555555] uppercase tracking-widest">
+                      <span className="h-1.5 w-1.5 bg-[#555555] inline-block" />
+                      [○ CLOSED]
                     </span>
                   )}
                 </div>
-              </button>
+              </motion.button>
             ))}
-          </div>
-        );
-        })()}
+          </motion.div>
+        )}
       </div>
 
       <CreateHackathonDialog

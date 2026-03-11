@@ -31,7 +31,16 @@ import { JudgePanel } from "@/components/judge-panel";
 import { PublicSubmissions } from "@/components/public-submissions";
 import { QrCodeButton } from "@/components/qr-code-overlay";
 
-type Tab = "overview" | "submissions"| "compete" | "judge" | "manage";
+type Tab = "overview" | "submissions" | "compete" | "judge" | "manage";
+
+const roleColor = (role: string) => {
+  switch (role) {
+    case "organizer": return "border-[#FF6600] text-[#FF6600]";
+    case "judge": return "border-[#00B4FF] text-[#00B4FF]";
+    case "competitor": return "border-[#00FF41] text-[#00FF41]";
+    default: return "border-[#555555] text-[#555555]";
+  }
+};
 
 export default function HackathonDetailPage() {
   const params = useParams();
@@ -40,7 +49,7 @@ export default function HackathonDetailPage() {
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
-  
+
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
@@ -51,7 +60,6 @@ export default function HackathonDetailPage() {
 
   React.useEffect(() => {
     if (isAuthenticated && membership && user?.imageUrl) {
-      // Sync profile picture
       syncProfile({
         hackathonId,
         userImageUrl: user.imageUrl,
@@ -78,19 +86,16 @@ export default function HackathonDetailPage() {
     }
   };
 
-  // Calculate pending submissions for the judge badge
   const pendingSubmissionsCount = React.useMemo(() => {
     if (role !== "judge" && role !== "organizer") return 0;
     if (membership?.status === "pending" || membership?.status === "rejected") return 0;
     if (!submissions || !user?.id) return 0;
-
     return submissions.filter((sub) => {
       const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
       return !hasJudged;
     }).length;
   }, [role, membership?.status, submissions, user?.id]);
 
-  // Calculate pending members for the manage badge
   const pendingApprovalsCount = React.useMemo(() => {
     if (role !== "organizer" || !allMembers) return 0;
     return allMembers.filter((m) => m.status === "pending").length;
@@ -99,14 +104,17 @@ export default function HackathonDetailPage() {
   if (hackathon === undefined || membership === undefined) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <div className="h-64 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
+        <div className="h-64 border border-[#1F1F1F] bg-[#0A0A0A] flex items-center justify-center">
+          <span className="text-xs text-[#555555] uppercase tracking-widest cursor-blink">
+            ▓▓▓░░░ LOADING...
+          </span>
+        </div>
       </div>
     );
   }
 
   const handleLeave = async () => {
     if (!user?.id || hackathon?.organizerId === user.id) return;
-    
     if (confirm("Are you sure you want to leave this hackathon?")) {
       setIsLeaving(true);
       try {
@@ -122,13 +130,13 @@ export default function HackathonDetailPage() {
   if (!hackathon) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-8 text-center">
-          <p className="text-lg text-gray-400">Hackathon not found</p>
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
+          <p className="text-sm text-[#555555] uppercase tracking-wide">Hackathon not found</p>
           <Link
             href="/dashboard"
-            className="mt-4 inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300"
+            className="mt-4 inline-flex items-center gap-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3 w-3" />
             Back to Dashboard
           </Link>
         </div>
@@ -136,36 +144,19 @@ export default function HackathonDetailPage() {
     );
   }
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode; show: boolean; badge?: number }[] = [
-    {
-      id: "overview",
-      label: "Overview",
-      icon: <Trophy className="h-4 w-4" />,
-      show: true,
-    },
-    {
-      id: "submissions",
-      label: "Submissions",
-      icon: <Layers className="h-4 w-4" />,
-      show: role == "organizer",
-    },
-    {
-      id: "compete",
-      label: "Compete",
-      icon: <Code className="h-4 w-4" />,
-      show: role === "competitor",
-    },
+  const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
+    { id: "overview", label: "OVERVIEW", show: true },
+    { id: "submissions", label: "SUBMISSIONS", show: role === "organizer" },
+    { id: "compete", label: "COMPETE", show: role === "competitor" },
     {
       id: "judge",
-      label: "Judge",
-      icon: <Gavel className="h-4 w-4" />,
+      label: "JUDGE",
       show: role === "judge" || role === "organizer",
       badge: pendingSubmissionsCount,
     },
     {
       id: "manage",
-      label: "Manage",
-      icon: <Settings className="h-4 w-4" />,
+      label: "MANAGE",
       show: role === "organizer",
       badge: pendingApprovalsCount,
     },
@@ -177,71 +168,62 @@ export default function HackathonDetailPage() {
       <div className="mb-6">
         <Link
           href="/dashboard"
-          className="mb-4 inline-flex items-center gap-1 text-sm text-gray-400 hover:text-white"
+          className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
+          <ArrowLeft className="h-3 w-3" />
+          ← Back to Dashboard
         </Link>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">{hackathon.name}</h1>
-            <p className="mt-1 text-gray-400">{hackathon.description}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold text-white uppercase tracking-wide">{hackathon.name}</h1>
+            <p className="mt-1 text-xs text-[#555555]">{hackathon.description}</p>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end gap-2 shrink-0">
             {hackathon.isActive ? (
-              <span className="flex items-center gap-1 rounded-full bg-emerald-600/20 px-3 py-1 text-sm text-emerald-400">
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                Active
+              <span className="flex items-center gap-2 text-xs text-[#00FF41] uppercase tracking-widest border border-[#00FF41]/30 px-2.5 py-1">
+                <span className="status-pulse h-1.5 w-1.5 bg-[#00FF41] inline-block" />
+                [● ACTIVE]
               </span>
             ) : (
-              <span className="flex items-center gap-1 rounded-full bg-gray-600/20 px-3 py-1 text-sm text-gray-400">
-                <span className="h-2 w-2 rounded-full bg-gray-400" />
-                Inactive
+              <span className="flex items-center gap-2 text-xs text-[#555555] uppercase tracking-widest border border-[#1F1F1F] px-2.5 py-1">
+                <span className="h-1.5 w-1.5 bg-[#555555] inline-block" />
+                [○ INACTIVE]
               </span>
             )}
             {membership && hackathon.organizerId !== user?.id && (
               <button
                 onClick={handleLeave}
                 disabled={isLeaving}
-                className="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 outline-none transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                className="flex items-center gap-1.5 border border-red-500/20 px-3 py-1 text-xs text-red-400 uppercase tracking-wider hover:border-red-500 hover:text-red-300 transition-colors disabled:opacity-50"
               >
-                <LogOut className="h-3.5 w-3.5" />
-                {isLeaving ? "Leaving..." : "Leave Hackathon"}
+                <LogOut className="h-3 w-3" />
+                {isLeaving ? "LEAVING..." : "[ ← LEAVE ]"}
               </button>
             )}
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-400">
+        <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-[#555555]">
           <span className="flex items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            {format(new Date(hackathon.startDate), "MMM d, yyyy")} –{" "}
+            <Calendar className="h-3 w-3" />
+            {format(new Date(hackathon.startDate), "MMM d, yyyy")} —{" "}
             {format(new Date(hackathon.endDate), "MMM d, yyyy")}
           </span>
           <span className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
-            {hackathon.submissionFrequencyMinutes}min submission cooldown
+            <Clock className="h-3 w-3" />
+            {hackathon.submissionFrequencyMinutes}min cooldown
           </span>
           {role && (
-            <span
-              className={cn(
-                "rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize",
-                role === "organizer"
-                  ? "border-purple-500/30 bg-purple-600/20 text-purple-400"
-                  : role === "judge"
-                    ? "border-blue-500/30 bg-blue-600/20 text-blue-400"
-                    : "border-emerald-500/30 bg-emerald-600/20 text-emerald-400"
-              )}
-            >
-              {role}
+            <span className={cn("tui-badge", roleColor(role))}>
+              {role.toUpperCase()}
             </span>
           )}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="mb-6 flex gap-1 overflow-x-auto rounded-lg border border-gray-800 bg-gray-900 p-1">
+      {/* TUI Tabs */}
+      <div className="mb-6 flex gap-0 overflow-x-auto border border-[#1F1F1F]">
         {tabs
           .filter((t) => t.show)
           .map((tab) => (
@@ -249,17 +231,16 @@ export default function HackathonDetailPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "relative flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors",
+                "relative flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap border-r border-[#1F1F1F] last:border-r-0",
                 activeTab === tab.id
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-400 hover:text-white"
+                  ? "bg-white text-black"
+                  : "bg-black text-[#555555] hover:text-white"
               )}
             >
-              {tab.icon}
               {tab.label}
               {tab.badge !== undefined && tab.badge > 0 && (
-                <span className="ml-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
-                  {tab.badge}
+                <span className="ml-1 text-[10px] font-bold text-[#FF6600]">
+                  ●{tab.badge}
                 </span>
               )}
             </button>
@@ -270,62 +251,59 @@ export default function HackathonDetailPage() {
       {activeTab === "overview" && (
         <div className="space-y-6">
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-center transition-colors hover:border-gray-700">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600/20 text-blue-400">
-                <Users className="h-5 w-5" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              {
+                label: "BUILDERS",
+                value: allMembers?.filter((m) => m.role === "competitor").length ?? "—",
+                color: "#00B4FF",
+                icon: Users,
+              },
+              {
+                label: "PROJECTS",
+                value: submissions?.length ?? "—",
+                color: "#00FF41",
+                icon: Layers,
+              },
+              {
+                label: "CATEGORIES",
+                value: categories?.length ?? "—",
+                color: "#FF6600",
+                icon: Star,
+              },
+              {
+                label: "DAYS LEFT",
+                value: Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))),
+                color: "#555555",
+                icon: Clock,
+              },
+            ].map(({ label, value, color, icon: Icon }) => (
+              <div
+                key={label}
+                className="border border-[#1F1F1F] bg-[#0A0A0A] p-4 text-center"
+              >
+                <div className="mb-1 text-xs text-[#555555] uppercase tracking-widest">
+                  ─ {label} ─
+                </div>
+                <div className="text-2xl font-bold tabular-nums" style={{ color }}>
+                  {value}
+                </div>
               </div>
-              <p className="text-2xl font-bold text-white">
-                {allMembers?.filter((m) => m.role === "competitor").length ?? "-"}
-              </p>
-              <p className="text-xs text-gray-500">Builders</p>
-            </div>
-            
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-center transition-colors hover:border-gray-700">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600/20 text-emerald-400">
-                <Layers className="h-5 w-5" />
-              </div>
-              <p className="text-2xl font-bold text-white">
-                {submissions?.length ?? "-"}
-              </p>
-              <p className="text-xs text-gray-500">Projects</p>
-            </div>
-            
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-center transition-colors hover:border-gray-700">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-purple-600/20 text-purple-400">
-                <Star className="h-5 w-5" />
-              </div>
-              <p className="text-2xl font-bold text-white">
-                {categories?.length ?? "-"}
-              </p>
-              <p className="text-xs text-gray-500">Categories</p>
-            </div>
-            
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-5 text-center transition-colors hover:border-gray-700">
-              <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-600/20 text-yellow-400">
-                <Clock className="h-5 w-5" />
-              </div>
-              <p className="text-2xl font-bold text-white">
-                {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24)))}
-              </p>
-              <p className="text-xs text-gray-500">Days Left</p>
-            </div>
+            ))}
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <Link
               href={`/hackathon/${hackathonId}/leaderboard`}
-              className="group flex flex-col justify-center gap-4 rounded-xl border border-gray-800 bg-gray-900 p-6 transition-colors hover:border-emerald-500/50"
+              className="group flex flex-col justify-center gap-4 border border-[#1F1F1F] bg-[#0A0A0A] p-6 transition-colors hover:border-[#FF6600]"
             >
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-600/20 text-yellow-400">
-                  <Trophy className="h-6 w-6" />
-                </div>
+                <Trophy className="h-8 w-8 text-[#FF6600]" />
                 <div>
-                  <p className="font-semibold text-lg text-white group-hover:text-emerald-400">
-                    View Leaderboard
+                  <p className="text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#FF6600] transition-colors">
+                    VIEW LEADERBOARD →
                   </p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-xs text-[#555555]">
                     See real-time rankings and scores
                   </p>
                 </div>
@@ -334,28 +312,26 @@ export default function HackathonDetailPage() {
 
             {role === "judge" ? (
               membership?.status === "approved" ? (
-                <div className="flex flex-col justify-center rounded-xl border border-gray-800 bg-gray-900 p-6">
-                  <h3 className="mb-4 text-sm font-medium text-gray-300">
-                    Judging Status
+                <div className="flex flex-col justify-center border border-[#1F1F1F] bg-[#0A0A0A] p-6">
+                  <h3 className="mb-4 text-xs font-bold text-[#555555] uppercase tracking-widest">
+                    ─ JUDGING STATUS ─
                   </h3>
                   <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600/20 text-emerald-400">
-                      <Gavel className="h-6 w-6" />
-                    </div>
+                    <Gavel className="h-8 w-8 text-[#00B4FF]" />
                     <div>
                       {pendingSubmissionsCount > 0 ? (
                         <>
-                          <p className="text-xl font-bold text-white">
-                            {pendingSubmissionsCount} Project{pendingSubmissionsCount === 1 ? "" : "s"}
+                          <p className="text-xl font-bold text-white tabular-nums">
+                            {pendingSubmissionsCount} PENDING
                           </p>
-                          <p className="text-sm text-gray-400">
+                          <p className="text-xs text-[#555555]">
                             Waiting to be scored
                           </p>
                         </>
                       ) : (
                         <>
-                          <p className="text-xl font-bold text-white">All Caught Up</p>
-                          <p className="text-sm text-gray-400">
+                          <p className="text-lg font-bold text-[#00FF41]">ALL CAUGHT UP</p>
+                          <p className="text-xs text-[#555555]">
                             Check back later for more
                           </p>
                         </>
@@ -365,42 +341,40 @@ export default function HackathonDetailPage() {
                   {pendingSubmissionsCount > 0 && (
                     <button
                       onClick={() => setActiveTab("judge")}
-                      className="mt-6 w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+                      className="mt-6 w-full border border-[#00B4FF] py-2 text-xs font-bold text-[#00B4FF] uppercase tracking-wider transition-colors hover:bg-[#00B4FF] hover:text-black"
                     >
-                      Start Judging
+                      [ START JUDGING → ]
                     </button>
                   )}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-6 text-center">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-500">
-                    <Gavel className="h-6 w-6" />
-                  </div>
-                  <h3 className="mb-2 text-lg font-bold text-white">
-                    Approval Pending
+                <div className="flex flex-col items-center justify-center border border-[#FF6600]/20 bg-[#FF660008] p-6 text-center">
+                  <Gavel className="mb-4 h-8 w-8 text-[#FF6600]" />
+                  <h3 className="mb-2 text-sm font-bold text-white uppercase">
+                    APPROVAL PENDING
                   </h3>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-xs text-[#555555]">
                     Your request to judge is waiting for organizer approval.
                   </p>
                 </div>
               )
             ) : (role === "organizer" || role === "competitor") ? (
-              <div className="flex flex-col justify-center rounded-xl border border-gray-800 bg-gray-900 p-6">
-                <h3 className="mb-2 text-sm font-medium text-gray-300">
-                  Competitor Join Code
+              <div className="flex flex-col justify-center border border-[#1F1F1F] bg-[#0A0A0A] p-6">
+                <h3 className="mb-2 text-xs font-bold text-[#555555] uppercase tracking-widest">
+                  ─ COMPETITOR JOIN CODE ─
                 </h3>
                 <div className="flex items-center gap-3">
-                  <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-xl tracking-widest text-emerald-400">
+                  <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-lg tracking-widest text-[#00FF41] font-bold">
                     {hackathon?.competitorJoinCode ?? "—"}
                   </code>
                   <button
                     onClick={copyCompetitorJoinLink}
-                    className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+                    className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors"
                     title="Copy join link"
                     aria-label="Copy join link"
                   >
                     {copiedJoinLink ? (
-                      <Check className="h-4 w-4 text-emerald-400" />
+                      <Check className="h-4 w-4 text-[#00FF41]" />
                     ) : (
                       <LinkIcon className="h-4 w-4" />
                     )}
@@ -412,28 +386,29 @@ export default function HackathonDetailPage() {
                     />
                   )}
                 </div>
-                <p className="mt-2 text-xs text-gray-500">
-                  Share this code, copy the join link, or show the QR code to invite competitors.
+                <p className="mt-2 text-xs text-[#333333]">
+                  Share this code or copy the join link to invite competitors.
                 </p>
               </div>
             ) : null}
           </div>
 
           {categories && categories.length > 0 && (
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-              <div className="mb-4 flex items-center justify-between border-b border-gray-800 pb-4">
-                <h3 className="text-lg font-semibold text-white">Judging Criteria</h3>
+            <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="text-xs text-[#555555] uppercase tracking-widest">── JUDGING CRITERIA</span>
+                <div className="h-px flex-1 bg-[#1F1F1F]" />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {categories.map((cat) => (
-                  <div key={cat._id} className="rounded-lg border border-gray-700 bg-gray-800 p-4 transition-colors hover:border-gray-600">
+                  <div key={cat._id} className="border border-[#1F1F1F] bg-[#111111] p-4 transition-colors hover:border-[#2a2a2a]">
                     <div className="flex justify-between items-start mb-2">
-                      <p className="font-medium text-white">{cat.name}</p>
-                      <span className="text-xs font-medium text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                        {cat.maxScore} pts
+                      <p className="text-sm font-bold text-white uppercase tracking-wide">{cat.name}</p>
+                      <span className="tui-badge border-[#00FF41] text-[#00FF41]">
+                        {cat.maxScore} PTS
                       </span>
                     </div>
-                    <p className="text-sm text-gray-400 leading-relaxed">{cat.description}</p>
+                    <p className="text-xs text-[#555555] leading-relaxed">{cat.description}</p>
                   </div>
                 ))}
               </div>

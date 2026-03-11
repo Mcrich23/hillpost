@@ -1,25 +1,255 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #030712;
+  --color-background: #000000;
   --color-foreground: #ffffff;
-  --color-card: #111827;
-  --color-card-foreground: #f9fafb;
-  --color-border: #1f2937;
-  --color-muted: #374151;
-  --color-muted-foreground: #9ca3af;
-  --color-accent: #059669;
-  --color-accent-foreground: #ecfdf5;
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --color-card: #0A0A0A;
+  --color-card-foreground: #ffffff;
+  --color-border: #1F1F1F;
+  --color-muted: #1F1F1F;
+  --color-muted-foreground: #555555;
+  --color-accent: #00FF41;
+  --color-accent-foreground: #000000;
+  --color-surface: #0A0A0A;
+  --color-surface-2: #111111;
+  --color-orange: #FF6600;
+  --color-blue: #00B4FF;
+  --color-green: #00FF41;
+  --font-sans: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ─── Runtime theme variables ───────────────────────────────────── */
+/* These are separate from @theme so they can be swapped at runtime  */
+:root {
+  --t-bg:          #000000;
+  --t-fg:          #ffffff;
+  --t-surface:     #0A0A0A;
+  --t-surface-2:   #111111;
+  --t-border:      #1F1F1F;
+  --t-muted-fg:    #555555;
+  --t-dim-fg:      #333333;
+  --t-input-bg:    #000000;
+  --t-placeholder: #333333;
+  --t-hover-border: rgba(255, 255, 255, 0.15);
+  --t-btn-border:   rgba(255, 255, 255, 0.2);
+  --t-dot:         #1a1a1a;
+  /* Tailwind built-in color overrides */
+  --color-black:   #000000;
+  --color-white:   #ffffff;
+}
+
+[data-theme="light"] {
+  --t-bg:          #ffffff;
+  --t-fg:          #000000;
+  --t-surface:     #F6F6F6;
+  --t-surface-2:   #EEEEEE;
+  --t-border:      #E0E0E0;
+  --t-muted-fg:    #888888;
+  --t-dim-fg:      #AAAAAA;
+  --t-input-bg:    #ffffff;
+  --t-placeholder: #BBBBBB;
+  --t-hover-border: rgba(0, 0, 0, 0.15);
+  --t-btn-border:   rgba(0, 0, 0, 0.2);
+  --t-dot:         #D8D8D8;
+  /* Swap Tailwind's black/white so bg-black → white, text-white → black */
+  --color-black:   #ffffff;
+  --color-white:   #000000;
+}
+
+html, body, * {
+  font-family: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+  background: var(--t-bg);
+  color: var(--t-fg);
+  transition: background 0.15s, color 0.15s;
 }
 
 @layer base {
   * {
-    border-color: var(--color-border);
+    border-color: var(--t-border);
   }
+}
+
+/* Keyframe animations */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes pixel-flicker {
+  0%, 91%, 95%, 100% { filter: brightness(1); }
+  92%, 94% { filter: brightness(1.15); }
+  93% { filter: brightness(0.85); }
+}
+
+@keyframes glitch-x {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes border-pulse-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0); }
+  50% { box-shadow: 0 0 0 3px rgba(0, 255, 65, 0.12); }
+}
+
+/* Cursor blink utility */
+.cursor-blink {
+  animation: cursor-blink 0.7s step-end infinite;
+}
+
+.status-pulse {
+  animation: status-pulse 1.5s ease-in-out infinite;
+}
+
+/* TUI Panel */
+.tui-panel {
+  border: 1px solid var(--t-border);
+  background: var(--t-surface);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.tui-panel:hover {
+  border-color: var(--t-hover-border);
+}
+
+/* TUI Badge */
+.tui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid currentColor;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+/* TUI Button */
+.tui-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--t-btn-border);
+  background: transparent;
+  color: var(--t-fg);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.tui-btn:hover {
+  border-color: var(--t-fg);
+}
+
+.tui-btn-green {
+  border-color: #00FF41;
+  color: #00FF41;
+}
+
+.tui-btn-green:hover {
+  background: #00FF41;
+  color: #000000;
+}
+
+.tui-btn-orange {
+  border-color: #FF6600;
+  color: #FF6600;
+}
+
+.tui-btn-orange:hover {
+  background: #FF6600;
+  color: #000000;
+}
+
+/* TUI Input */
+.tui-input {
+  background: var(--t-input-bg);
+  border: 1px solid var(--t-border);
+  color: var(--t-fg);
+  padding: 0.5rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  width: 100%;
+}
+
+.tui-input:focus {
+  border-color: var(--t-fg);
+}
+
+.tui-input::placeholder {
+  color: var(--t-placeholder);
+}
+
+/* Dot grid background */
+.dot-grid {
+  background-image: radial-gradient(circle, var(--t-dot) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Scanline overlay */
+.scanline-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.03);
+  animation: scanline 6s linear infinite;
+  pointer-events: none;
+}
+
+[data-theme="light"] .scanline-overlay::after {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ─── Hardcoded hex overrides for light mode ─────────────────────── */
+/* These cover Tailwind arbitrary-value classes like bg-[#0A0A0A]    */
+[data-theme="light"] .bg-\[\#0A0A0A\],
+[data-theme="light"] .bg-\[\#111111\],
+[data-theme="light"] .bg-\[\#000000\] {
+  background-color: var(--t-surface) !important;
+}
+
+[data-theme="light"] .border-\[\#1F1F1F\] {
+  border-color: var(--t-border) !important;
+}
+
+[data-theme="light"] .text-\[\#555555\] {
+  color: var(--t-muted-fg) !important;
+}
+
+[data-theme="light"] .text-\[\#333333\] {
+  color: var(--t-dim-fg) !important;
+}
+
+[data-theme="light"] .hover\:text-white:hover {
+  color: var(--t-fg) !important;
+}
+
+[data-theme="light"] .hover\:border-white:hover {
+  border-color: var(--t-fg) !important;
 }

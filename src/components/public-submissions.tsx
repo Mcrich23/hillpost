@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { format } from "date-fns";
-import { ExternalLink, Layers, Pencil, X } from "lucide-react";
+import { ExternalLink, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn, safeHref } from "@/lib/utils";
 
@@ -54,37 +54,45 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
   const teamMap = new Map(teams?.map((t) => [t._id, t.name]) ?? []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {!submissions || !teams ? (
-        <p className="text-sm text-gray-500">Loading submissions...</p>
+        <p className="text-xs text-[#555555] uppercase tracking-wider cursor-blink">▓▓▓░░░ LOADING...</p>
       ) : submissions.length === 0 ? (
-        <p className="text-sm text-gray-500">No projects submitted yet.</p>
+        <p className="text-xs text-[#555555] uppercase tracking-wider">NO PROJECTS SUBMITTED YET.</p>
       ) : (
-        <div className="space-y-3">
-            {submissions.map((sub) => {
-              const projectHref = safeHref(sub.projectUrl);
-              const demoHref = safeHref(sub.demoUrl);
-              const deployedHref = safeHref(sub.deployedUrl);
-              return (
+        <div className="space-y-2">
+          {submissions.map((sub) => {
+            const projectHref = safeHref(sub.projectUrl);
+            const demoHref = safeHref(sub.demoUrl);
+            const deployedHref = safeHref(sub.deployedUrl);
+            return (
               <div
                 key={sub._id}
-                className="flex flex-col gap-2 rounded-lg border border-gray-700 bg-gray-800 p-4 transition-colors hover:border-gray-600"
+                className="border border-[#1F1F1F] bg-[#0A0A0A] p-4 transition-colors hover:border-[#2a2a2a]"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <p className="font-medium text-white">{sub.name}</p>
-                      <span className="rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-300 border border-gray-600">
-                        {teamMap.get(sub.teamId) ?? "Unknown Team"}
+                      <p className="text-sm font-bold text-white uppercase tracking-wide">{sub.name}</p>
+                      <span className="tui-badge border-[#555555] text-[#555555]">
+                        {teamMap.get(sub.teamId) ?? "UNKNOWN TEAM"}
                       </span>
+                      {sub.submissionCount > 1 && (
+                        <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">
+                          v{sub.submissionCount}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-400">{sub.description}</p>
+                    <p className="text-xs text-[#555555]">{sub.description}</p>
+                    <p className="text-xs text-[#333333] mt-1.5 uppercase tracking-wider">
+                      Updated {format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {role === "organizer" && (
                       <button
                         onClick={() => startEditing(sub)}
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
+                        className="border border-[#1F1F1F] p-1.5 text-[#555555] hover:border-white hover:text-white transition-colors"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
@@ -94,10 +102,10 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         href={projectHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 rounded-md bg-emerald-600/10 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:bg-emerald-600/20 transition-colors"
+                        className="flex items-center gap-1 border border-[#00FF41] px-3 py-1.5 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors"
                       >
-                        <ExternalLink className="h-4 w-4" />
-                        Project
+                        <ExternalLink className="h-3 w-3" />
+                        PROJECT
                       </a>
                     )}
                     {demoHref && (
@@ -105,10 +113,10 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         href={demoHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 rounded-md bg-blue-600/10 px-3 py-1.5 text-sm font-medium text-blue-400 hover:bg-blue-600/20 transition-colors"
+                        className="flex items-center gap-1 border border-[#00B4FF] px-3 py-1.5 text-xs font-bold text-[#00B4FF] uppercase tracking-wider hover:bg-[#00B4FF] hover:text-black transition-colors"
                       >
-                        <ExternalLink className="h-4 w-4" />
-                        Video
+                        <ExternalLink className="h-3 w-3" />
+                        VIDEO
                       </a>
                     )}
                     {deployedHref && (
@@ -116,22 +124,19 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         href={deployedHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 rounded-md bg-purple-600/10 px-3 py-1.5 text-sm font-medium text-purple-400 hover:bg-purple-600/20 transition-colors"
+                        className="flex items-center gap-1 border border-[#AA44FF] px-3 py-1.5 text-xs font-bold text-[#AA44FF] uppercase tracking-wider hover:bg-[#AA44FF] hover:text-black transition-colors"
                       >
-                        <ExternalLink className="h-4 w-4" />
-                        Live Demo
+                        <ExternalLink className="h-3 w-3" />
+                        LIVE DEMO
                       </a>
                     )}
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Updated {format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}
-                </p>
               </div>
-              );
-            })}
-          </div>
-        )}
+            );
+          })}
+        </div>
+      )}
 
       {/* Edit Submission Sheet */}
       <div
@@ -140,105 +145,91 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
           editingId ? "visible opacity-100" : "invisible opacity-0"
         )}
       >
-        {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+          className="absolute inset-0 bg-black/70 transition-opacity duration-300"
           onClick={() => setEditingId(null)}
         />
-        
-        {/* Slide-over panel */}
         <div
           className={cn(
-            "relative z-10 w-full max-w-md bg-gray-900 border-l border-gray-800 shadow-2xl h-full flex flex-col transform transition-transform duration-300 ease-in-out",
+            "relative z-10 w-full max-w-md border-l border-[#1F1F1F] bg-[#0A0A0A] h-full flex flex-col transform transition-transform duration-300 ease-in-out",
             editingId ? "translate-x-0" : "translate-x-full"
           )}
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-              <h2 className="text-lg font-semibold text-white">Edit Submission</h2>
-              <button
-                onClick={() => setEditingId(null)}
-                className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto px-6 py-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Project Name
-                  </label>
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Description
-                  </label>
-                  <textarea
-                    value={editDesc}
-                    onChange={(e) => setEditDesc(e.target.value)}
-                    rows={4}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Project URL
-                  </label>
-                  <input
-                    type="url"
-                    value={editProjUrl}
-                    onChange={(e) => setEditProjUrl(e.target.value)}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Video URL (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={editDemoUrl}
-                    onChange={(e) => setEditDemoUrl(e.target.value)}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Deployment URL (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={editDeployedUrl}
-                    onChange={(e) => setEditDeployedUrl(e.target.value)}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#1F1F1F]">
+            <span className="text-xs font-bold text-white uppercase tracking-widest">── EDIT SUBMISSION</span>
+            <button
+              onClick={() => setEditingId(null)}
+              className="p-1.5 text-[#555555] hover:text-white transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-            <div className="border-t border-gray-800 px-6 py-4 flex gap-3 justify-end bg-gray-900/50">
-              <button
-                onClick={() => setEditingId(null)}
-                className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => editingId && handleSave(editingId)}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
-              >
-                Save Changes
-              </button>
+          <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">PROJECT NAME:</label>
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="tui-input mt-2"
+              />
             </div>
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">DESCRIPTION:</label>
+              <textarea
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                rows={5}
+                className="tui-input mt-2"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">PROJECT URL:</label>
+              <input
+                type="url"
+                value={editProjUrl}
+                onChange={(e) => setEditProjUrl(e.target.value)}
+                className="tui-input mt-2"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">VIDEO URL (OPTIONAL):</label>
+              <input
+                type="url"
+                value={editDemoUrl}
+                onChange={(e) => setEditDemoUrl(e.target.value)}
+                className="tui-input mt-2"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">DEPLOYMENT URL (OPTIONAL):</label>
+              <input
+                type="url"
+                value={editDeployedUrl}
+                onChange={(e) => setEditDeployedUrl(e.target.value)}
+                className="tui-input mt-2"
+              />
+            </div>
+          </div>
+
+          <div className="border-t border-[#1F1F1F] px-5 py-4 flex justify-end gap-2 shrink-0">
+            <button
+              onClick={() => setEditingId(null)}
+              className="px-4 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors"
+            >
+              CANCEL
+            </button>
+            <button
+              onClick={() => editingId && handleSave(editingId)}
+              disabled={!editName.trim() || !editDesc.trim() || !editProjUrl.trim()}
+              className="px-4 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              [ SAVE CHANGES ]
+            </button>
           </div>
         </div>
       </div>
+    </div>
   );
 }

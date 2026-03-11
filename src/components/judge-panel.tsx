@@ -12,7 +12,6 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-  Star,
   MessageSquare,
 } from "lucide-react";
 
@@ -33,23 +32,24 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
 
   const displayedSubmissions = submissions?.filter((sub) => {
     if (!user?.id) return false;
-    // Handle older records that might lack judgedBy while migrating
     const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
     return view === "pending" ? !hasJudged : hasJudged;
   });
 
   if (membership === undefined) {
-    return <p className="text-sm text-gray-500">Loading...</p>;
+    return (
+      <div className="text-xs text-[#555555] uppercase tracking-widest cursor-blink">▓▓▓░░░ LOADING...</div>
+    );
   }
 
   if (membership?.role === "judge" && membership?.status === "pending") {
     return (
-      <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-8 text-center">
-        <h3 className="mb-2 text-lg font-semibold text-yellow-500">
-          Pending Approval
+      <div className="border border-[#FF6600]/30 bg-[#FF660008] p-8 text-center">
+        <h3 className="mb-2 text-sm font-bold text-[#FF6600] uppercase tracking-widest">
+          [PENDING APPROVAL]
         </h3>
-        <p className="text-sm text-yellow-400/80">
-          Your judge application is currently pending approval by the organizer. You will be able to start scoring projects once you are approved.
+        <p className="text-xs text-[#555555]">
+          Your judge application is pending approval by the organizer.
         </p>
       </div>
     );
@@ -57,111 +57,117 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
 
   if (membership?.role === "judge" && membership?.status === "rejected") {
     return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-8 text-center">
-        <h3 className="mb-2 text-lg font-semibold text-red-500">
-          Application Rejected
+      <div className="border border-red-500/30 bg-red-500/5 p-8 text-center">
+        <h3 className="mb-2 text-sm font-bold text-red-400 uppercase tracking-widest">
+          [APPLICATION REJECTED]
         </h3>
-        <p className="text-sm text-red-400/80">
-          Unfortunately, your application to be a judge for this hackathon was not approved.
+        <p className="text-xs text-[#555555]">
+          Your application to judge this hackathon was not approved.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+    <div className="space-y-4">
+      <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">
-            <Star className="mr-2 inline h-5 w-5 text-emerald-400" />
-            Judging Dashboard
-          </h3>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[#555555] uppercase tracking-widest">── JUDGING QUEUE</span>
+            {displayedSubmissions && (
+              <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">
+                {displayedSubmissions.length} {view === "pending" ? "PENDING" : "JUDGED"}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="mb-6 flex space-x-2 border-b border-gray-800 pb-4">
+        <div className="mb-4 flex gap-0 border border-[#1F1F1F]">
           <button
-            onClick={() => {
-              setView("pending");
-              setExpandedId(null);
-            }}
+            onClick={() => { setView("pending"); setExpandedId(null); }}
             className={cn(
-              "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-              view === "pending"
-                ? "bg-emerald-600 text-white"
-                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"
+              "flex-1 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-[#1F1F1F]",
+              view === "pending" ? "bg-white text-black" : "bg-black text-[#555555] hover:text-white"
             )}
           >
-            Pending Judging
+            PENDING
           </button>
           <button
-            onClick={() => {
-              setView("judged");
-              setExpandedId(null);
-            }}
+            onClick={() => { setView("judged"); setExpandedId(null); }}
             className={cn(
-              "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-              view === "judged"
-                ? "bg-blue-600 text-white"
-                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"
+              "flex-1 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
+              view === "judged" ? "bg-white text-black" : "bg-black text-[#555555] hover:text-white"
             )}
           >
-            Previously Judged
+            JUDGED
           </button>
         </div>
 
         {!displayedSubmissions || !categories ? (
-          <p className="text-sm text-gray-500">Loading...</p>
+          <p className="text-xs text-[#555555] uppercase tracking-wider cursor-blink">▓▓▓░░░ LOADING...</p>
         ) : displayedSubmissions.length === 0 ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-xs text-[#555555] uppercase tracking-wider">
             {view === "pending"
-              ? "No pending submissions to judge. Great job!"
-              : "You haven't judged any submissions yet."}
+              ? "NO PENDING SUBMISSIONS. GREAT JOB!"
+              : "NO JUDGED SUBMISSIONS YET."}
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {displayedSubmissions.map((sub) => {
               const projectHref = safeHref(sub.projectUrl);
               const demoHref = safeHref(sub.demoUrl);
               const deployedHref = safeHref(sub.deployedUrl);
               return (
-              <div
-                key={sub._id}
-                className="rounded-lg border border-gray-700 bg-gray-800"
-              >
+              <div key={sub._id} className="border border-[#1F1F1F] bg-[#111111]">
                 <button
-                  onClick={() =>
-                    setExpandedId(expandedId === sub._id ? null : sub._id)
-                  }
-                  className="flex w-full items-center justify-between p-4 text-left"
+                  onClick={() => setExpandedId(expandedId === sub._id ? null : sub._id)}
+                  className="flex w-full items-center justify-between p-4 text-left hover:bg-[#1a1a1a] transition-colors"
                 >
                   <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-white">{sub.name}</p>
-                      <span className="rounded-full bg-gray-700 px-2 py-0.5 text-xs text-gray-300">
-                        {teamMap.get(sub.teamId) ?? "Unknown Team"}
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <p className="text-sm font-bold text-white uppercase tracking-wide">{sub.name}</p>
+                      <span className="tui-badge border-[#555555] text-[#555555]">
+                        {teamMap.get(sub.teamId) ?? "UNKNOWN TEAM"}
                       </span>
                       {sub.submissionCount > 1 && (
-                        <span className="rounded-full bg-blue-600/20 px-2 py-0.5 text-xs text-blue-400 border border-blue-500/30">
-                          Resubmitted (v{sub.submissionCount})
+                        <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">
+                          v{sub.submissionCount}
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 text-sm text-gray-400">
-                      {sub.description}
-                    </p>
-                    <div className="mt-1 flex items-center gap-3 text-xs text-gray-500">
-                      <span>
-                        {format(
-                          new Date(sub.submittedAt),
-                          "MMM d, yyyy h:mm a"
-                        )}
-                      </span>
+                    <p className="text-xs text-[#555555]">{sub.description}</p>
+                    <div className="mt-1 flex items-center gap-3 text-xs text-[#333333]">
+                      <span>{format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}</span>
                       {projectHref && (
                         <a
                           href={projectHref}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
+                          className="flex items-center gap-1 text-[#00FF41] hover:text-white transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          PROJECT
+                        </a>
+                      )}
+                      {demoHref && (
+                        <a
+                          href={demoHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-[#00B4FF] hover:text-white transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          DEMO
+                        </a>
+                      )}
+                      {deployedHref && (
+                        <a
+                          href={deployedHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-[#FF6600] hover:text-white transition-colors"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ExternalLink className="h-3 w-3" />
@@ -180,33 +186,18 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                           Video
                         </a>
                       )}
-                      {deployedHref && (
-                        <a
-                          href={deployedHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          Live Demo
-                        </a>
-                      )}
                     </div>
                   </div>
                   {expandedId === sub._id ? (
-                    <ChevronUp className="h-5 w-5 text-gray-400" />
+                    <ChevronUp className="h-4 w-4 text-[#555555] shrink-0" />
                   ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-400" />
+                    <ChevronDown className="h-4 w-4 text-[#555555] shrink-0" />
                   )}
                 </button>
 
                 {expandedId === sub._id && (
-                  <div className="border-t border-gray-700 p-4">
-                    <ScoringForm
-                      submissionId={sub._id}
-                      categories={categories}
-                    />
+                  <div className="border-t border-[#1F1F1F] p-4">
+                    <ScoringForm submissionId={sub._id} categories={categories} />
                   </div>
                 )}
               </div>
@@ -230,16 +221,13 @@ interface ScoringFormProps {
 }
 
 function ScoringForm({ submissionId, categories }: ScoringFormProps) {
-  const myScores = useQuery(api.scores.getMyScoresForSubmission, {
-    submissionId,
-  });
+  const myScores = useQuery(api.scores.getMyScoresForSubmission, { submissionId });
   const submitScore = useMutation(api.scores.submit);
 
   const [scores, setScores] = useState<Record<string, number>>({});
   const [feedbacks, setFeedbacks] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
 
-  // Initialize from existing scores
   const getExistingScore = (categoryId: Id<"categories">) => {
     return myScores?.find((s) => s.categoryId === categoryId);
   };
@@ -261,106 +249,82 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
     try {
       const score = getCurrentScore(categoryId, maxScore);
       const feedback = getCurrentFeedback(categoryId);
-      await submitScore({
-        submissionId,
-        categoryId,
-        score,
-        feedback: feedback || undefined,
-      });
+      await submitScore({ submissionId, categoryId, score, feedback: feedback || undefined });
       toast.success("Score submitted!");
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to submit score"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to submit score");
     } finally {
       setSubmitting(null);
     }
   };
 
   if (!myScores) {
-    return <p className="text-sm text-gray-500">Loading scores...</p>;
+    return <p className="text-xs text-[#555555] uppercase tracking-wider cursor-blink">▓▓▓░░░ LOADING...</p>;
   }
 
   return (
     <div className="space-y-4">
       {categories.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No scoring categories defined yet.
-        </p>
+        <p className="text-xs text-[#555555] uppercase tracking-wider">NO SCORING CATEGORIES DEFINED YET.</p>
       ) : (
         categories.map((cat) => {
           const existing = getExistingScore(cat._id);
           const currentScore = getCurrentScore(cat._id, cat.maxScore);
           const currentFeedback = getCurrentFeedback(cat._id);
+          const scorePercent = Math.round((currentScore / cat.maxScore) * 10);
+          const filledBlocks = "█".repeat(scorePercent);
+          const emptyBlocks = "░".repeat(10 - scorePercent);
 
           return (
-            <div
-              key={cat._id}
-              className="rounded-lg border border-gray-600 bg-gray-900 p-3"
-            >
-              <div className="mb-2 flex items-center justify-between">
+            <div key={cat._id} className="border border-[#1F1F1F] bg-black p-4">
+              <div className="mb-3 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-white">{cat.name}</p>
-                  <p className="text-xs text-gray-500">{cat.description}</p>
+                  <p className="text-xs font-bold text-white uppercase tracking-widest">{cat.name}</p>
+                  <p className="text-xs text-[#555555]">{cat.description}</p>
                 </div>
                 {existing && (
-                  <span className="rounded-full bg-emerald-600/20 px-2 py-0.5 text-xs text-emerald-400">
-                    Scored
-                  </span>
+                  <span className="tui-badge border-[#00FF41] text-[#00FF41]">[SCORED]</span>
                 )}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
+                {/* ASCII progress bar */}
                 <div className="flex items-center gap-3">
+                  <span className="text-xs text-[#555555] font-bold tracking-wider">
+                    {filledBlocks}{emptyBlocks}
+                  </span>
+                  <span className="text-sm font-bold text-white tabular-nums">
+                    {currentScore}/{cat.maxScore}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3 min-w-0">
                   <input
                     type="range"
                     min={0}
                     max={cat.maxScore}
                     value={currentScore}
-                    onChange={(e) =>
-                      setScores({
-                        ...scores,
-                        [cat._id]: Number(e.target.value),
-                      })
-                    }
-                    className="flex-1 accent-emerald-500"
+                    onChange={(e) => setScores({ ...scores, [cat._id]: Number(e.target.value) })}
+                    className="flex-1 min-w-0 accent-[#00FF41]"
                   />
-                  <div className="flex w-20 items-center gap-1">
-                    <input
-                      type="number"
-                      min={0}
-                      max={cat.maxScore}
-                      value={currentScore}
-                      onChange={(e) =>
-                        setScores({
-                          ...scores,
-                          [cat._id]: Math.min(
-                            Number(e.target.value),
-                            cat.maxScore
-                          ),
-                        })
-                      }
-                      className="w-14 rounded border border-gray-600 bg-gray-800 px-2 py-1 text-center text-sm text-white focus:border-emerald-500 focus:outline-none"
-                    />
-                    <span className="text-xs text-gray-500">
-                      /{cat.maxScore}
-                    </span>
-                  </div>
+                  <input
+                    type="number"
+                    min={0}
+                    max={cat.maxScore}
+                    value={currentScore}
+                    onChange={(e) => setScores({ ...scores, [cat._id]: Math.min(Number(e.target.value), cat.maxScore) })}
+                    className="w-16 border border-[#1F1F1F] bg-black px-2 py-1 text-center text-sm text-white focus:border-white focus:outline-none"
+                  />
                 </div>
 
                 <div className="flex items-start gap-2">
-                  <MessageSquare className="mt-2 h-4 w-4 flex-shrink-0 text-gray-500" />
+                  <MessageSquare className="mt-2 h-3.5 w-3.5 flex-shrink-0 text-[#555555]" />
                   <textarea
                     value={currentFeedback}
-                    onChange={(e) =>
-                      setFeedbacks({
-                        ...feedbacks,
-                        [cat._id]: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setFeedbacks({ ...feedbacks, [cat._id]: e.target.value })}
                     placeholder="Feedback (optional)"
                     rows={2}
-                    className="flex-1 rounded-lg border border-gray-600 bg-gray-800 px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+                    className="tui-input flex-1"
                   />
                 </div>
 
@@ -368,18 +332,17 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
                   onClick={() => handleSubmitScore(cat._id, cat.maxScore)}
                   disabled={submitting === cat._id}
                   className={cn(
-                    "rounded-lg px-3 py-1.5 text-sm text-white",
+                    "px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50",
                     existing
-                      ? "bg-blue-600 hover:bg-blue-500"
-                      : "bg-emerald-600 hover:bg-emerald-500",
-                    "disabled:opacity-50"
+                      ? "border border-[#00B4FF] text-[#00B4FF] hover:bg-[#00B4FF] hover:text-black"
+                      : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
                   )}
                 >
                   {submitting === cat._id
-                    ? "Saving..."
+                    ? "SAVING..."
                     : existing
-                      ? "Update Score"
-                      : "Submit Score"}
+                      ? "[ UPDATE SCORE ]"
+                      : "[ SUBMIT SCORE → ]"}
                 </button>
               </div>
             </div>

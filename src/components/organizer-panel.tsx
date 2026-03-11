@@ -34,12 +34,19 @@ interface OrganizerPanelProps {
   };
 }
 
+const sectionHeader = (title: string) => (
+  <div className="flex items-center gap-3 mb-4">
+    <span className="text-xs text-[#555555] uppercase tracking-widest">── {title}</span>
+    <div className="h-px flex-1 bg-[#1F1F1F]" />
+  </div>
+);
+
 export function OrganizerPanel({
   hackathonId,
   hackathon,
 }: OrganizerPanelProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <HackathonInfoSection hackathonId={hackathonId} hackathon={hackathon} />
       <PendingApprovalsSection hackathonId={hackathonId} />
       <CategoriesSection hackathonId={hackathonId} />
@@ -58,13 +65,13 @@ function HackathonInfoSection({
   const [copiedJudge, setCopiedJudge] = useState(false);
   const [copiedCompetitorLink, setCopiedCompetitorLink] = useState(false);
   const [copiedJudgeLink, setCopiedJudgeLink] = useState(false);
-  
+
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(hackathon.name);
-  
+
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [newDesc, setNewDesc] = useState(hackathon.description);
-  
+
   const [isEditingDates, setIsEditingDates] = useState(false);
   const [newStartDate, setNewStartDate] = useState(
     format(new Date(hackathon.startDate), "yyyy-MM-dd")
@@ -83,8 +90,7 @@ function HackathonInfoSection({
       setCopiedCompetitor(true);
       toast.success("Competitor code copied!");
       setTimeout(() => setCopiedCompetitor(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy competitor code to clipboard:", error);
+    } catch {
       toast.error("Failed to copy code. Please try again.");
     }
   };
@@ -96,8 +102,7 @@ function HackathonInfoSection({
       setCopiedJudge(true);
       toast.success("Judge code copied!");
       setTimeout(() => setCopiedJudge(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy judge code to clipboard:", error);
+    } catch {
       toast.error("Failed to copy code. Please try again.");
     }
   };
@@ -110,8 +115,7 @@ function HackathonInfoSection({
       setCopiedCompetitorLink(true);
       toast.success("Competitor join link copied!");
       setTimeout(() => setCopiedCompetitorLink(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy competitor link to clipboard:", error);
+    } catch {
       toast.error("Failed to copy link. Please try again.");
     }
   };
@@ -124,73 +128,50 @@ function HackathonInfoSection({
       setCopiedJudgeLink(true);
       toast.success("Judge join link copied!");
       setTimeout(() => setCopiedJudgeLink(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy judge link to clipboard:", error);
+    } catch {
       toast.error("Failed to copy link. Please try again.");
     }
   };
 
   const toggleActive = async () => {
     try {
-      await updateHackathon({
-        hackathonId,
-        isActive: !hackathon.isActive,
-      });
-      toast.success(
-        hackathon.isActive ? "Hackathon deactivated" : "Hackathon activated"
-      );
+      await updateHackathon({ hackathonId, isActive: !hackathon.isActive });
+      toast.success(hackathon.isActive ? "Hackathon deactivated" : "Hackathon activated");
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to update");
     }
   };
 
   const saveCooldown = async () => {
     if (newCooldown < 0) return;
     try {
-      await updateHackathon({
-        hackathonId,
-        submissionFrequencyMinutes: newCooldown,
-      });
+      await updateHackathon({ hackathonId, submissionFrequencyMinutes: newCooldown });
       toast.success("Cooldown updated");
       setIsEditingCooldown(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update cooldown"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to update cooldown");
     }
   };
 
   const saveName = async () => {
     if (!newName.trim()) return;
     try {
-      await updateHackathon({
-        hackathonId,
-        name: newName.trim(),
-      });
+      await updateHackathon({ hackathonId, name: newName.trim() });
       toast.success("Name updated");
       setIsEditingName(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update name"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to update name");
     }
   };
 
   const saveDesc = async () => {
     if (!newDesc.trim()) return;
     try {
-      await updateHackathon({
-        hackathonId,
-        description: newDesc.trim(),
-      });
+      await updateHackathon({ hackathonId, description: newDesc.trim() });
       toast.success("Description updated");
       setIsEditingDesc(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update description"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to update description");
     }
   };
 
@@ -198,317 +179,181 @@ function HackathonInfoSection({
     if (!newStartDate || !newEndDate) return;
     const start = new Date(newStartDate).getTime();
     const end = new Date(newEndDate).getTime();
-    
-    if (end <= start) {
-      toast.error("End date must be after start date");
-      return;
-    }
-
+    if (end <= start) { toast.error("End date must be after start date"); return; }
     try {
-      await updateHackathon({
-        hackathonId,
-        startDate: start,
-        endDate: end,
-      });
+      await updateHackathon({ hackathonId, startDate: start, endDate: end });
       toast.success("Dates updated");
       setIsEditingDates(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update dates"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to update dates");
     }
   };
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-      <h3 className="mb-4 text-lg font-semibold text-white">
-        Hackathon Info
-      </h3>
+    <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
+      {sectionHeader("HACKATHON SETTINGS")}
       <div className="space-y-6">
-        
-        {/* Name Edit */}
+
+        {/* Name */}
         <div>
-          <label className="text-sm font-medium text-gray-300">Name</label>
+          <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">NAME:</label>
           {isEditingName ? (
-            <div className="mt-1 flex items-center gap-2">
+            <div className="mt-2 flex items-center gap-2">
               <input
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+                className="tui-input flex-1"
               />
-              <button
-                onClick={saveName}
-                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
-              >
-                Save
+              <button onClick={saveName} className="px-3 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors">
+                SAVE
               </button>
-              <button
-                onClick={() => setIsEditingName(false)}
-                className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
-              >
-                Cancel
+              <button onClick={() => setIsEditingName(false)} className="px-3 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors">
+                CANCEL
               </button>
             </div>
           ) : (
             <div className="mt-1 flex items-center gap-3">
-              <span className="text-base text-white">{hackathon.name}</span>
-              <button
-                onClick={() => setIsEditingName(true)}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
-              >
-                <Pencil className="h-4 w-4" />
+              <span className="text-sm text-white">{hackathon.name}</span>
+              <button onClick={() => setIsEditingName(true)} className="p-1.5 text-[#555555] hover:text-white transition-colors">
+                <Pencil className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
         </div>
 
-        {/* Description Edit */}
+        {/* Description */}
         <div>
-          <label className="text-sm font-medium text-gray-300">Description</label>
+          <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">DESCRIPTION:</label>
           {isEditingDesc ? (
-            <div className="mt-1 flex items-end gap-2">
+            <div className="mt-2 flex items-end gap-2">
               <textarea
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
                 rows={2}
-                className="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
+                className="tui-input flex-1"
               />
               <div className="flex flex-col gap-2">
-                <button
-                  onClick={saveDesc}
-                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
-                >
-                  Save
+                <button onClick={saveDesc} className="px-3 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors">
+                  SAVE
                 </button>
-                <button
-                  onClick={() => setIsEditingDesc(false)}
-                  className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
-                >
-                  Cancel
+                <button onClick={() => setIsEditingDesc(false)} className="px-3 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors">
+                  CANCEL
                 </button>
               </div>
             </div>
           ) : (
             <div className="mt-1 flex items-start gap-3">
-              <span className="text-sm text-gray-400 flex-1">{hackathon.description}</span>
-              <button
-                onClick={() => setIsEditingDesc(true)}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
-              >
-                <Pencil className="h-4 w-4" />
+              <span className="text-xs text-[#555555] flex-1">{hackathon.description}</span>
+              <button onClick={() => setIsEditingDesc(true)} className="p-1.5 text-[#555555] hover:text-white transition-colors">
+                <Pencil className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
         </div>
 
-        {/* Dates Edit */}
-        <div className="border-t border-gray-800 pt-4">
-          <label className="text-sm font-medium text-gray-300">Hackathon Dates</label>
+        {/* Dates */}
+        <div className="border-t border-[#1F1F1F] pt-4">
+          <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">DATES:</label>
           {isEditingDates ? (
             <div className="mt-2 flex flex-wrap items-end gap-3">
               <div className="space-y-1">
-                <label className="text-xs text-gray-500">Start Date</label>
-                <input
-                  type="date"
-                  value={newStartDate}
-                  onChange={(e) => setNewStartDate(e.target.value)}
-                  className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none block w-full"
-                />
+                <label className="text-xs text-[#333333] uppercase">Start</label>
+                <input type="date" value={newStartDate} onChange={(e) => setNewStartDate(e.target.value)} className="tui-input w-auto" />
               </div>
               <div className="space-y-1">
-                <label className="text-xs text-gray-500">End Date</label>
-                <input
-                  type="date"
-                  value={newEndDate}
-                  onChange={(e) => setNewEndDate(e.target.value)}
-                  className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none block w-full"
-                />
+                <label className="text-xs text-[#333333] uppercase">End</label>
+                <input type="date" value={newEndDate} onChange={(e) => setNewEndDate(e.target.value)} className="tui-input w-auto" />
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={saveDates}
-                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setIsEditingDates(false)}
-                  className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
+                <button onClick={saveDates} className="px-3 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors">SAVE</button>
+                <button onClick={() => setIsEditingDates(false)} className="px-3 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors">CANCEL</button>
               </div>
             </div>
           ) : (
             <div className="mt-1 flex items-center gap-3">
-              <span className="text-sm text-white">
-                {format(new Date(hackathon.startDate), "MMM d, yyyy")} –{" "}
-                {format(new Date(hackathon.endDate), "MMM d, yyyy")}
+              <span className="text-xs text-white">
+                {format(new Date(hackathon.startDate), "MMM d, yyyy")} — {format(new Date(hackathon.endDate), "MMM d, yyyy")}
               </span>
-              <button
-                onClick={() => {
-                  setNewStartDate(format(new Date(hackathon.startDate), "yyyy-MM-dd"));
-                  setNewEndDate(format(new Date(hackathon.endDate), "yyyy-MM-dd"));
-                  setIsEditingDates(true);
-                }}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
-              >
-                <Pencil className="h-4 w-4" />
+              <button onClick={() => { setNewStartDate(format(new Date(hackathon.startDate), "yyyy-MM-dd")); setNewEndDate(format(new Date(hackathon.endDate), "yyyy-MM-dd")); setIsEditingDates(true); }} className="p-1.5 text-[#555555] hover:text-white transition-colors">
+                <Pencil className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row border-t border-gray-800 pt-4">
+        {/* Join Codes */}
+        <div className="flex flex-col gap-4 sm:flex-row border-t border-[#1F1F1F] pt-4">
           <div className="flex-1">
-            <label className="text-sm font-medium text-gray-300">
-              Competitor Join Code
-            </label>
-            <div className="mt-1 flex items-center gap-2">
-              <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-lg tracking-widest text-emerald-400">
+            <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">COMPETITOR CODE:</label>
+            <div className="mt-2 flex items-center gap-2">
+              <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-base tracking-widest text-[#00FF41] font-bold">
                 {hackathon.competitorJoinCode ?? "—"}
               </code>
-              <button
-                onClick={copyCompetitorCode}
-                disabled={!hackathon.competitorJoinCode}
-                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50"
-                title="Copy code"
-                aria-label="Copy competitor code"
-              >
-                {copiedCompetitor ? (
-                  <Check className="h-4 w-4 text-emerald-400" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
+              <button onClick={copyCompetitorCode} disabled={!hackathon.competitorJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30">
+                {copiedCompetitor ? <Check className="h-4 w-4 text-[#00FF41]" /> : <Copy className="h-4 w-4" />}
               </button>
-              <button
-                onClick={copyCompetitorLink}
-                disabled={!hackathon.competitorJoinCode}
-                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50"
-                title="Copy join link"
-                aria-label="Copy competitor join link"
-              >
-                {copiedCompetitorLink ? (
-                  <Check className="h-4 w-4 text-emerald-400" />
-                ) : (
-                  <LinkIcon className="h-4 w-4" />
-                )}
+              <button onClick={copyCompetitorLink} disabled={!hackathon.competitorJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30">
+                {copiedCompetitorLink ? <Check className="h-4 w-4 text-[#00FF41]" /> : <LinkIcon className="h-4 w-4" />}
               </button>
-              {hackathon.competitorJoinCode && (
-                <QrCodeButton
-                  path={`/join/${hackathon.competitorJoinCode}`}
-                  label="Competitor Join QR"
-                />
-              )}
+              {hackathon.competitorJoinCode && <QrCodeButton path={`/join/${hackathon.competitorJoinCode}`} label="Competitor Join QR" />}
             </div>
           </div>
           <div className="flex-1">
-            <label className="text-sm font-medium text-gray-300">
-              Judge Join Code
-            </label>
-            <div className="mt-1 flex items-center gap-2">
-              <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-lg tracking-widest text-blue-400 border-blue-500/30">
+            <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">JUDGE CODE:</label>
+            <div className="mt-2 flex items-center gap-2">
+              <code className="border border-[#00B4FF]/20 bg-black px-4 py-2 text-base tracking-widest text-[#00B4FF] font-bold">
                 {hackathon.judgeJoinCode ?? "—"}
               </code>
-              <button
-                onClick={copyJudgeCode}
-                disabled={!hackathon.judgeJoinCode}
-                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50"
-                title="Copy code"
-                aria-label="Copy judge code"
-              >
-                {copiedJudge ? (
-                  <Check className="h-4 w-4 text-emerald-400" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
+              <button onClick={copyJudgeCode} disabled={!hackathon.judgeJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30">
+                {copiedJudge ? <Check className="h-4 w-4 text-[#00FF41]" /> : <Copy className="h-4 w-4" />}
               </button>
-              <button
-                onClick={copyJudgeLink}
-                disabled={!hackathon.judgeJoinCode}
-                className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white disabled:opacity-50"
-                title="Copy join link"
-                aria-label="Copy judge join link"
-              >
-                {copiedJudgeLink ? (
-                  <Check className="h-4 w-4 text-emerald-400" />
-                ) : (
-                  <LinkIcon className="h-4 w-4" />
-                )}
+              <button onClick={copyJudgeLink} disabled={!hackathon.judgeJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30">
+                {copiedJudgeLink ? <Check className="h-4 w-4 text-[#00FF41]" /> : <LinkIcon className="h-4 w-4" />}
               </button>
-              {hackathon.judgeJoinCode && (
-                <QrCodeButton
-                  path={`/join/${hackathon.judgeJoinCode}`}
-                  label="Judge Join QR"
-                />
-              )}
+              {hackathon.judgeJoinCode && <QrCodeButton path={`/join/${hackathon.judgeJoinCode}`} label="Judge Join QR" />}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        {/* Status toggle */}
+        <div className="flex items-center justify-between border-t border-[#1F1F1F] pt-4">
           <div>
-            <label className="text-sm font-medium text-gray-300">Status</label>
-            <p className="text-sm text-gray-500">
-              {hackathon.isActive
-                ? "Hackathon is currently active"
-                : "Hackathon is inactive"}
+            <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">STATUS:</label>
+            <p className="text-xs text-[#333333] mt-0.5">
+              {hackathon.isActive ? "Hackathon is currently active" : "Hackathon is inactive"}
             </p>
           </div>
           <button
             onClick={toggleActive}
             className={cn(
-              "rounded-lg px-4 py-2 text-sm font-medium text-white",
+              "px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
               hackathon.isActive
-                ? "bg-red-600 hover:bg-red-500"
-                : "bg-emerald-600 hover:bg-emerald-500"
+                ? "border border-red-500/30 text-red-400 hover:border-red-500 hover:bg-red-500 hover:text-black"
+                : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
             )}
           >
-            {hackathon.isActive ? "Deactivate" : "Activate"}
+            {hackathon.isActive ? "[ DEACTIVATE ]" : "[ ACTIVATE ]"}
           </button>
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-800 pt-4">
+        {/* Cooldown */}
+        <div className="flex items-center justify-between border-t border-[#1F1F1F] pt-4">
           <div>
-            <label className="text-sm font-medium text-gray-300">Submission Cooldown</label>
-            <p className="text-xs text-gray-500">
-              Time (in minutes) competitors must wait before resubmitting.
-            </p>
+            <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">SUBMISSION COOLDOWN:</label>
+            <p className="text-xs text-[#333333] mt-0.5">Minutes competitors must wait before resubmitting.</p>
           </div>
           {isEditingCooldown ? (
             <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min={0}
-                value={newCooldown}
-                onChange={(e) => setNewCooldown(Number(e.target.value))}
-                className="w-20 rounded-lg border border-gray-700 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
-              />
-              <button
-                onClick={saveCooldown}
-                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
-              >
-                Save
-              </button>
-              <button
-                onClick={() => setIsEditingCooldown(false)}
-                className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
-              >
-                Cancel
-              </button>
+              <input type="number" min={0} value={newCooldown} onChange={(e) => setNewCooldown(Number(e.target.value))} className="tui-input w-20" />
+              <button onClick={saveCooldown} className="px-3 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors">SAVE</button>
+              <button onClick={() => setIsEditingCooldown(false)} className="px-3 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors">X</button>
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-white">{hackathon.submissionFrequencyMinutes} minutes</span>
-              <button
-                onClick={() => {
-                  setNewCooldown(hackathon.submissionFrequencyMinutes);
-                  setIsEditingCooldown(true);
-                }}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
-              >
-                <Pencil className="h-4 w-4" />
+              <span className="text-sm font-bold text-white">{hackathon.submissionFrequencyMinutes}m</span>
+              <button onClick={() => { setNewCooldown(hackathon.submissionFrequencyMinutes); setIsEditingCooldown(true); }} className="p-1.5 text-[#555555] hover:text-white transition-colors">
+                <Pencil className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
@@ -518,11 +363,7 @@ function HackathonInfoSection({
   );
 }
 
-function CategoriesSection({
-  hackathonId,
-}: {
-  hackathonId: Id<"hackathons">;
-}) {
+function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const categories = useQuery(api.categories.list, { hackathonId });
   const createCategory = useMutation(api.categories.create);
   const updateCategory = useMutation(api.categories.update);
@@ -541,38 +382,21 @@ function CategoriesSection({
     e.preventDefault();
     if (!newName || !newDescription) return;
     try {
-      await createCategory({
-        hackathonId,
-        name: newName,
-        description: newDescription,
-        maxScore: newMaxScore,
-      });
+      await createCategory({ hackathonId, name: newName, description: newDescription, maxScore: newMaxScore });
       toast.success("Category added");
-      setNewName("");
-      setNewDescription("");
-      setNewMaxScore(10);
-      setShowAddForm(false);
+      setNewName(""); setNewDescription(""); setNewMaxScore(10); setShowAddForm(false);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to add category"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to add category");
     }
   };
 
   const handleEdit = async (categoryId: Id<"categories">) => {
     try {
-      await updateCategory({
-        categoryId,
-        name: editName,
-        description: editDescription,
-        maxScore: editMaxScore,
-      });
+      await updateCategory({ categoryId, name: editName, description: editDescription, maxScore: editMaxScore });
       toast.success("Category updated");
       setEditingId(null);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update category"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to update category");
     }
   };
 
@@ -581,156 +405,77 @@ function CategoriesSection({
       await removeCategory({ categoryId });
       toast.success("Category removed");
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to remove category"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to remove category");
     }
   };
 
-  const startEditing = (cat: {
-    _id: Id<"categories">;
-    name: string;
-    description: string;
-    maxScore: number;
-  }) => {
-    setEditingId(cat._id);
-    setEditName(cat.name);
-    setEditDescription(cat.description);
-    setEditMaxScore(cat.maxScore);
+  const startEditing = (cat: { _id: Id<"categories">; name: string; description: string; maxScore: number }) => {
+    setEditingId(cat._id); setEditName(cat.name); setEditDescription(cat.description); setEditMaxScore(cat.maxScore);
   };
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
+    <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">
-          Judging Categories
-        </h3>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-[#555555] uppercase tracking-widest">── JUDGING CATEGORIES</span>
+        </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
+          className="flex items-center gap-1 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
         >
-          {showAddForm ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <Plus className="h-4 w-4" />
-          )}
-          {showAddForm ? "Cancel" : "Add"}
+          {showAddForm ? <ChevronUp className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+          {showAddForm ? "CANCEL" : "[ + ADD ]"}
         </button>
       </div>
 
       {showAddForm && (
-        <form
-          onSubmit={handleAdd}
-          className="mb-4 space-y-3 rounded-lg border border-gray-700 bg-gray-800 p-4"
-        >
-          <input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Category name"
-            className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
-            required
-          />
-          <input
-            type="text"
-            value={newDescription}
-            onChange={(e) => setNewDescription(e.target.value)}
-            placeholder="Description"
-            className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
-            required
-          />
+        <form onSubmit={handleAdd} className="mb-4 space-y-2 border border-[#1F1F1F] bg-[#111111] p-4">
+          <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Category name" className="tui-input" required />
+          <input type="text" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} placeholder="Description" className="tui-input" required />
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-400">Max Score:</label>
-            <input
-              type="number"
-              value={newMaxScore}
-              onChange={(e) => setNewMaxScore(Number(e.target.value))}
-              min={1}
-              className="w-24 rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"
-            />
+            <label className="text-xs text-[#555555] uppercase">Max Score:</label>
+            <input type="number" value={newMaxScore} onChange={(e) => setNewMaxScore(Number(e.target.value))} min={1} className="tui-input w-24" />
           </div>
-          <button
-            type="submit"
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-500"
-          >
-            Add Category
+          <button type="submit" className="px-4 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors">
+            [ ADD CATEGORY ]
           </button>
         </form>
       )}
 
       {!categories ? (
-        <p className="text-sm text-gray-500">Loading...</p>
+        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
       ) : categories.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No categories yet. Add one to start judging.
-        </p>
+        <p className="text-xs text-[#555555] uppercase tracking-wider">NO CATEGORIES YET. ADD ONE TO START JUDGING.</p>
       ) : (
         <div className="space-y-2">
           {categories.map((cat) => (
-            <div
-              key={cat._id}
-              className="rounded-lg border border-gray-700 bg-gray-800 p-3"
-            >
+            <div key={cat._id} className="border border-[#1F1F1F] bg-[#111111] p-3">
               {editingId === cat._id ? (
                 <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900 px-3 py-1.5 text-white focus:border-emerald-500 focus:outline-none"
-                  />
-                  <input
-                    type="text"
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900 px-3 py-1.5 text-white focus:border-emerald-500 focus:outline-none"
-                  />
+                  <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="tui-input" />
+                  <input type="text" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="tui-input" />
                   <div className="flex items-center gap-2">
-                    <label className="text-sm text-gray-400">Max:</label>
-                    <input
-                      type="number"
-                      value={editMaxScore}
-                      onChange={(e) => setEditMaxScore(Number(e.target.value))}
-                      min={1}
-                      className="w-24 rounded-lg border border-gray-600 bg-gray-900 px-3 py-1.5 text-white focus:border-emerald-500 focus:outline-none"
-                    />
+                    <label className="text-xs text-[#555555] uppercase">Max:</label>
+                    <input type="number" value={editMaxScore} onChange={(e) => setEditMaxScore(Number(e.target.value))} min={1} className="tui-input w-24" />
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(cat._id)}
-                      className="rounded-lg bg-emerald-600 px-3 py-1 text-sm text-white hover:bg-emerald-500"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="rounded-lg bg-gray-700 px-3 py-1 text-sm text-white hover:bg-gray-600"
-                    >
-                      Cancel
-                    </button>
+                    <button onClick={() => handleEdit(cat._id)} className="px-3 py-1 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors">SAVE</button>
+                    <button onClick={() => setEditingId(null)} className="px-3 py-1 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors">CANCEL</button>
                   </div>
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-white">{cat.name}</p>
-                    <p className="text-sm text-gray-400">{cat.description}</p>
-                    <p className="text-xs text-gray-500">
-                      Max score: {cat.maxScore}
-                    </p>
+                    <p className="text-sm font-bold text-white uppercase tracking-wide">{cat.name}</p>
+                    <p className="text-xs text-[#555555]">{cat.description}</p>
+                    <p className="text-xs text-[#333333] uppercase tracking-wider mt-0.5">Max: {cat.maxScore} pts</p>
                   </div>
                   <div className="flex gap-1">
-                    <button
-                      onClick={() => startEditing(cat)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
-                    >
-                      <Pencil className="h-4 w-4" />
+                    <button onClick={() => startEditing(cat)} className="p-1.5 text-[#555555] hover:text-white transition-colors">
+                      <Pencil className="h-3.5 w-3.5" />
                     </button>
-                    <button
-                      onClick={() => handleRemove(cat._id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-red-400"
-                    >
-                      <Trash2 className="h-4 w-4" />
+                    <button onClick={() => handleRemove(cat._id)} className="p-1.5 text-[#555555] hover:text-red-400 transition-colors">
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
@@ -743,68 +488,47 @@ function CategoriesSection({
   );
 }
 
-function PendingApprovalsSection({
-  hackathonId,
-}: {
-  hackathonId: Id<"hackathons">;
-}) {
+function PendingApprovalsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const members = useQuery(api.members.listMembers, { hackathonId });
   const updateStatus = useMutation(api.members.updateStatus);
 
-  const handleStatusChange = async (
-    memberId: Id<"hackathonMembers">,
-    newStatus: "approved" | "rejected"
-  ) => {
+  const handleStatusChange = async (memberId: Id<"hackathonMembers">, newStatus: "approved" | "rejected") => {
     try {
       await updateStatus({ memberId, status: newStatus });
       toast.success(`Judge ${newStatus}`);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update status"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to update status");
     }
   };
 
   const pendingMembers = members?.filter((m) => m.status === "pending") ?? [];
-
-  if (!members || pendingMembers.length === 0) {
-    return null;
-  }
+  if (!members || pendingMembers.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          Pending Approvals
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-            {pendingMembers.length}
-          </span>
-        </h3>
+    <div className="border border-[#FF6600]/30 bg-[#FF660008] p-5">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="text-xs text-[#FF6600] uppercase tracking-widest">⚠ PENDING APPROVALS</span>
+        <span className="tui-badge border-[#FF6600] text-[#FF6600]">{pendingMembers.length}</span>
       </div>
       <div className="space-y-2">
         {pendingMembers.map((member) => (
-          <div
-            key={member._id}
-            className="flex items-center justify-between rounded-lg border border-yellow-500/20 bg-gray-900 px-4 py-3"
-          >
+          <div key={member._id} className="flex items-center justify-between border border-[#FF6600]/20 bg-black px-4 py-3">
             <div className="flex items-center gap-3">
-              <span className="font-medium text-white">{member.userName}</span>
-              <span className="rounded-full border border-blue-500/30 bg-blue-600/20 px-2 py-0.5 text-xs font-medium text-blue-400">
-                {member.role}
-              </span>
+              <span className="text-sm font-bold text-white">{member.userName}</span>
+              <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{member.role.toUpperCase()}</span>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => handleStatusChange(member._id, "approved")}
-                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+                className="px-3 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors"
               >
-                Approve
+                [✓ APPROVE]
               </button>
               <button
                 onClick={() => handleStatusChange(member._id, "rejected")}
-                className="rounded-lg bg-red-600/20 px-3 py-1.5 text-sm font-medium text-red-400 hover:bg-red-600/30"
+                className="px-3 py-1.5 text-xs font-bold text-[#FF6600] border border-[#FF6600]/30 uppercase tracking-wider hover:border-[#FF6600] transition-colors"
               >
-                Reject
+                [✗ REJECT]
               </button>
             </div>
           </div>
@@ -814,29 +538,19 @@ function PendingApprovalsSection({
   );
 }
 
-function MembersSection({
-  hackathonId,
-}: {
-  hackathonId: Id<"hackathons">;
-}) {
+function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const members = useQuery(api.members.listMembers, { hackathonId });
   const updateRole = useMutation(api.members.updateRole);
   const removeMember = useMutation(api.members.removeMember);
-
   const [changingRole, setChangingRole] = useState<Id<"hackathonMembers"> | null>(null);
 
-  const handleRoleChange = async (
-    memberId: Id<"hackathonMembers">,
-    newRole: "organizer" | "judge" | "competitor"
-  ) => {
+  const handleRoleChange = async (memberId: Id<"hackathonMembers">, newRole: "organizer" | "judge" | "competitor") => {
     try {
       await updateRole({ memberId, role: newRole });
       toast.success("Role updated");
       setChangingRole(null);
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to update role"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to update role");
     }
   };
 
@@ -845,96 +559,61 @@ function MembersSection({
       await removeMember({ memberId });
       toast.success("Member removed");
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to remove member"
-      );
+      toast.error(error instanceof Error ? error.message : "Failed to remove member");
     }
   };
 
   const roleBadgeClass = (role: string) => {
     switch (role) {
-      case "organizer":
-        return "bg-purple-600/20 text-purple-400 border-purple-500/30";
-      case "judge":
-        return "bg-blue-600/20 text-blue-400 border-blue-500/30";
-      case "competitor":
-        return "bg-emerald-600/20 text-emerald-400 border-emerald-500/30";
-      default:
-        return "bg-gray-600/20 text-gray-400 border-gray-500/30";
+      case "organizer": return "border-[#FF6600] text-[#FF6600]";
+      case "judge": return "border-[#00B4FF] text-[#00B4FF]";
+      case "competitor": return "border-[#00FF41] text-[#00FF41]";
+      default: return "border-[#555555] text-[#555555]";
     }
   };
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-      <h3 className="mb-4 text-lg font-semibold text-white">Members</h3>
+    <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
+      {sectionHeader("MEMBERS")}
       {!members ? (
-        <p className="text-sm text-gray-500">Loading...</p>
+        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
       ) : members.length === 0 ? (
-        <p className="text-sm text-gray-500">No members yet.</p>
+        <p className="text-xs text-[#555555] uppercase tracking-wider">NO MEMBERS YET.</p>
       ) : (
         <div className="space-y-2">
           {members.map((member) => {
             if (member.status === "pending") return null;
             return (
-              <div
-                key={member._id}
-                className="flex items-center justify-between rounded-lg border border-gray-700 bg-gray-800 px-3 py-2"
-              >
+              <div key={member._id} className="flex items-center justify-between border border-[#1F1F1F] bg-[#111111] px-3 py-2">
                 <div className="flex items-center gap-3">
-                  <span className="text-white">{member.userName}</span>
-                  <span
-                    className={cn(
-                      "rounded-full border px-2 py-0.5 text-xs font-medium",
-                      roleBadgeClass(member.role)
-                    )}
-                  >
-                    {member.role}
+                  <span className="text-sm text-white">{member.userName}</span>
+                  <span className={cn("tui-badge", roleBadgeClass(member.role))}>
+                    {member.role.toUpperCase()}
                   </span>
                   {member.status === "rejected" && (
-                    <span className="rounded-full border border-red-500/30 bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-500">
-                      rejected
-                    </span>
+                    <span className="tui-badge border-red-500/50 text-red-400">REJECTED</span>
                   )}
                 </div>
                 <div className="flex items-center gap-1">
                   {changingRole === member._id ? (
                     <div className="flex gap-1">
                       {(["organizer", "judge", "competitor"] as const).map((r) => (
-                        <button
-                          key={r}
-                          onClick={() => handleRoleChange(member._id, r)}
-                          className={cn(
-                            "rounded px-2 py-1 text-xs",
-                            member.role === r
-                              ? "bg-emerald-600 text-white"
-                              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                          )}
-                        >
+                        <button key={r} onClick={() => handleRoleChange(member._id, r)}
+                          className={cn("px-2 py-1 text-xs uppercase tracking-wider transition-colors",
+                            member.role === r ? "bg-white text-black" : "border border-[#1F1F1F] text-[#555555] hover:border-white hover:text-white"
+                          )}>
                           {r}
                         </button>
                       ))}
-                      <button
-                        onClick={() => setChangingRole(null)}
-                        className="ml-1 rounded px-2 py-1 text-xs text-gray-400 hover:text-white"
-                      >
-                        ✕
-                      </button>
+                      <button onClick={() => setChangingRole(null)} className="ml-1 px-2 py-1 text-xs text-[#555555] hover:text-white transition-colors">✕</button>
                     </div>
                   ) : (
                     <>
-                      <button
-                        onClick={() => setChangingRole(member._id)}
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
-                        title="Change role"
-                      >
-                        <Shield className="h-4 w-4" />
+                      <button onClick={() => setChangingRole(member._id)} className="p-1.5 text-[#555555] hover:text-white transition-colors" title="Change role">
+                        <Shield className="h-3.5 w-3.5" />
                       </button>
-                      <button
-                        onClick={() => handleRemove(member._id)}
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-red-400"
-                        title="Remove member"
-                      >
-                        <UserX className="h-4 w-4" />
+                      <button onClick={() => handleRemove(member._id)} className="p-1.5 text-[#555555] hover:text-red-400 transition-colors" title="Remove member">
+                        <UserX className="h-3.5 w-3.5" />
                       </button>
                     </>
                   )}
@@ -948,20 +627,14 @@ function MembersSection({
   );
 }
 
-function TeamsAndProjectsSection({
-  hackathonId,
-}: {
-  hackathonId: Id<"hackathons">;
-}) {
+function TeamsAndProjectsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const teams = useQuery(api.teams.list, { hackathonId });
   const updateTeamName = useMutation(api.teams.updateTeamName);
-
   const [editingTeamId, setEditingTeamId] = useState<Id<"teams"> | null>(null);
   const [editTeamName, setEditTeamName] = useState("");
 
   const startEditingTeam = (team: { _id: Id<"teams">; name: string }) => {
-    setEditingTeamId(team._id);
-    setEditTeamName(team.name);
+    setEditingTeamId(team._id); setEditTeamName(team.name);
   };
 
   const handleSaveTeamName = async (teamId: Id<"teams">) => {
@@ -976,74 +649,44 @@ function TeamsAndProjectsSection({
   };
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-      <h3 className="mb-4 text-lg font-semibold text-white">Teams</h3>
+    <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
+      {sectionHeader("TEAMS")}
       {!teams ? (
-        <p className="text-sm text-gray-500">Loading...</p>
+        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
       ) : teams.length === 0 ? (
-        <p className="text-sm text-gray-500">No teams have joined yet.</p>
+        <p className="text-xs text-[#555555] uppercase tracking-wider">NO TEAMS HAVE JOINED YET.</p>
       ) : (
-        <div className="space-y-4">
-          {teams.map((team) => {
-            return (
-              <div
-                key={team._id}
-                className="rounded-lg border border-gray-700 bg-gray-800 p-4"
-              >
-                {/* Team Name Section */}
-                {editingTeamId === team._id ? (
-                  <div className="mb-3 flex items-center gap-2">
-                    <input
-                      type="text"
-                      className="flex-1 rounded-lg border border-gray-600 bg-gray-900 px-3 py-1.5 text-sm text-white focus:border-emerald-500 focus:outline-none"
-                      value={editTeamName}
-                      onChange={(e) => setEditTeamName(e.target.value)}
-                      placeholder="Team Name"
-                    />
-                    <button
-                      onClick={() => handleSaveTeamName(team._id)}
-                      className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm text-white hover:bg-emerald-500"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditingTeamId(null)}
-                      className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="mb-3 flex items-center justify-between">
-                    <h4 className="text-base font-medium text-white">
-                      Team: {team.name}
-                    </h4>
-                    <button
-                      onClick={() => startEditingTeam(team)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-700 hover:text-white"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Team Members List */}
-                <div className="flex flex-wrap gap-2">
-                  {team.members?.map((m: { _id: string; userName: string }) => (
-                    <span
-                      key={m._id}
-                      className="rounded-full bg-gray-700/50 px-2.5 py-0.5 text-xs text-gray-300"
-                    >
-                      {m.userName}
-                    </span>
-                  ))}
-                  {(!team.members || team.members.length === 0) && (
-                    <span className="text-xs text-gray-500">No members</span>
-                  )}
+        <div className="space-y-3">
+          {teams.map((team) => (
+            <div key={team._id} className="border border-[#1F1F1F] bg-[#111111] p-4">
+              {editingTeamId === team._id ? (
+                <div className="mb-3 flex items-center gap-2">
+                  <input type="text" className="tui-input flex-1" value={editTeamName} onChange={(e) => setEditTeamName(e.target.value)} placeholder="Team Name" />
+                  <button onClick={() => handleSaveTeamName(team._id)} className="px-3 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors">SAVE</button>
+                  <button onClick={() => setEditingTeamId(null)} className="px-3 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors">CANCEL</button>
                 </div>
+              ) : (
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-white uppercase tracking-wide">
+                    {team.name}
+                  </h4>
+                  <button onClick={() => startEditingTeam(team)} className="p-1.5 text-[#555555] hover:text-white transition-colors">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {team.members?.map((m: { _id: string; userName: string }) => (
+                  <span key={m._id} className="border border-[#1F1F1F] bg-black px-2 py-0.5 text-xs text-[#555555]">
+                    {m.userName}
+                  </span>
+                ))}
+                {(!team.members || team.members.length === 0) && (
+                  <span className="text-xs text-[#333333] uppercase">NO MEMBERS</span>
+                )}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
     </div>
