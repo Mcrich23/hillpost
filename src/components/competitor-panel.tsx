@@ -112,7 +112,6 @@ function TeamSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
         {showCreateForm ? (
           <form onSubmit={handleCreateTeam} className="flex gap-2">
             <div className="flex-1 relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-[#555555]">&gt;</span>
               <input
                 type="text"
                 value={teamName}

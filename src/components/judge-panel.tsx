@@ -298,14 +298,14 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <input
                     type="range"
                     min={0}
                     max={cat.maxScore}
                     value={currentScore}
                     onChange={(e) => setScores({ ...scores, [cat._id]: Number(e.target.value) })}
-                    className="flex-1 accent-[#00FF41]"
+                    className="flex-1 min-w-0 accent-[#00FF41]"
                   />
                   <input
                     type="number"

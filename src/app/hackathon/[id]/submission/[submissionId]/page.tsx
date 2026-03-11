@@ -6,7 +6,7 @@ import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Layers, Users, Clock, Pencil, X } from "lucide-react";
+import { ArrowLeft, ExternalLink, Pencil, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn, safeHref } from "@/lib/utils";
 import { toast } from "sonner";
@@ -20,8 +20,7 @@ export default function SubmissionDetailPage() {
   const submission = useQuery(api.submissions.get, { submissionId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
   const updateSubmissionOrganizer = useMutation(api.submissions.updateSubmissionOrganizer);
-  
-  // We only fetch team if submission is loaded, using undefined check
+
   const teamId = submission?.teamId;
   const team = useQuery(api.teams.get, teamId ? { teamId } : "skip");
 
@@ -59,13 +58,11 @@ export default function SubmissionDetailPage() {
       toast.error(error instanceof Error ? error.message : "Failed to update submission");
     }
   };
-  
-  // We only fetch team if submission is loaded, using undefined check
 
   if (hackathon === undefined || submission === undefined || (teamId && team === undefined)) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="h-64 animate-pulse rounded-xl border border-gray-800 bg-gray-900" />
+        <p className="text-xs text-[#555555] uppercase tracking-widest">▓▓▓░░░ LOADING...</p>
       </div>
     );
   }
@@ -73,14 +70,14 @@ export default function SubmissionDetailPage() {
   if (!hackathon || !submission) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-8 text-center">
-          <p className="text-lg text-gray-400">Submission not found</p>
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
+          <p className="text-sm text-[#555555] uppercase tracking-wider">SUBMISSION NOT FOUND</p>
           <Link
             href={`/hackathon/${hackathonId}/leaderboard`}
-            className="mt-4 inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300"
+            className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Leaderboard
+            <ArrowLeft className="h-3 w-3" />
+            ← BACK TO LEADERBOARD
           </Link>
         </div>
       </div>
@@ -93,59 +90,42 @@ export default function SubmissionDetailPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      {/* Header & Back Navigation */}
-      <div className="mb-8">
-        <Link
-          href={`/hackathon/${hackathonId}/leaderboard`}
-          className="mb-6 inline-flex items-center gap-1 text-sm text-gray-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Leaderboard
-        </Link>
+      {/* Back nav */}
+      <Link
+        href={`/hackathon/${hackathonId}/leaderboard`}
+        className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
+      >
+        <ArrowLeft className="h-3 w-3" />
+        ← BACK TO LEADERBOARD
+      </Link>
 
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2 w-full justify-between">
-              <div className="flex items-center gap-3">
-                <Layers className="h-8 w-8 text-emerald-400" />
-                <h1 className="text-3xl font-bold text-white tracking-tight">{submission.name}</h1>
-              </div>
-              {membership?.role === "organizer" && (
-                <button
-                  onClick={startEditing}
-                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
-                  title="Edit Submission"
-                >
-                  <Pencil className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mt-4">
+      {/* Header */}
+      <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <h1 className="text-xl font-bold text-white uppercase tracking-wide">{submission.name}</h1>
               {team && (
-                <span className="flex items-center gap-1.5">
-                  <Users className="h-4 w-4" />
-                  <span className="font-medium text-gray-300">{team.name}</span>
-                </span>
+                <span className="tui-badge border-[#555555] text-[#555555]">{team.name}</span>
               )}
-              <span className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4" />
-                Submitted on {format(new Date(submission.submittedAt), "MMM d, yyyy 'at' h:mm a")}
-              </span>
+              {submission.submissionCount > 1 && (
+                <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">v{submission.submissionCount}</span>
+              )}
             </div>
+            <p className="text-xs text-[#555555]">
+              Submitted {format(new Date(submission.submittedAt), "MMM d, yyyy 'at' h:mm a")}
+            </p>
           </div>
-
-          {/* Action Links */}
-          <div className="flex flex-wrap gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             {projectHref && (
               <a
                 href={projectHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 shadow-sm shadow-emerald-900/20"
+                className="flex items-center gap-1 border border-[#00FF41] px-3 py-1.5 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors"
               >
-                <ExternalLink className="h-4 w-4" />
-                View Project
+                <ExternalLink className="h-3 w-3" />
+                PROJECT
               </a>
             )}
             {demoHref && (
@@ -153,10 +133,10 @@ export default function SubmissionDetailPage() {
                 href={demoHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
+                className="flex items-center gap-1 border border-[#00B4FF] px-3 py-1.5 text-xs font-bold text-[#00B4FF] uppercase tracking-wider hover:bg-[#00B4FF] hover:text-black transition-colors"
               >
-                <ExternalLink className="h-4 w-4" />
-                Watch Video
+                <ExternalLink className="h-3 w-3" />
+                VIDEO
               </a>
             )}
             {deployedHref && (
@@ -164,42 +144,50 @@ export default function SubmissionDetailPage() {
                 href={deployedHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
+                className="flex items-center gap-1 border border-[#AA44FF] px-3 py-1.5 text-xs font-bold text-[#AA44FF] uppercase tracking-wider hover:bg-[#AA44FF] hover:text-black transition-colors"
               >
-                <ExternalLink className="h-4 w-4" />
-                Live Demo
+                <ExternalLink className="h-3 w-3" />
+                LIVE DEMO
               </a>
+            )}
+            {membership?.role === "organizer" && (
+              <button
+                onClick={startEditing}
+                className="border border-[#1F1F1F] p-1.5 text-[#555555] hover:border-white hover:text-white transition-colors"
+                title="Edit Submission"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Description Section */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 md:p-8 shadow-sm">
-        <h2 className="text-xl font-semibold text-white mb-4">About the Project</h2>
-        <div className="prose prose-invert max-w-none text-gray-300">
-          {submission.description.split('\n').map((paragraph, idx) => (
-            <p key={idx} className="mb-4 leading-relaxed whitespace-pre-wrap">
-              {paragraph}
-            </p>
-          ))}
+      {/* Description */}
+      <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-xs text-[#555555] uppercase tracking-widest">── ABOUT THE PROJECT</span>
+          <div className="h-px flex-1 bg-[#1F1F1F]" />
+        </div>
+        <div className="text-sm text-[#AAAAAA] leading-relaxed whitespace-pre-wrap">
+          {submission.description}
         </div>
       </div>
-      
-      {/* Team Members Section */}
+
+      {/* Team Members */}
       {team && team.members && team.members.length > 0 && (
-        <div className="mt-8 rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-            <Users className="h-5 w-5 text-gray-400" />
-            Team Members
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-xs text-[#555555] uppercase tracking-widest">── TEAM MEMBERS</span>
+            <div className="h-px flex-1 bg-[#1F1F1F]" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
             {team.members.map((member) => (
-              <div 
-                key={member._id} 
-                className="flex items-center gap-3 rounded-lg border border-gray-800 bg-gray-800/50 p-3"
+              <div
+                key={member._id}
+                className="flex items-center gap-3 border border-[#1F1F1F] bg-[#111111] px-3 py-2"
               >
-                <div className="h-10 w-10 overflow-hidden rounded-full bg-gray-700 flex-shrink-0">
+                <div className="h-8 w-8 overflow-hidden bg-[#1F1F1F] flex-shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={member.userImageUrl || `https://api.dicebear.com/9.x/initials/svg?seed=${member.userName || "User"}`}
@@ -207,11 +195,11 @@ export default function SubmissionDetailPage() {
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-300">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-white uppercase tracking-wide truncate">
                     {member.userName || "Team Member"}
                   </p>
-                  <p className="text-xs text-gray-500 capitalize">{member.role}</p>
+                  <p className="text-xs text-[#555555] uppercase tracking-wider">{member.role}</p>
                 </div>
               </div>
             ))}
@@ -219,111 +207,96 @@ export default function SubmissionDetailPage() {
         </div>
       )}
 
-      {/* Edit Submission Sheet */}
+      {/* Edit Submission Panel */}
       <div
         className={cn(
           "fixed inset-0 z-50 flex justify-end transition-all duration-300",
           isEditing ? "visible opacity-100" : "invisible opacity-0"
         )}
       >
-        {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+          className="absolute inset-0 bg-black/70 transition-opacity duration-300"
           onClick={() => setIsEditing(false)}
         />
-        
-        {/* Slide-over panel */}
         <div
           className={cn(
-            "relative z-10 w-full max-w-md bg-gray-900 border-l border-gray-800 shadow-2xl h-full flex flex-col transform transition-transform duration-300 ease-in-out",
+            "relative z-10 w-full max-w-md border-l border-[#1F1F1F] bg-[#0A0A0A] h-full flex flex-col transform transition-transform duration-300 ease-in-out",
             isEditing ? "translate-x-0" : "translate-x-full"
           )}
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-              <h2 className="text-lg font-semibold text-white">Edit Submission</h2>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto px-6 py-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Project Name
-                  </label>
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Description
-                  </label>
-                  <textarea
-                    value={editDesc}
-                    onChange={(e) => setEditDesc(e.target.value)}
-                    rows={4}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Project URL
-                  </label>
-                  <input
-                    type="url"
-                    value={editProjUrl}
-                    onChange={(e) => setEditProjUrl(e.target.value)}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Video URL (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={editDemoUrl}
-                    onChange={(e) => setEditDemoUrl(e.target.value)}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Deployment URL (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={editDeployedUrl}
-                    onChange={(e) => setEditDeployedUrl(e.target.value)}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-[#1F1F1F]">
+            <span className="text-xs font-bold text-white uppercase tracking-widest">── EDIT SUBMISSION</span>
+            <button
+              onClick={() => setIsEditing(false)}
+              className="p-1.5 text-[#555555] hover:text-white transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-            <div className="border-t border-gray-800 p-6 flex justify-end gap-3 shrink-0">
-              <button
-                onClick={() => setIsEditing(false)}
-                className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!editName.trim() || !editDesc.trim() || !editProjUrl.trim()}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Save Changes
-              </button>
+          <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">PROJECT NAME:</label>
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="tui-input mt-2"
+              />
             </div>
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">DESCRIPTION:</label>
+              <textarea
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                rows={5}
+                className="tui-input mt-2"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">PROJECT URL:</label>
+              <input
+                type="url"
+                value={editProjUrl}
+                onChange={(e) => setEditProjUrl(e.target.value)}
+                className="tui-input mt-2"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">VIDEO URL (OPTIONAL):</label>
+              <input
+                type="url"
+                value={editDemoUrl}
+                onChange={(e) => setEditDemoUrl(e.target.value)}
+                className="tui-input mt-2"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">DEPLOYMENT URL (OPTIONAL):</label>
+              <input
+                type="url"
+                value={editDeployedUrl}
+                onChange={(e) => setEditDeployedUrl(e.target.value)}
+                className="tui-input mt-2"
+              />
+            </div>
+          </div>
+
+          <div className="border-t border-[#1F1F1F] px-5 py-4 flex justify-end gap-2 shrink-0">
+            <button
+              onClick={() => setIsEditing(false)}
+              className="px-4 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors"
+            >
+              CANCEL
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!editName.trim() || !editDesc.trim() || !editProjUrl.trim()}
+              className="px-4 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              [ SAVE CHANGES ]
+            </button>
+          </div>
         </div>
       </div>
     </div>
