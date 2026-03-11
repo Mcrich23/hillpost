@@ -35,5 +35,5 @@ export async function getAuthUserName(
 ): Promise<string> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return "Unknown";
-  return identity.name ?? identity.email ?? "Unknown";
+  return identity.name ?? "Unknown";
 }
