@@ -6,7 +6,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, safeHref } from "@/lib/utils";
 import { format } from "date-fns";
 import {
   ExternalLink,
@@ -119,7 +119,11 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
           </p>
         ) : (
           <div className="space-y-3">
-            {displayedSubmissions.map((sub) => (
+            {displayedSubmissions.map((sub) => {
+              const projectHref = safeHref(sub.projectUrl);
+              const demoHref = safeHref(sub.demoUrl);
+              const deployedHref = safeHref(sub.deployedUrl);
+              return (
               <div
                 key={sub._id}
                 className="rounded-lg border border-gray-700 bg-gray-800"
@@ -152,26 +156,40 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                           "MMM d, yyyy h:mm a"
                         )}
                       </span>
-                      <a
-                        href={sub.projectUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Project
-                      </a>
-                      {sub.demoUrl && (
+                      {projectHref && (
                         <a
-                          href={sub.demoUrl}
+                          href={projectHref}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ExternalLink className="h-3 w-3" />
-                          Demo
+                          Project
+                        </a>
+                      )}
+                      {demoHref && (
+                        <a
+                          href={demoHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Video
+                        </a>
+                      )}
+                      {deployedHref && (
+                        <a
+                          href={deployedHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Live Demo
                         </a>
                       )}
                     </div>
@@ -192,7 +210,8 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

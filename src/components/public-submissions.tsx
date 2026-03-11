@@ -5,7 +5,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { format } from "date-fns";
 import { ExternalLink, Layers, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, safeHref } from "@/lib/utils";
 
 interface PublicSubmissionsProps {
   hackathonId: Id<"hackathons">;
@@ -22,13 +22,15 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
   const [editDesc, setEditDesc] = useState("");
   const [editProjUrl, setEditProjUrl] = useState("");
   const [editDemoUrl, setEditDemoUrl] = useState("");
+  const [editDeployedUrl, setEditDeployedUrl] = useState("");
 
-  const startEditing = (sub: { _id: Id<"submissions">; name: string; description: string; projectUrl: string; demoUrl?: string }) => {
+  const startEditing = (sub: { _id: Id<"submissions">; name: string; description: string; projectUrl: string; demoUrl?: string; deployedUrl?: string }) => {
     setEditingId(sub._id);
     setEditName(sub.name);
     setEditDesc(sub.description);
     setEditProjUrl(sub.projectUrl);
     setEditDemoUrl(sub.demoUrl || "");
+    setEditDeployedUrl(sub.deployedUrl || "");
   };
 
   const handleSave = async (submissionId: Id<"submissions">) => {
@@ -40,6 +42,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
         description: editDesc,
         projectUrl: editProjUrl,
         demoUrl: editDemoUrl || undefined,
+        deployedUrl: editDeployedUrl || undefined,
       });
       toast.success("Submission updated");
       setEditingId(null);
@@ -58,7 +61,11 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
         <p className="text-sm text-gray-500">No projects submitted yet.</p>
       ) : (
         <div className="space-y-3">
-            {submissions.map((sub) => (
+            {submissions.map((sub) => {
+              const projectHref = safeHref(sub.projectUrl);
+              const demoHref = safeHref(sub.demoUrl);
+              const deployedHref = safeHref(sub.deployedUrl);
+              return (
               <div
                 key={sub._id}
                 className="flex flex-col gap-2 rounded-lg border border-gray-700 bg-gray-800 p-4 transition-colors hover:border-gray-600"
@@ -82,24 +89,37 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         <Pencil className="h-4 w-4" />
                       </button>
                     )}
-                    <a
-                      href={sub.projectUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 rounded-md bg-emerald-600/10 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:bg-emerald-600/20 transition-colors"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Project
-                    </a>
-                    {sub.demoUrl && (
+                    {projectHref && (
                       <a
-                        href={sub.demoUrl}
+                        href={projectHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 rounded-md bg-emerald-600/10 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:bg-emerald-600/20 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Project
+                      </a>
+                    )}
+                    {demoHref && (
+                      <a
+                        href={demoHref}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 rounded-md bg-blue-600/10 px-3 py-1.5 text-sm font-medium text-blue-400 hover:bg-blue-600/20 transition-colors"
                       >
                         <ExternalLink className="h-4 w-4" />
-                        Demo
+                        Video
+                      </a>
+                    )}
+                    {deployedHref && (
+                      <a
+                        href={deployedHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 rounded-md bg-purple-600/10 px-3 py-1.5 text-sm font-medium text-purple-400 hover:bg-purple-600/20 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Live Demo
                       </a>
                     )}
                   </div>
@@ -108,7 +128,8 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                   Updated {format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -179,12 +200,23 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Demo URL (Optional)
+                    Video URL (Optional)
                   </label>
                   <input
                     type="url"
                     value={editDemoUrl}
                     onChange={(e) => setEditDemoUrl(e.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-300">
+                    Deployment URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={editDeployedUrl}
+                    onChange={(e) => setEditDeployedUrl(e.target.value)}
                     className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>

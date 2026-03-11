@@ -2,6 +2,32 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAuthUserId } from "./auth";
 
+function sanitizeUrl(url: string | undefined, fieldName: string, required: boolean): string | undefined {
+  const trimmed = url?.trim();
+  if (!trimmed) {
+    if (required) throw new Error(`${fieldName} is required`);
+    return undefined;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      throw new Error(`Invalid URL scheme for ${fieldName}: ${parsed.protocol} — only http and https are allowed`);
+    }
+  } catch (e) {
+    if (e instanceof TypeError) {
+      throw new Error(`Invalid URL format for ${fieldName}`);
+    }
+    throw e;
+  }
+  return trimmed;
+}
+
+function requireNonEmpty(value: string, fieldName: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) throw new Error(`${fieldName} is required`);
+  return trimmed;
+}
+
 export const create = mutation({
   args: {
     hackathonId: v.id("hackathons"),
@@ -10,6 +36,7 @@ export const create = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
+    deployedUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -30,6 +57,12 @@ export const create = mutation({
     if (!membership.teamId || membership.teamId !== args.teamId) {
       throw new Error("You can only submit for your own team");
     }
+
+    const projectUrl = sanitizeUrl(args.projectUrl, "Project URL", true)!;
+    const demoUrl = sanitizeUrl(args.demoUrl, "Video URL", false);
+    const deployedUrl = sanitizeUrl(args.deployedUrl, "Deployment URL", false);
+    const name = requireNonEmpty(args.name, "Name");
+    const description = requireNonEmpty(args.description, "Description");
 
     // Rate limiting: check the team's latest submission
     const hackathon = await ctx.db.get(args.hackathonId);
@@ -73,10 +106,11 @@ export const create = mutation({
 
       // Update existing submission
       await ctx.db.patch(existingSubmission._id, {
-        name: args.name,
-        description: args.description,
-        projectUrl: args.projectUrl,
-        demoUrl: args.demoUrl,
+        name,
+        description,
+        projectUrl,
+        demoUrl,
+        deployedUrl,
         submittedAt: Date.now(),
         submittedBy: userId,
         submissionCount: existingSubmission.submissionCount + 1,
@@ -91,10 +125,11 @@ export const create = mutation({
     return await ctx.db.insert("submissions", {
       hackathonId: args.hackathonId,
       teamId: args.teamId,
-      name: args.name,
-      description: args.description,
-      projectUrl: args.projectUrl,
-      demoUrl: args.demoUrl,
+      name,
+      description,
+      projectUrl,
+      demoUrl,
+      deployedUrl,
       submittedAt: Date.now(),
       submittedBy: userId,
       submissionCount: 1,
@@ -110,6 +145,7 @@ export const updateDetails = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
+    deployedUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -128,11 +164,15 @@ export const updateDetails = mutation({
       throw new Error("Unauthorized to edit this project");
     }
 
+    const name = requireNonEmpty(args.name, "Name");
+    const description = requireNonEmpty(args.description, "Description");
+
     await ctx.db.patch(args.submissionId, {
-      name: args.name,
-      description: args.description,
-      projectUrl: args.projectUrl,
-      demoUrl: args.demoUrl,
+      name,
+      description,
+      projectUrl: sanitizeUrl(args.projectUrl, "Project URL", true)!,
+      demoUrl: sanitizeUrl(args.demoUrl, "Video URL", false),
+      deployedUrl: sanitizeUrl(args.deployedUrl, "Deployment URL", false),
     });
   },
 });
@@ -203,6 +243,7 @@ export const updateSubmissionOrganizer = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
+    deployedUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -221,11 +262,15 @@ export const updateSubmissionOrganizer = mutation({
       throw new Error("Only organizers can edit any submission");
     }
 
+    const name = requireNonEmpty(args.name, "Name");
+    const description = requireNonEmpty(args.description, "Description");
+
     await ctx.db.patch(args.submissionId, {
-      name: args.name.trim(),
-      description: args.description.trim(),
-      projectUrl: args.projectUrl.trim(),
-      demoUrl: args.demoUrl?.trim(),
+      name,
+      description,
+      projectUrl: sanitizeUrl(args.projectUrl, "Project URL", true)!,
+      demoUrl: sanitizeUrl(args.demoUrl, "Video URL", false),
+      deployedUrl: sanitizeUrl(args.deployedUrl, "Deployment URL", false),
     });
   },
 });

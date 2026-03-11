@@ -211,6 +211,7 @@ function SubmitSection({
   const [description, setDescription] = useState("");
   const [projectUrl, setProjectUrl] = useState("");
   const [demoUrl, setDemoUrl] = useState("");
+  const [deployedUrl, setDeployedUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
@@ -222,6 +223,7 @@ function SubmitSection({
       setDescription(latestSubmission.description);
       setProjectUrl(latestSubmission.projectUrl);
       setDemoUrl(latestSubmission.demoUrl || "");
+      setDeployedUrl(latestSubmission.deployedUrl || "");
     }
   }, [latestSubmission]);
 
@@ -253,6 +255,7 @@ function SubmitSection({
         description,
         projectUrl,
         demoUrl: demoUrl || undefined,
+        deployedUrl: deployedUrl || undefined,
       });
       toast.success(latestSubmission ? "Project resubmitted!" : "Submission created!");
       // Don't clear fields on resubmit since they'll just look at them
@@ -261,6 +264,7 @@ function SubmitSection({
         setDescription("");
         setProjectUrl("");
         setDemoUrl("");
+        setDeployedUrl("");
       }
     } catch (error) {
       toast.error(
@@ -283,6 +287,7 @@ function SubmitSection({
         description,
         projectUrl,
         demoUrl: demoUrl || undefined,
+        deployedUrl: deployedUrl || undefined,
       });
       toast.success("Project details saved!");
     } catch (error) {
@@ -357,13 +362,25 @@ function SubmitSection({
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-300">
-                Demo URL <span className="text-gray-500">(optional)</span>
+                Video URL <span className="text-gray-500">(optional)</span>
               </label>
               <input
                 type="url"
                 value={demoUrl}
                 onChange={(e) => setDemoUrl(e.target.value)}
-                placeholder="https://my-demo.vercel.app"
+                placeholder="https://youtube.com/watch?v=..."
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-300">
+                Deployment URL <span className="text-gray-500">(optional)</span>
+              </label>
+              <input
+                type="url"
+                value={deployedUrl}
+                onChange={(e) => setDeployedUrl(e.target.value)}
+                placeholder="https://my-project.vercel.app"
                 className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none"
               />
             </div>
