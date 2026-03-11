@@ -30,6 +30,7 @@ export default function SubmissionDetailPage() {
   const [editDesc, setEditDesc] = useState("");
   const [editProjUrl, setEditProjUrl] = useState("");
   const [editDemoUrl, setEditDemoUrl] = useState("");
+  const [editDeployedUrl, setEditDeployedUrl] = useState("");
 
   const startEditing = () => {
     if (!submission) return;
@@ -37,6 +38,7 @@ export default function SubmissionDetailPage() {
     setEditDesc(submission.description);
     setEditProjUrl(submission.projectUrl);
     setEditDemoUrl(submission.demoUrl || "");
+    setEditDeployedUrl(submission.deployedUrl || "");
     setIsEditing(true);
   };
 
@@ -49,6 +51,7 @@ export default function SubmissionDetailPage() {
         description: editDesc,
         projectUrl: editProjUrl,
         demoUrl: editDemoUrl || undefined,
+        deployedUrl: editDeployedUrl || undefined,
       });
       toast.success("Submission updated");
       setIsEditing(false);
@@ -149,7 +152,18 @@ export default function SubmissionDetailPage() {
                 className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
               >
                 <ExternalLink className="h-4 w-4" />
-                Watch Demo
+                Watch Video
+              </a>
+            )}
+            {submission.deployedUrl && (
+              <a
+                href={submission.deployedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Live Demo
               </a>
             )}
           </div>
@@ -268,12 +282,23 @@ export default function SubmissionDetailPage() {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Demo URL (Optional)
+                    Video URL (Optional)
                   </label>
                   <input
                     type="url"
                     value={editDemoUrl}
                     onChange={(e) => setEditDemoUrl(e.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-300">
+                    Deployed Project URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={editDeployedUrl}
+                    onChange={(e) => setEditDeployedUrl(e.target.value)}
                     className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>

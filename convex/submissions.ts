@@ -10,6 +10,7 @@ export const create = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
+    deployedUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -77,6 +78,7 @@ export const create = mutation({
         description: args.description,
         projectUrl: args.projectUrl,
         demoUrl: args.demoUrl,
+        deployedUrl: args.deployedUrl,
         submittedAt: Date.now(),
         submittedBy: userId,
         submissionCount: existingSubmission.submissionCount + 1,
@@ -95,6 +97,7 @@ export const create = mutation({
       description: args.description,
       projectUrl: args.projectUrl,
       demoUrl: args.demoUrl,
+      deployedUrl: args.deployedUrl,
       submittedAt: Date.now(),
       submittedBy: userId,
       submissionCount: 1,
@@ -110,6 +113,7 @@ export const updateDetails = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
+    deployedUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -133,6 +137,7 @@ export const updateDetails = mutation({
       description: args.description,
       projectUrl: args.projectUrl,
       demoUrl: args.demoUrl,
+      deployedUrl: args.deployedUrl,
     });
   },
 });
@@ -203,6 +208,7 @@ export const updateSubmissionOrganizer = mutation({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
+    deployedUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -226,6 +232,7 @@ export const updateSubmissionOrganizer = mutation({
       description: args.description.trim(),
       projectUrl: args.projectUrl.trim(),
       demoUrl: args.demoUrl?.trim(),
+      deployedUrl: args.deployedUrl?.trim(),
     });
   },
 });

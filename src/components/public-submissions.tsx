@@ -22,13 +22,15 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
   const [editDesc, setEditDesc] = useState("");
   const [editProjUrl, setEditProjUrl] = useState("");
   const [editDemoUrl, setEditDemoUrl] = useState("");
+  const [editDeployedUrl, setEditDeployedUrl] = useState("");
 
-  const startEditing = (sub: { _id: Id<"submissions">; name: string; description: string; projectUrl: string; demoUrl?: string }) => {
+  const startEditing = (sub: { _id: Id<"submissions">; name: string; description: string; projectUrl: string; demoUrl?: string; deployedUrl?: string }) => {
     setEditingId(sub._id);
     setEditName(sub.name);
     setEditDesc(sub.description);
     setEditProjUrl(sub.projectUrl);
     setEditDemoUrl(sub.demoUrl || "");
+    setEditDeployedUrl(sub.deployedUrl || "");
   };
 
   const handleSave = async (submissionId: Id<"submissions">) => {
@@ -40,6 +42,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
         description: editDesc,
         projectUrl: editProjUrl,
         demoUrl: editDemoUrl || undefined,
+        deployedUrl: editDeployedUrl || undefined,
       });
       toast.success("Submission updated");
       setEditingId(null);
@@ -99,7 +102,18 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         className="flex items-center gap-1 rounded-md bg-blue-600/10 px-3 py-1.5 text-sm font-medium text-blue-400 hover:bg-blue-600/20 transition-colors"
                       >
                         <ExternalLink className="h-4 w-4" />
-                        Demo
+                        Video
+                      </a>
+                    )}
+                    {sub.deployedUrl && (
+                      <a
+                        href={sub.deployedUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 rounded-md bg-purple-600/10 px-3 py-1.5 text-sm font-medium text-purple-400 hover:bg-purple-600/20 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Live Demo
                       </a>
                     )}
                   </div>
@@ -179,12 +193,23 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Demo URL (Optional)
+                    Video URL (Optional)
                   </label>
                   <input
                     type="url"
                     value={editDemoUrl}
                     onChange={(e) => setEditDemoUrl(e.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-300">
+                    Deployed Project URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={editDeployedUrl}
+                    onChange={(e) => setEditDeployedUrl(e.target.value)}
                     className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
