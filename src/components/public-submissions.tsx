@@ -204,7 +204,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Deployed Project URL (Optional)
+                    Deployment URL (Optional)
                   </label>
                   <input
                     type="url"

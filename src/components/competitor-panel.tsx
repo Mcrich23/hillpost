@@ -374,7 +374,7 @@ function SubmitSection({
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-300">
-                Deployed Project URL <span className="text-gray-500">(optional)</span>
+                Deployment URL <span className="text-gray-500">(optional)</span>
               </label>
               <input
                 type="url"
