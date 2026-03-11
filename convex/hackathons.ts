@@ -152,17 +152,36 @@ export const listMine = query({
         const hackathon = await ctx.db.get(m.hackathonId);
         if (!hackathon) return null;
 
-        // Strip join codes based on role
+        const { competitorJoinCode, judgeJoinCode, ...rest } = hackathon;
+
+        // Return a consistent shape for all roles; hide codes by setting them to undefined.
         if (m.role === "organizer") {
-          return { ...hackathon, myRole: m.role };
+          // Organizers see both join codes.
+          return {
+            ...rest,
+            competitorJoinCode,
+            judgeJoinCode,
+            myRole: m.role,
+          };
         }
+
         if (m.role === "competitor") {
-          const { judgeJoinCode: _j, ...rest } = hackathon;
-          return { ...rest, myRole: m.role };
+          // Competitors see only competitorJoinCode.
+          return {
+            ...rest,
+            competitorJoinCode,
+            judgeJoinCode: undefined,
+            myRole: m.role,
+          };
         }
-        // judge
-        const { competitorJoinCode: _c, judgeJoinCode: _j, ...rest } = hackathon;
-        return { ...rest, myRole: m.role };
+
+        // Judges see neither join code.
+        return {
+          ...rest,
+          competitorJoinCode: undefined,
+          judgeJoinCode: undefined,
+          myRole: m.role,
+        };
       })
     );
 
