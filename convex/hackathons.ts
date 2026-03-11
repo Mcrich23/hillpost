@@ -100,7 +100,9 @@ export const get = query({
 
     const userId = await getAuthUserId(ctx);
 
-    // Determine what join codes to expose based on the caller's role
+    let competitorJoinCode: string | undefined;
+    let judgeJoinCode: string | undefined;
+
     if (userId) {
       const membership = await ctx.db
         .query("hackathonMembers")
@@ -110,18 +112,16 @@ export const get = query({
         .first();
 
       if (membership?.role === "organizer") {
-        return hackathon; // organizers see everything
-      }
-      if (membership?.role === "competitor") {
-        // competitors see only the competitor join code (to share with teammates)
-        const { judgeJoinCode: _j, ...rest } = hackathon;
-        return rest;
+        competitorJoinCode = hackathon.competitorJoinCode;
+        judgeJoinCode = hackathon.judgeJoinCode;
+      } else if (membership?.role === "competitor") {
+        competitorJoinCode = hackathon.competitorJoinCode;
       }
     }
 
-    // Judges, non-members, and unauthenticated users see no join codes
+    // Return a consistent shape; hidden codes are undefined
     const { competitorJoinCode: _c, judgeJoinCode: _j, ...rest } = hackathon;
-    return rest;
+    return { ...rest, competitorJoinCode, judgeJoinCode };
   },
 });
 

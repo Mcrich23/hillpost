@@ -40,12 +40,6 @@ export default function HackathonDetailPage() {
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
   
-  // competitorJoinCode is only present for organizers and competitors
-  const hackathonWithCodes = hackathon as (typeof hackathon & {
-    competitorJoinCode?: string;
-    judgeJoinCode?: string;
-  }) | null | undefined;
-  
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
@@ -70,9 +64,9 @@ export default function HackathonDetailPage() {
   const role = membership?.role;
 
   const copyCompetitorJoinLink = async () => {
-    if (!hackathonWithCodes?.competitorJoinCode) return;
+    if (!hackathon?.competitorJoinCode) return;
     try {
-      const link = `${window.location.origin}/join/${hackathonWithCodes.competitorJoinCode}`;
+      const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
       await navigator.clipboard.writeText(link);
       setCopiedJoinLink(true);
       toast.success("Join link copied!");
@@ -396,7 +390,7 @@ export default function HackathonDetailPage() {
                 </h3>
                 <div className="flex items-center gap-3">
                   <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-xl tracking-widest text-emerald-400">
-                    {hackathonWithCodes?.competitorJoinCode ?? "—"}
+                    {hackathon?.competitorJoinCode ?? "—"}
                   </code>
                   <button
                     onClick={copyCompetitorJoinLink}
@@ -410,9 +404,9 @@ export default function HackathonDetailPage() {
                       <LinkIcon className="h-4 w-4" />
                     )}
                   </button>
-                  {hackathonWithCodes?.competitorJoinCode && (
+                  {hackathon?.competitorJoinCode && (
                     <QrCodeButton
-                      path={`/join/${hackathonWithCodes.competitorJoinCode}`}
+                      path={`/join/${hackathon.competitorJoinCode}`}
                       label="Competitor Join QR"
                     />
                   )}

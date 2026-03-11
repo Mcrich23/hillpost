@@ -25,8 +25,8 @@ interface OrganizerPanelProps {
   hackathon: {
     name: string;
     description: string;
-    competitorJoinCode?: string;
-    judgeJoinCode?: string;
+    competitorJoinCode: string | undefined;
+    judgeJoinCode: string | undefined;
     startDate: number;
     endDate: number;
     isActive: boolean;
