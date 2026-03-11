@@ -171,7 +171,31 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ExternalLink className="h-3 w-3" />
-                          LIVE DEMO
+                          Project
+                        </a>
+                      )}
+                      {demoHref && (
+                        <a
+                          href={demoHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Video
+                        </a>
+                      )}
+                      {deployedHref && (
+                        <a
+                          href={deployedHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          Live Demo
                         </a>
                       )}
                     </div>
