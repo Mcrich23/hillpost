@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useParams, useRouter } from "next/navigation";
@@ -36,6 +36,7 @@ type Tab = "overview" | "submissions"| "compete" | "judge" | "manage";
 export default function HackathonDetailPage() {
   const params = useParams();
   const { user } = useUser();
+  const { isAuthenticated } = useConvexAuth();
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
@@ -49,14 +50,14 @@ export default function HackathonDetailPage() {
   const [isLeaving, setIsLeaving] = useState(false);
 
   React.useEffect(() => {
-    if (user?.id && membership) {
+    if (isAuthenticated && membership && user?.imageUrl) {
       // Sync profile picture
       syncProfile({
         hackathonId,
         userImageUrl: user.imageUrl,
       }).catch(console.error);
     }
-  }, [user?.id, user?.imageUrl, membership, hackathonId, syncProfile]);
+  }, [isAuthenticated, user?.imageUrl, membership, hackathonId, syncProfile]);
 
   const [activeTab, setActiveTab] = React.useState<Tab>("overview");
   const [copiedJoinLink, setCopiedJoinLink] = useState(false);

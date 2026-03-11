@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -24,6 +24,7 @@ export default function JoinByLinkPage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useUser();
+  const { isAuthenticated } = useConvexAuth();
   const joinCode = params.code as string;
 
   const hackathon = useQuery(api.hackathons.getByJoinCode, { joinCode });
@@ -35,9 +36,9 @@ export default function JoinByLinkPage() {
 
   const [isJoining, setIsJoining] = useState(false);
 
-  // Membership query is running when hackathon and user are known but result hasn't arrived
+  // Membership query is running when hackathon and auth are known but result hasn't arrived
   const isMembershipLoading =
-    hackathon !== undefined && hackathon !== null && user?.id && membership === undefined;
+    hackathon !== undefined && hackathon !== null && isAuthenticated && membership === undefined;
 
   // Determine role based on server-returned role field
   const role = hackathon?.role ?? "competitor";
@@ -76,7 +77,7 @@ export default function JoinByLinkPage() {
   }
 
   const handleJoin = async () => {
-    if (!user?.id) {
+    if (!isAuthenticated) {
       toast.error("Please sign in first");
       return;
     }
@@ -85,7 +86,7 @@ export default function JoinByLinkPage() {
     try {
       const result = await joinHackathon({
         joinCode,
-        userImageUrl: user.imageUrl,
+        userImageUrl: user?.imageUrl,
       });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting...");

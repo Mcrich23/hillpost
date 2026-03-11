@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -19,6 +19,7 @@ export function JoinHackathonDialog({
 }: JoinHackathonDialogProps) {
   const router = useRouter();
   const { user } = useUser();
+  const { isAuthenticated } = useConvexAuth();
   const joinHackathon = useMutation(api.hackathons.join);
 
   const [joinCode, setJoinCode] = useState("");
@@ -33,7 +34,7 @@ export function JoinHackathonDialog({
       return;
     }
 
-    if (!user?.id) {
+    if (!isAuthenticated) {
       toast.error("Please sign in first");
       return;
     }
@@ -42,7 +43,7 @@ export function JoinHackathonDialog({
     try {
       const result = await joinHackathon({
         joinCode: joinCode.trim(),
-        userImageUrl: user.imageUrl,
+        userImageUrl: user?.imageUrl,
       });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting to hackathon.");
@@ -107,7 +108,7 @@ export function JoinHackathonDialog({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || joinCode.length < 1}
+              disabled={isSubmitting || joinCode.length < 1 || !isAuthenticated}
               className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-500 disabled:opacity-50"
             >
               {isSubmitting ? "Joining..." : "Join Hackathon"}
