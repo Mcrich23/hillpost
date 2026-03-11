@@ -6,7 +6,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, safeHref } from "@/lib/utils";
 import { format } from "date-fns";
 import {
   ExternalLink,
@@ -153,7 +153,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                         )}
                       </span>
                       <a
-                        href={sub.projectUrl}
+                        href={safeHref(sub.projectUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
@@ -162,9 +162,9 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                         <ExternalLink className="h-3 w-3" />
                         Project
                       </a>
-                      {sub.demoUrl && (
+                      {safeHref(sub.demoUrl) && (
                         <a
-                          href={sub.demoUrl}
+                          href={safeHref(sub.demoUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"
@@ -174,9 +174,9 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                           Video
                         </a>
                       )}
-                      {sub.deployedUrl && (
+                      {safeHref(sub.deployedUrl) && (
                         <a
-                          href={sub.deployedUrl}
+                          href={safeHref(sub.deployedUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300"

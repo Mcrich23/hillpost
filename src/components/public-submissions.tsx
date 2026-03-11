@@ -5,7 +5,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { format } from "date-fns";
 import { ExternalLink, Layers, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, safeHref } from "@/lib/utils";
 
 interface PublicSubmissionsProps {
   hackathonId: Id<"hackathons">;
@@ -86,7 +86,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                       </button>
                     )}
                     <a
-                      href={sub.projectUrl}
+                      href={safeHref(sub.projectUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 rounded-md bg-emerald-600/10 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:bg-emerald-600/20 transition-colors"
@@ -94,9 +94,9 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                       <ExternalLink className="h-4 w-4" />
                       Project
                     </a>
-                    {sub.demoUrl && (
+                    {safeHref(sub.demoUrl) && (
                       <a
-                        href={sub.demoUrl}
+                        href={safeHref(sub.demoUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 rounded-md bg-blue-600/10 px-3 py-1.5 text-sm font-medium text-blue-400 hover:bg-blue-600/20 transition-colors"
@@ -105,9 +105,9 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         Video
                       </a>
                     )}
-                    {sub.deployedUrl && (
+                    {safeHref(sub.deployedUrl) && (
                       <a
-                        href={sub.deployedUrl}
+                        href={safeHref(sub.deployedUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-1 rounded-md bg-purple-600/10 px-3 py-1.5 text-sm font-medium text-purple-400 hover:bg-purple-600/20 transition-colors"

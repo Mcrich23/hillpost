@@ -8,7 +8,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Layers, Users, Clock, Pencil, X } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, safeHref } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function SubmissionDetailPage() {
@@ -133,9 +133,9 @@ export default function SubmissionDetailPage() {
 
           {/* Action Links */}
           <div className="flex flex-wrap gap-3 shrink-0">
-            {submission.projectUrl && (
+            {safeHref(submission.projectUrl) && (
               <a
-                href={submission.projectUrl}
+                href={safeHref(submission.projectUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 shadow-sm shadow-emerald-900/20"
@@ -144,9 +144,9 @@ export default function SubmissionDetailPage() {
                 View Project
               </a>
             )}
-            {submission.demoUrl && (
+            {safeHref(submission.demoUrl) && (
               <a
-                href={submission.demoUrl}
+                href={safeHref(submission.demoUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
@@ -155,9 +155,9 @@ export default function SubmissionDetailPage() {
                 Watch Video
               </a>
             )}
-            {submission.deployedUrl && (
+            {safeHref(submission.deployedUrl) && (
               <a
-                href={submission.deployedUrl}
+                href={safeHref(submission.deployedUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"

@@ -2,6 +2,26 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAuthUserId } from "./auth";
 
+function sanitizeUrl(url: string | undefined, required: boolean): string | undefined {
+  const trimmed = url?.trim();
+  if (!trimmed) {
+    if (required) throw new Error("URL is required");
+    return undefined;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      throw new Error(`Invalid URL scheme: ${parsed.protocol} — only http and https are allowed`);
+    }
+  } catch (e) {
+    if (e instanceof TypeError) {
+      throw new Error("Invalid URL format");
+    }
+    throw e;
+  }
+  return trimmed;
+}
+
 export const create = mutation({
   args: {
     hackathonId: v.id("hackathons"),
@@ -31,6 +51,10 @@ export const create = mutation({
     if (!membership.teamId || membership.teamId !== args.teamId) {
       throw new Error("You can only submit for your own team");
     }
+
+    const projectUrl = sanitizeUrl(args.projectUrl, true)!;
+    const demoUrl = sanitizeUrl(args.demoUrl, false);
+    const deployedUrl = sanitizeUrl(args.deployedUrl, false);
 
     // Rate limiting: check the team's latest submission
     const hackathon = await ctx.db.get(args.hackathonId);
@@ -74,11 +98,11 @@ export const create = mutation({
 
       // Update existing submission
       await ctx.db.patch(existingSubmission._id, {
-        name: args.name,
-        description: args.description,
-        projectUrl: args.projectUrl,
-        demoUrl: args.demoUrl,
-        deployedUrl: args.deployedUrl,
+        name: args.name.trim(),
+        description: args.description.trim(),
+        projectUrl,
+        demoUrl,
+        deployedUrl,
         submittedAt: Date.now(),
         submittedBy: userId,
         submissionCount: existingSubmission.submissionCount + 1,
@@ -93,11 +117,11 @@ export const create = mutation({
     return await ctx.db.insert("submissions", {
       hackathonId: args.hackathonId,
       teamId: args.teamId,
-      name: args.name,
-      description: args.description,
-      projectUrl: args.projectUrl,
-      demoUrl: args.demoUrl,
-      deployedUrl: args.deployedUrl,
+      name: args.name.trim(),
+      description: args.description.trim(),
+      projectUrl,
+      demoUrl,
+      deployedUrl,
       submittedAt: Date.now(),
       submittedBy: userId,
       submissionCount: 1,
@@ -133,11 +157,11 @@ export const updateDetails = mutation({
     }
 
     await ctx.db.patch(args.submissionId, {
-      name: args.name,
-      description: args.description,
-      projectUrl: args.projectUrl,
-      demoUrl: args.demoUrl,
-      deployedUrl: args.deployedUrl,
+      name: args.name.trim(),
+      description: args.description.trim(),
+      projectUrl: sanitizeUrl(args.projectUrl, true)!,
+      demoUrl: sanitizeUrl(args.demoUrl, false),
+      deployedUrl: sanitizeUrl(args.deployedUrl, false),
     });
   },
 });
@@ -230,9 +254,9 @@ export const updateSubmissionOrganizer = mutation({
     await ctx.db.patch(args.submissionId, {
       name: args.name.trim(),
       description: args.description.trim(),
-      projectUrl: args.projectUrl.trim(),
-      demoUrl: args.demoUrl?.trim(),
-      deployedUrl: args.deployedUrl?.trim(),
+      projectUrl: sanitizeUrl(args.projectUrl, true)!,
+      demoUrl: sanitizeUrl(args.demoUrl, false),
+      deployedUrl: sanitizeUrl(args.deployedUrl, false),
     });
   },
 });
