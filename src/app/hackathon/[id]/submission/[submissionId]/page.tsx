@@ -5,7 +5,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Layers, Users, Clock, Pencil, X } from "lucide-react";
 import { format } from "date-fns";
@@ -14,13 +13,12 @@ import { toast } from "sonner";
 
 export default function SubmissionDetailPage() {
   const params = useParams();
-  const { user } = useUser();
   const hackathonId = params.id as Id<"hackathons">;
   const submissionId = params.submissionId as Id<"submissions">;
 
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const submission = useQuery(api.submissions.get, { submissionId });
-  const membership = useQuery(api.members.getMyMembership, { hackathonId, userId: user?.id });
+  const membership = useQuery(api.members.getMyMembership, { hackathonId });
   const updateSubmissionOrganizer = useMutation(api.submissions.updateSubmissionOrganizer);
   
   // We only fetch team if submission is loaded, using undefined check
@@ -43,7 +41,7 @@ export default function SubmissionDetailPage() {
   };
 
   const handleSave = async () => {
-    if (!user?.id || !editName.trim() || !editDesc.trim() || !editProjUrl.trim() || !submission) return;
+    if (!editName.trim() || !editDesc.trim() || !editProjUrl.trim() || !submission) return;
     try {
       await updateSubmissionOrganizer({
         submissionId: submission._id,
@@ -51,7 +49,6 @@ export default function SubmissionDetailPage() {
         description: editDesc,
         projectUrl: editProjUrl,
         demoUrl: editDemoUrl || undefined,
-        userId: user.id,
       });
       toast.success("Submission updated");
       setIsEditing(false);

@@ -38,7 +38,13 @@ export default function HackathonDetailPage() {
   const { user } = useUser();
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
-  const membership = useQuery(api.members.getMyMembership, { hackathonId, userId: user?.id });
+  const membership = useQuery(api.members.getMyMembership, { hackathonId });
+  
+  // competitorJoinCode is only present for organizers and competitors
+  const hackathonWithCodes = hackathon as (typeof hackathon & {
+    competitorJoinCode?: string;
+    judgeJoinCode?: string;
+  }) | null | undefined;
   
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
@@ -53,7 +59,6 @@ export default function HackathonDetailPage() {
       // Sync profile picture
       syncProfile({
         hackathonId,
-        userId: user.id,
         userImageUrl: user.imageUrl,
       }).catch(console.error);
     }
@@ -65,9 +70,9 @@ export default function HackathonDetailPage() {
   const role = membership?.role;
 
   const copyCompetitorJoinLink = async () => {
-    if (!hackathon) return;
+    if (!hackathonWithCodes?.competitorJoinCode) return;
     try {
-      const link = `${window.location.origin}/join/${hackathon.competitorJoinCode}`;
+      const link = `${window.location.origin}/join/${hackathonWithCodes.competitorJoinCode}`;
       await navigator.clipboard.writeText(link);
       setCopiedJoinLink(true);
       toast.success("Join link copied!");
@@ -110,7 +115,7 @@ export default function HackathonDetailPage() {
     if (confirm("Are you sure you want to leave this hackathon?")) {
       setIsLeaving(true);
       try {
-        await leaveHackathon({ hackathonId, userId: user.id });
+        await leaveHackathon({ hackathonId });
         router.push("/dashboard");
       } catch (error) {
         console.error("Failed to leave hackathon:", error);
@@ -391,7 +396,7 @@ export default function HackathonDetailPage() {
                 </h3>
                 <div className="flex items-center gap-3">
                   <code className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 font-mono text-xl tracking-widest text-emerald-400">
-                    {hackathon.competitorJoinCode}
+                    {hackathonWithCodes?.competitorJoinCode ?? "—"}
                   </code>
                   <button
                     onClick={copyCompetitorJoinLink}
@@ -405,10 +410,12 @@ export default function HackathonDetailPage() {
                       <LinkIcon className="h-4 w-4" />
                     )}
                   </button>
-                  <QrCodeButton
-                    path={`/join/${hackathon.competitorJoinCode}`}
-                    label="Competitor Join QR"
-                  />
+                  {hackathonWithCodes?.competitorJoinCode && (
+                    <QrCodeButton
+                      path={`/join/${hackathonWithCodes.competitorJoinCode}`}
+                      label="Competitor Join QR"
+                    />
+                  )}
                 </div>
                 <p className="mt-2 text-xs text-gray-500">
                   Share this code, copy the join link, or show the QR code to invite competitors.
