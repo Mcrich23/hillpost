@@ -85,15 +85,17 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         <Pencil className="h-4 w-4" />
                       </button>
                     )}
-                    <a
-                      href={safeHref(sub.projectUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 rounded-md bg-emerald-600/10 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:bg-emerald-600/20 transition-colors"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Project
-                    </a>
+                    {safeHref(sub.projectUrl) && (
+                      <a
+                        href={safeHref(sub.projectUrl)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 rounded-md bg-emerald-600/10 px-3 py-1.5 text-sm font-medium text-emerald-400 hover:bg-emerald-600/20 transition-colors"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Project
+                      </a>
+                    )}
                     {safeHref(sub.demoUrl) && (
                       <a
                         href={safeHref(sub.demoUrl)}
