@@ -8,8 +8,12 @@ export function ThemeToggle() {
 
   useEffect(() => {
     const stored = localStorage.getItem("hillpost-theme") as "dark" | "light" | null;
-    const current = document.documentElement.getAttribute("data-theme") as "dark" | "light" | null;
-    setTheme(stored ?? current ?? "dark");
+    if (stored) {
+      setTheme(stored);
+    } else {
+      const sys = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      setTheme(sys);
+    }
   }, []);
 
   const toggle = () => {
