@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import { JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { Providers } from "./providers";
 import { Navbar } from "@/components/navbar";
 import "./globals.css";
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  weight: ["400", "500", "700"],
+});
 
 export const metadata: Metadata = {
   title: "Hillpost",
@@ -15,12 +22,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-gray-950 text-white antialiased">
+    <html lang="en" data-theme="dark" className={jetbrainsMono.variable} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('hillpost-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="bg-black text-white antialiased">
         <Providers>
           <Navbar />
           <main>{children}</main>
-          <Toaster theme="dark" richColors position="bottom-right" />
+          <Toaster richColors position="bottom-right" />
         </Providers>
       </body>
     </html>

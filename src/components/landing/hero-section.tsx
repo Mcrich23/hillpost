@@ -1,76 +1,120 @@
 "use client";
 
 import Link from "next/link";
-import { SignUpButton, useAuth, useUser } from "@clerk/nextjs";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { SignInButton, useAuth, useUser } from "@clerk/nextjs";
+import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+
+const TYPEWRITER_TEXT = "HACK THE HILL";
 
 export function HeroSection() {
   const { isSignedIn } = useAuth();
   const { user } = useUser();
+  const [typed, setTyped] = useState("");
+
+  useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < TYPEWRITER_TEXT.length) {
+        setTyped(TYPEWRITER_TEXT.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <section className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center overflow-hidden px-4 text-center">
-      {/* Background gradient effects */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-emerald-600/20 blur-[120px]" />
-        <div className="absolute -bottom-20 left-1/4 h-[300px] w-[400px] rounded-full bg-emerald-500/10 blur-[100px]" />
-        <div className="absolute right-1/4 top-1/3 h-[250px] w-[350px] rounded-full bg-teal-500/10 blur-[100px]" />
+    <section className="relative flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center overflow-hidden px-4 text-center dot-grid">
+      {/* Corner brackets */}
+      <div className="pointer-events-none absolute inset-4 hidden sm:block">
+        <div className="absolute top-0 left-0 w-8 h-8 border-t border-l border-[#1F1F1F]" />
+        <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-[#1F1F1F]" />
+        <div className="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-[#1F1F1F]" />
+        <div className="absolute bottom-0 right-0 w-8 h-8 border-b border-r border-[#1F1F1F]" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-4xl">
-        {/* Badge */}
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-sm text-emerald-400">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+        {/* Status badge */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-8 inline-flex items-center gap-2 border border-[#00FF41]/30 bg-[#00FF4108] px-4 py-1.5 text-xs uppercase tracking-widest text-[#00FF41]"
+        >
+          <span className="status-pulse h-1.5 w-1.5 bg-[#00FF41] inline-block" />
           Live Hackathon Judging Platform
-        </div>
+        </motion.div>
 
         {/* Title */}
-        <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl">
-          Hillpost{" "}
-          <span className="inline-block animate-bounce" role="img" aria-label="crown">👑</span>
-        </h1>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <h1 className="mb-2 text-5xl font-bold tracking-tight text-white sm:text-6xl md:text-7xl uppercase">
+            HILLPOST
+          </h1>
+          <div className="mb-2 text-sm text-[#555555] uppercase tracking-widest">
+            v1.0
+          </div>
+          <div className="mb-6 flex justify-center font-mono">
+            <span className="text-xl font-bold text-[#00FF41]">
+              {typed}<span className="cursor-blink">▊</span>
+            </span>
+          </div>
+        </motion.div>
 
         {/* Subtitle */}
-        <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-gray-400 sm:text-xl">
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          className="mx-auto mb-10 max-w-2xl text-sm leading-relaxed text-[#555555] sm:text-base"
+        >
           The ultimate{" "}
-          <span className="font-semibold text-emerald-400">
+          <span className="text-white font-bold">
             king-of-the-hill
           </span>{" "}
           style hackathon judging platform. Teams compete, judges score in
-          real-time, and the leaderboard updates live. May the best hackers
-          reign supreme.
-        </p>
+          real-time, and the leaderboard updates live.{" "}
+          <span className="text-[#00FF41]">May the best hackers reign supreme.</span>
+        </motion.p>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
+        >
           {isSignedIn && user ? (
             <Link
               href="/dashboard"
-              className="group flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/30"
+              className="group flex items-center gap-2 border border-[#00FF41] bg-[#00FF41] px-8 py-3 text-sm font-bold text-black uppercase tracking-wider transition-all hover:bg-white hover:border-white"
             >
-              Go to Dashboard
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              [ GO TO DASHBOARD → ]
             </Link>
           ) : (
-            <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
-              <button className="group flex items-center gap-2 rounded-lg bg-emerald-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-500 hover:shadow-emerald-500/30">
-                Get Started
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            <SignInButton mode="redirect" forceRedirectUrl="/dashboard">
+              <button className="group flex items-center gap-2 border border-[#00FF41] bg-[#00FF41] px-8 py-3 text-sm font-bold text-black uppercase tracking-wider transition-all hover:bg-white hover:border-white">
+                [ GET STARTED → ]
               </button>
-            </SignUpButton>
+            </SignInButton>
           )}
           <Link
             href="#features"
-            className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800/50 px-8 py-3.5 text-base font-semibold text-gray-300 transition-all hover:border-gray-600 hover:bg-gray-700/50 hover:text-white"
+            className="flex items-center gap-2 border border-[#1F1F1F] px-8 py-3 text-sm font-bold text-[#555555] uppercase tracking-wider transition-all hover:border-white hover:text-white"
           >
-            Learn More
+            [ LEARN MORE ]
           </Link>
-        </div>
+        </motion.div>
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-        <ChevronDown className="h-6 w-6 text-gray-500" />
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs text-[#333333] uppercase tracking-widest">
+        ↓ SCROLL
       </div>
     </section>
   );

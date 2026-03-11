@@ -8,16 +8,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import {
-  Calendar,
-  Loader2,
-  LogIn,
-  ArrowLeft,
-  ArrowRight,
-  Code,
-  Gavel,
-  CheckCircle,
-} from "lucide-react";
+import { Calendar, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function JoinByLinkPage() {
@@ -36,20 +27,17 @@ export default function JoinByLinkPage() {
 
   const [isJoining, setIsJoining] = useState(false);
 
-  // Membership query is running when hackathon and auth are known but result hasn't arrived
   const isMembershipLoading =
     hackathon !== undefined && hackathon !== null && isAuthenticated && membership === undefined;
 
-  // Determine role based on server-returned role field
   const role = hackathon?.role ?? "competitor";
   const isCompetitorCode = role === "competitor";
 
   if (hackathon === undefined) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
-          <p className="text-sm text-gray-400">Looking up hackathon...</p>
+        <div className="text-xs text-[#555555] uppercase tracking-widest cursor-blink">
+          ▓▓▓░░░ LOOKING UP HACKATHON...
         </div>
       </div>
     );
@@ -58,17 +46,19 @@ export default function JoinByLinkPage() {
   if (!hackathon) {
     return (
       <div className="mx-auto max-w-md px-4 py-16">
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-8 text-center">
-          <p className="text-lg font-medium text-white">Invalid Join Link</p>
-          <p className="mt-2 text-sm text-gray-400">
-            This join link is not valid. Please check with the organizer for the
-            correct link.
+        <div className="border border-red-500/30 bg-[#0A0A0A] p-8 text-center">
+          <div className="mb-4 text-2xl font-bold text-red-400">[✗ INVALID CODE]</div>
+          <p className="text-sm font-bold text-white uppercase tracking-wide mb-2">
+            Invalid Join Link
+          </p>
+          <p className="text-xs text-[#555555] mb-6">
+            This join link is not valid. Please check with the organizer for the correct link.
           </p>
           <Link
             href="/dashboard"
-            className="mt-6 inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300"
+            className="inline-flex items-center gap-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3 w-3" />
             Go to Dashboard
           </Link>
         </div>
@@ -81,13 +71,9 @@ export default function JoinByLinkPage() {
       toast.error("Please sign in first");
       return;
     }
-
     setIsJoining(true);
     try {
-      const result = await joinHackathon({
-        joinCode,
-        userImageUrl: user?.imageUrl,
-      });
+      const result = await joinHackathon({ joinCode, userImageUrl: user?.imageUrl });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting...");
       } else {
@@ -95,42 +81,39 @@ export default function JoinByLinkPage() {
       }
       router.push(`/hackathon/${result.hackathonId}`);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to join hackathon";
+      const message = error instanceof Error ? error.message : "Failed to join hackathon";
       toast.error(message);
     } finally {
       setIsJoining(false);
     }
   };
 
-  // Already a member — show a friendly message instead of the join form
   if (membership && hackathon) {
     return (
       <div className="mx-auto max-w-md px-4 py-16">
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-8">
+        <div className="border border-[#00FF41]/30 bg-[#0A0A0A] p-8">
           <div className="mb-6 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600/20 text-emerald-400">
-              <CheckCircle className="h-7 w-7" />
-            </div>
-            <h1 className="text-2xl font-bold text-white">
-              You&apos;re already in!
+            <div className="mb-4 text-2xl font-bold text-[#00FF41]">[✓ ALREADY IN]</div>
+            <h1 className="text-lg font-bold text-white uppercase tracking-wide">
+              You&apos;re already a member
             </h1>
-            <p className="mt-2 text-sm text-gray-400">
-              You&apos;re already a member of <span className="font-medium text-white">{hackathon.name}</span>.
+            <p className="mt-2 text-xs text-[#555555]">
+              You&apos;re already a member of{" "}
+              <span className="font-bold text-white">{hackathon.name}</span>.
             </p>
           </div>
 
           <div className="flex flex-col gap-3">
             <Link
               href={`/hackathon/${hackathon._id}`}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+              className="flex w-full items-center justify-center gap-2 border border-[#00FF41] py-2.5 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors"
             >
-              Go to Hackathon
-              <ArrowRight className="h-4 w-4" />
+              GO TO HACKATHON
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             <Link
               href="/dashboard"
-              className="text-center text-sm text-gray-400 hover:text-white"
+              className="text-center text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
             >
               Go to Dashboard instead
             </Link>
@@ -142,55 +125,38 @@ export default function JoinByLinkPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-8">
-        <div className="mb-6 text-center">
-          <div
-            className={cn(
-              "mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full",
-              isCompetitorCode
-                ? "bg-emerald-600/20 text-emerald-400"
-                : "bg-blue-600/20 text-blue-400"
-            )}
-          >
-            {isCompetitorCode ? (
-              <Code className="h-7 w-7" />
-            ) : (
-              <Gavel className="h-7 w-7" />
-            )}
+      <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8">
+        <div className="mb-6">
+          <div className="mb-2 text-xs text-[#555555] uppercase tracking-widest">
+            JOINING EVENT: {joinCode.toUpperCase()}
           </div>
-          <h1 className="text-2xl font-bold text-white">
-            Join {hackathon.name}
+          <h1 className="text-xl font-bold text-white uppercase tracking-wide">
+            {hackathon.name}
           </h1>
-          <p className="mt-2 text-sm text-gray-400">
-            {hackathon.description}
-          </p>
+          <p className="mt-1 text-xs text-[#555555]">{hackathon.description}</p>
         </div>
 
-        <div className="mb-6 space-y-3">
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Calendar className="h-4 w-4" />
+        <div className="mb-6 space-y-3 border-t border-[#1F1F1F] pt-4">
+          <div className="flex items-center gap-2 text-xs text-[#555555]">
+            <Calendar className="h-3.5 w-3.5" />
             <span>
-              {format(new Date(hackathon.startDate), "MMM d, yyyy")} –{" "}
+              {format(new Date(hackathon.startDate), "MMM d, yyyy")} —{" "}
               {format(new Date(hackathon.endDate), "MMM d, yyyy")}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">You will join as:</span>
-            <span
-              className={cn(
-                "rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize",
-                isCompetitorCode
-                  ? "border-emerald-500/30 bg-emerald-600/20 text-emerald-400"
-                  : "border-blue-500/30 bg-blue-600/20 text-blue-400"
-              )}
-            >
-              {role}
+            <span className="text-xs text-[#555555]">YOU WILL JOIN AS:</span>
+            <span className={cn(
+              "tui-badge",
+              isCompetitorCode ? "border-[#00FF41] text-[#00FF41]" : "border-[#00B4FF] text-[#00B4FF]"
+            )}>
+              {role.toUpperCase()}
             </span>
           </div>
 
           {!isCompetitorCode && (
-            <p className="rounded-lg border border-blue-500/20 bg-blue-600/10 px-3 py-2 text-xs text-blue-300">
+            <p className="border border-[#00B4FF]/20 bg-[#00B4FF08] px-3 py-2 text-xs text-[#00B4FF]">
               Judge access requires organizer approval after joining.
             </p>
           )}
@@ -200,23 +166,18 @@ export default function JoinByLinkPage() {
           <button
             onClick={handleJoin}
             disabled={isJoining || !!isMembershipLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
-          >
-            {isJoining ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Joining...
-              </>
-            ) : (
-              <>
-                <LogIn className="h-4 w-4" />
-                Join Hackathon
-              </>
+            className={cn(
+              "flex w-full items-center justify-center gap-2 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50",
+              isCompetitorCode
+                ? "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
+                : "border border-[#00B4FF] text-[#00B4FF] hover:bg-[#00B4FF] hover:text-black"
             )}
+          >
+            {isJoining ? "JOINING..." : "[ CONFIRM JOIN → ]"}
           </button>
           <Link
             href="/dashboard"
-            className="text-center text-sm text-gray-400 hover:text-white"
+            className="text-center text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
           >
             Go to Dashboard instead
           </Link>

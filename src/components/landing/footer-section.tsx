@@ -1,15 +1,32 @@
-import { Crown } from "lucide-react";
+import { Terminal } from "lucide-react";
 
 export function FooterSection() {
   return (
-    <footer className="border-t border-gray-800 bg-gray-950 px-4 py-12">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 text-center">
-        <div className="flex items-center gap-2 text-gray-400">
-          <Crown className="h-5 w-5 text-emerald-500" />
-          <span className="text-sm font-medium">Hillpost</span>
+    <footer className="border-t border-[#1F1F1F] bg-black px-4 py-8">
+      <div className="mx-auto flex max-w-6xl items-center justify-between">
+        <div className="flex items-center gap-2 text-[#555555]">
+          <Terminal className="h-4 w-4 text-[#00FF41]" />
+          <span className="text-xs uppercase tracking-widest">HILLPOST</span>
         </div>
-        <p className="text-sm text-gray-500">
-          Built for hackathons. Powered by real-time collaboration.
+        <p className="text-xs text-[#333333] tracking-wider">
+          Made with ♥ by{" "}
+          <a
+            href="https://github.com/Mcrich23"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#555555] hover:text-[#00FF41] transition-colors"
+          >
+            Morris Richman
+          </a>
+          {" "}+{" "}
+          <a
+            href="https://www.linkedin.com/in/cyruscorrell/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#555555] hover:text-[#00FF41] transition-colors"
+          >
+            Cyrus Correll
+          </a>
         </p>
       </div>
     </footer>

@@ -13,10 +13,7 @@ interface JoinHackathonDialogProps {
   onClose: () => void;
 }
 
-export function JoinHackathonDialog({
-  isOpen,
-  onClose,
-}: JoinHackathonDialogProps) {
+export function JoinHackathonDialog({ isOpen, onClose }: JoinHackathonDialogProps) {
   const router = useRouter();
   const { user } = useUser();
   const { isAuthenticated } = useConvexAuth();
@@ -33,18 +30,13 @@ export function JoinHackathonDialog({
       toast.error("Please enter a join code");
       return;
     }
-
     if (!isAuthenticated) {
       toast.error("Please sign in first");
       return;
     }
-
     setIsSubmitting(true);
     try {
-      const result = await joinHackathon({
-        joinCode: joinCode.trim(),
-        userImageUrl: user?.imageUrl,
-      });
+      const result = await joinHackathon({ joinCode: joinCode.trim(), userImageUrl: user?.imageUrl });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting to hackathon.");
       } else {
@@ -54,8 +46,7 @@ export function JoinHackathonDialog({
       onClose();
       router.push(`/hackathon/${result.hackathonId}`);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to join hackathon";
+      const message = error instanceof Error ? error.message : "Failed to join hackathon";
       toast.error(message);
     } finally {
       setIsSubmitting(false);
@@ -64,54 +55,54 @@ export function JoinHackathonDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative z-10 w-full max-w-md rounded-xl border border-gray-800 bg-gray-900 p-6 shadow-2xl">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Join Hackathon</h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1 text-gray-400 hover:bg-gray-800 hover:text-white"
-          >
+      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md border border-[#1F1F1F] bg-black p-6 shadow-2xl">
+        <div className="mb-6 flex items-center justify-between border-b border-[#1F1F1F] pb-4">
+          <div>
+            <div className="text-xs text-[#555555] uppercase tracking-widest mb-1">── JOIN EVENT</div>
+            <h2 className="text-lg font-bold text-white uppercase tracking-wide">JOIN HACKATHON</h2>
+          </div>
+          <button onClick={onClose} className="p-1 text-[#555555] hover:text-white transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-300">
-              Join Code
+            <label className="mb-1.5 block text-xs font-bold text-[#555555] uppercase tracking-widest">
+              JOIN CODE:
             </label>
-            <input
-              type="text"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.slice(0, 6))}
-              placeholder="Enter 6-character code"
-              maxLength={6}
-              className="w-full mb-4 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-center text-lg font-mono tracking-widest text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              required
-            />
-            <p className="text-xs text-gray-400 text-center">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#555555]">&gt;</span>
+              <input
+                type="text"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value.slice(0, 6).toUpperCase())}
+                placeholder="XXXXXX"
+                maxLength={6}
+                className="tui-input pl-8 text-center text-lg tracking-widest text-[#00FF41] font-bold placeholder-[#333333]"
+                required
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-[#333333] text-center">
               Your role will be assigned based on the join code provided by the organizer.
             </p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-2 border-t border-[#1F1F1F]">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-700"
+              className="px-4 py-2 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={isSubmitting || joinCode.length < 1 || !isAuthenticated}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-500 disabled:opacity-50"
+              className="px-4 py-2 text-xs font-bold text-black bg-[#00B4FF] uppercase tracking-wider hover:bg-white transition-colors disabled:opacity-50"
             >
-              {isSubmitting ? "Joining..." : "Join Hackathon"}
+              {isSubmitting ? "JOINING..." : "[ JOIN HACKATHON ]"}
             </button>
           </div>
         </form>
