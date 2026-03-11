@@ -177,6 +177,7 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
   const [description, setDescription] = useState("");
   const [projectUrl, setProjectUrl] = useState("");
   const [demoUrl, setDemoUrl] = useState("");
+  const [deployedUrl, setDeployedUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
@@ -187,6 +188,7 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
       setDescription(latestSubmission.description);
       setProjectUrl(latestSubmission.projectUrl);
       setDemoUrl(latestSubmission.demoUrl || "");
+      setDeployedUrl(latestSubmission.deployedUrl || "");
     }
   }, [latestSubmission]);
 
@@ -208,9 +210,23 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
     if (!myTeam) return;
     setIsSubmitting(true);
     try {
-      await createSubmission({ hackathonId, teamId: myTeam._id, name, description, projectUrl, demoUrl: demoUrl || undefined });
+      await createSubmission({
+        hackathonId,
+        teamId: myTeam._id,
+        name,
+        description,
+        projectUrl,
+        demoUrl: demoUrl || undefined,
+        deployedUrl: deployedUrl || undefined,
+      });
       toast.success(latestSubmission ? "Project resubmitted!" : "Submission created!");
-      if (!latestSubmission) { setName(""); setDescription(""); setProjectUrl(""); setDemoUrl(""); }
+      if (!latestSubmission) {
+        setName("");
+        setDescription("");
+        setProjectUrl("");
+        setDemoUrl("");
+        setDeployedUrl("");
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to submit");
     } finally {
@@ -223,7 +239,14 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
     if (!myTeam || !latestSubmission) return;
     setIsUpdating(true);
     try {
-      await updateDetails({ submissionId: latestSubmission._id, name, description, projectUrl, demoUrl: demoUrl || undefined });
+      await updateDetails({
+        submissionId: latestSubmission._id,
+        name,
+        description,
+        projectUrl,
+        demoUrl: demoUrl || undefined,
+        deployedUrl: deployedUrl || undefined,
+      });
       toast.success("Project details saved!");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update details");
@@ -257,7 +280,8 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
             {[
               { label: "PROJECT_NAME:", value: name, onChange: setName, placeholder: "my-cool-project", type: "text", required: true },
               { label: "REPO_URL:", value: projectUrl, onChange: setProjectUrl, placeholder: "https://github.com/...", type: "url", required: true },
-              { label: "DEMO_URL:", value: demoUrl, onChange: setDemoUrl, placeholder: "https://my-demo.vercel.app", type: "url", required: false },
+              { label: "DEMO_URL:", value: demoUrl, onChange: setDemoUrl, placeholder: "https://youtube.com/watch?v=...", type: "url", required: false },
+              { label: "DEPLOYED_URL:", value: deployedUrl, onChange: setDeployedUrl, placeholder: "https://my-project.vercel.app", type: "url", required: false },
             ].map(({ label, value, onChange, placeholder, type, required }) => (
               <div key={label}>
                 <label className="mb-1.5 block text-xs font-bold text-[#555555] uppercase tracking-widest">
@@ -288,6 +312,7 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
                 required
               />
             </div>
+
 
             {latestSubmission ? (
               <div className="flex items-center gap-3 border-t border-[#1F1F1F] pt-4">

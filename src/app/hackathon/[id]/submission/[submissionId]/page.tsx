@@ -8,7 +8,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Layers, Users, Clock, Pencil, X } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn, safeHref } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function SubmissionDetailPage() {
@@ -30,6 +30,7 @@ export default function SubmissionDetailPage() {
   const [editDesc, setEditDesc] = useState("");
   const [editProjUrl, setEditProjUrl] = useState("");
   const [editDemoUrl, setEditDemoUrl] = useState("");
+  const [editDeployedUrl, setEditDeployedUrl] = useState("");
 
   const startEditing = () => {
     if (!submission) return;
@@ -37,6 +38,7 @@ export default function SubmissionDetailPage() {
     setEditDesc(submission.description);
     setEditProjUrl(submission.projectUrl);
     setEditDemoUrl(submission.demoUrl || "");
+    setEditDeployedUrl(submission.deployedUrl || "");
     setIsEditing(true);
   };
 
@@ -49,6 +51,7 @@ export default function SubmissionDetailPage() {
         description: editDesc,
         projectUrl: editProjUrl,
         demoUrl: editDemoUrl || undefined,
+        deployedUrl: editDeployedUrl || undefined,
       });
       toast.success("Submission updated");
       setIsEditing(false);
@@ -83,6 +86,10 @@ export default function SubmissionDetailPage() {
       </div>
     );
   }
+
+  const projectHref = safeHref(submission.projectUrl);
+  const demoHref = safeHref(submission.demoUrl);
+  const deployedHref = safeHref(submission.deployedUrl);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -130,9 +137,9 @@ export default function SubmissionDetailPage() {
 
           {/* Action Links */}
           <div className="flex flex-wrap gap-3 shrink-0">
-            {submission.projectUrl && (
+            {projectHref && (
               <a
-                href={submission.projectUrl}
+                href={projectHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 shadow-sm shadow-emerald-900/20"
@@ -141,15 +148,26 @@ export default function SubmissionDetailPage() {
                 View Project
               </a>
             )}
-            {submission.demoUrl && (
+            {demoHref && (
               <a
-                href={submission.demoUrl}
+                href={demoHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
               >
                 <ExternalLink className="h-4 w-4" />
-                Watch Demo
+                Watch Video
+              </a>
+            )}
+            {deployedHref && (
+              <a
+                href={deployedHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700 hover:text-white"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Live Demo
               </a>
             )}
           </div>
@@ -268,12 +286,23 @@ export default function SubmissionDetailPage() {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-300">
-                    Demo URL (Optional)
+                    Video URL (Optional)
                   </label>
                   <input
                     type="url"
                     value={editDemoUrl}
                     onChange={(e) => setEditDemoUrl(e.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-300">
+                    Deployment URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={editDeployedUrl}
+                    onChange={(e) => setEditDeployedUrl(e.target.value)}
                     className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>

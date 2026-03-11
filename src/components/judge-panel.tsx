@@ -6,7 +6,7 @@ import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, safeHref } from "@/lib/utils";
 import { format } from "date-fns";
 import {
   ExternalLink,
@@ -113,7 +113,11 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
           </p>
         ) : (
           <div className="space-y-2">
-            {displayedSubmissions.map((sub) => (
+            {displayedSubmissions.map((sub) => {
+              const projectHref = safeHref(sub.projectUrl);
+              const demoHref = safeHref(sub.demoUrl);
+              const deployedHref = safeHref(sub.deployedUrl);
+              return (
               <div key={sub._id} className="border border-[#1F1F1F] bg-[#111111]">
                 <button
                   onClick={() => setExpandedId(expandedId === sub._id ? null : sub._id)}
@@ -134,19 +138,21 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                     <p className="text-xs text-[#555555]">{sub.description}</p>
                     <div className="mt-1 flex items-center gap-3 text-xs text-[#333333]">
                       <span>{format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}</span>
-                      <a
-                        href={sub.projectUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-[#00FF41] hover:text-white transition-colors"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        PROJECT
-                      </a>
-                      {sub.demoUrl && (
+                      {projectHref && (
                         <a
-                          href={sub.demoUrl}
+                          href={projectHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-[#00FF41] hover:text-white transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          PROJECT
+                        </a>
+                      )}
+                      {demoHref && (
+                        <a
+                          href={demoHref}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 text-[#00B4FF] hover:text-white transition-colors"
@@ -154,6 +160,18 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                         >
                           <ExternalLink className="h-3 w-3" />
                           DEMO
+                        </a>
+                      )}
+                      {deployedHref && (
+                        <a
+                          href={deployedHref}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-[#FF6600] hover:text-white transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          LIVE DEMO
                         </a>
                       )}
                     </div>
@@ -171,7 +189,8 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

@@ -61,6 +61,7 @@ export default defineSchema({
     description: v.string(),
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
+    deployedUrl: v.optional(v.string()),
     submittedAt: v.number(),
     submittedBy: v.string(),
     submissionCount: v.number(),
