@@ -51,25 +51,27 @@ export function QrCodeButton({ path, label }: QrCodeOverlayProps) {
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="relative mx-4 flex flex-col items-center gap-4 rounded-2xl border border-gray-700 bg-gray-900 p-8"
+            className="relative mx-4 flex flex-col items-center gap-4 border border-[#1F1F1F] bg-[#0A0A0A] p-8"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="absolute right-3 top-3 rounded-lg p-1 text-gray-400 hover:bg-gray-800 hover:text-white"
+              className="absolute right-3 top-3 p-1.5 text-[#555555] hover:text-white transition-colors"
               aria-label="Close"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
 
-            <h3 className="text-lg font-semibold text-white">{label}</h3>
+            <h3 className="text-xs font-bold text-white uppercase tracking-widest text-center mt-2">
+              ── {label}
+            </h3>
 
-            <div className="rounded-xl bg-white p-4">
+            <div className="bg-white p-4">
               <QRCodeSVG value={fullUrl} size={256} />
             </div>
 
-            <p className="max-w-[280px] break-all text-center text-xs text-gray-400">
+            <p className="max-w-[280px] break-all text-center text-xs text-[#555555]">
               {fullUrl}
             </p>
           </div>
