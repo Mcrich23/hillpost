@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { format } from "date-fns";
-import { ExternalLink, Pencil, X } from "lucide-react";
+import { ExternalLink, Pencil, X, History } from "lucide-react";
 import { toast } from "sonner";
 import { cn, safeHref } from "@/lib/utils";
 
@@ -18,6 +18,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
   const updateSubmissionOrganizer = useMutation(api.submissions.updateSubmissionOrganizer);
 
   const [editingId, setEditingId] = useState<Id<"submissions"> | null>(null);
+  const [changelogId, setChangelogId] = useState<Id<"submissions"> | null>(null);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editProjUrl, setEditProjUrl] = useState("");
@@ -84,10 +85,34 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                       )}
                     </div>
                     <p className="text-xs text-[#555555]">{sub.description}</p>
-                    {sub.submissionCount > 1 && sub.whatsNew && (
+                    {sub.submissionCount > 1 && sub.changelog && sub.changelog.length > 0 && (
                       <div className="mt-2 border border-[#00B4FF]/20 bg-[#00B4FF08] px-3 py-2">
-                        <p className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest mb-1">WHAT&apos;S NEW:</p>
-                        <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{sub.whatsNew}</p>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest">WHAT&apos;S NEW:</p>
+                          {sub.changelog.length > 1 && (
+                            <button
+                              onClick={() => setChangelogId(changelogId === sub._id ? null : sub._id)}
+                              className="flex items-center gap-1 text-xs text-[#00B4FF]/70 hover:text-[#00B4FF] transition-colors uppercase tracking-wider"
+                            >
+                              <History className="h-3 w-3" />
+                              {changelogId === sub._id ? "HIDE" : "VIEW ALL"} ({sub.changelog.length})
+                            </button>
+                          )}
+                        </div>
+                        {changelogId === sub._id ? (
+                          <div className="space-y-2">
+                            {[...sub.changelog].reverse().map((entry, i) => (
+                              <div key={i} className={i > 0 ? "border-t border-[#00B4FF]/10 pt-2" : ""}>
+                                <p className="text-xs text-[#00B4FF]/60 uppercase tracking-wider mb-0.5">
+                                  v{entry.submissionCount} — {format(new Date(entry.submittedAt), "MMM d, yyyy h:mm a")}
+                                </p>
+                                <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{entry.whatsNew}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{sub.changelog[sub.changelog.length - 1].whatsNew}</p>
+                        )}
                       </div>
                     )}
                     <p className="text-xs text-[#333333] mt-1.5 uppercase tracking-wider">

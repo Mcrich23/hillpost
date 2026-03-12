@@ -62,7 +62,11 @@ export default defineSchema({
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
     deployedUrl: v.optional(v.string()),
-    whatsNew: v.optional(v.string()),
+    changelog: v.optional(v.array(v.object({
+      submissionCount: v.number(),
+      whatsNew: v.string(),
+      submittedAt: v.number(),
+    }))),
     submittedAt: v.number(),
     submittedBy: v.string(),
     submissionCount: v.number(),

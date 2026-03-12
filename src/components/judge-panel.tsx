@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   MessageSquare,
+  History,
 } from "lucide-react";
 
 interface JudgePanelProps {
@@ -26,6 +27,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
   const teams = useQuery(api.teams.list, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
   const [expandedId, setExpandedId] = useState<Id<"submissions"> | null>(null);
+  const [changelogId, setChangelogId] = useState<Id<"submissions"> | null>(null);
   const [view, setView] = useState<"pending" | "judged">("pending");
 
   const teamMap = new Map(teams?.map((t) => [t._id, t.name]) ?? []);
@@ -136,10 +138,34 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                       )}
                     </div>
                     <p className="text-xs text-[#555555]">{sub.description}</p>
-                    {sub.submissionCount > 1 && sub.whatsNew && (
+                    {sub.submissionCount > 1 && sub.changelog && sub.changelog.length > 0 && (
                       <div className="mt-2 border border-[#00B4FF]/20 bg-[#00B4FF08] px-3 py-2">
-                        <p className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest mb-1">WHAT&apos;S NEW:</p>
-                        <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{sub.whatsNew}</p>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest">WHAT&apos;S NEW:</p>
+                          {sub.changelog.length > 1 && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setChangelogId(changelogId === sub._id ? null : sub._id); }}
+                              className="flex items-center gap-1 text-xs text-[#00B4FF]/70 hover:text-[#00B4FF] transition-colors uppercase tracking-wider"
+                            >
+                              <History className="h-3 w-3" />
+                              {changelogId === sub._id ? "HIDE" : "VIEW ALL"} ({sub.changelog.length})
+                            </button>
+                          )}
+                        </div>
+                        {changelogId === sub._id ? (
+                          <div className="space-y-2">
+                            {[...sub.changelog].reverse().map((entry, i) => (
+                              <div key={i} className={i > 0 ? "border-t border-[#00B4FF]/10 pt-2" : ""}>
+                                <p className="text-xs text-[#00B4FF]/60 uppercase tracking-wider mb-0.5">
+                                  v{entry.submissionCount} — {format(new Date(entry.submittedAt), "MMM d, yyyy h:mm a")}
+                                </p>
+                                <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{entry.whatsNew}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{sub.changelog[sub.changelog.length - 1].whatsNew}</p>
+                        )}
                       </div>
                     )}
                     <div className="mt-1 flex items-center gap-3 text-xs text-[#333333]">
