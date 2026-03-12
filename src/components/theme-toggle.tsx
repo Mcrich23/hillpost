@@ -5,29 +5,15 @@ import { Moon, Sun, Laptop } from "lucide-react";
 
 type Theme = "dark" | "light" | "system";
 
+function validateStoredTheme(stored: string | null): Theme {
+  return (stored === "dark" || stored === "light") ? stored : "system";
+}
+
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("system");
-
-  useEffect(() => {
-    const stored = localStorage.getItem("hillpost-theme") as Theme | null;
-    if (stored) {
-      setTheme(stored);
-      applyTheme(stored);
-    } else {
-      setTheme("system");
-      applyTheme("system");
-    }
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => {
-      if (theme === "system" || !localStorage.getItem("hillpost-theme")) {
-        applyTheme("system");
-      }
-    };
-    
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [theme]);
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "system";
+    return validateStoredTheme(localStorage.getItem("hillpost-theme"));
+  });
 
   const applyTheme = (t: Theme) => {
     let activeTheme = t;
@@ -36,6 +22,20 @@ export function ThemeToggle() {
     }
     document.documentElement.setAttribute("data-theme", activeTheme);
   };
+
+  // Mount-only: sync the initial validated theme to the DOM.
+  useEffect(() => {
+    applyTheme(validateStoredTheme(localStorage.getItem("hillpost-theme")));
+  }, []);
+
+  // Only register the system-preference listener when in system mode.
+  useEffect(() => {
+    if (theme !== "system") return;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => applyTheme("system");
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [theme]);
 
   const toggle = () => {
     const nextMap: Record<Theme, Theme> = {
@@ -77,6 +77,7 @@ export function ThemeToggle() {
       onClick={toggle}
       className="p-2 text-[#555555] hover:text-[#00FF41] transition-colors"
       title={getTitle()}
+      aria-label={getTitle()}
     >
       {getIcon()}
     </button>
