@@ -136,6 +136,12 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                       )}
                     </div>
                     <p className="text-xs text-[#555555]">{sub.description}</p>
+                    {sub.submissionCount > 1 && sub.whatsNew && (
+                      <div className="mt-2 border border-[#00B4FF]/20 bg-[#00B4FF08] px-3 py-2">
+                        <p className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest mb-1">WHAT&apos;S NEW:</p>
+                        <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{sub.whatsNew}</p>
+                      </div>
+                    )}
                     <div className="mt-1 flex items-center gap-3 text-xs text-[#333333]">
                       <span>{format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}</span>
                       {projectHref && (

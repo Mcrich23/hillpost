@@ -174,6 +174,19 @@ export default function SubmissionDetailPage() {
         </div>
       </div>
 
+      {/* What's New */}
+      {submission.submissionCount > 1 && submission.whatsNew && (
+        <div className="border border-[#00B4FF]/20 bg-[#00B4FF08] p-5 mb-4">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-xs text-[#00B4FF] uppercase tracking-widest">── WHAT&apos;S NEW IN v{submission.submissionCount}</span>
+            <div className="h-px flex-1 bg-[#00B4FF]/20" />
+          </div>
+          <div className="text-sm text-[#AAAAAA] leading-relaxed whitespace-pre-wrap">
+            {submission.whatsNew}
+          </div>
+        </div>
+      )}
+
       {/* Team Members */}
       {team && team.members && team.members.length > 0 && (
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">

@@ -177,6 +177,7 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
   const [projectUrl, setProjectUrl] = useState("");
   const [demoUrl, setDemoUrl] = useState("");
   const [deployedUrl, setDeployedUrl] = useState("");
+  const [whatsNew, setWhatsNew] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
@@ -217,6 +218,7 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
         projectUrl,
         demoUrl: demoUrl || undefined,
         deployedUrl: deployedUrl || undefined,
+        whatsNew: latestSubmission ? (whatsNew.trim() || undefined) : undefined,
       });
       toast.success(latestSubmission ? "Project resubmitted!" : "Submission created!");
       if (!latestSubmission) {
@@ -225,6 +227,8 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
         setProjectUrl("");
         setDemoUrl("");
         setDeployedUrl("");
+      } else {
+        setWhatsNew("");
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to submit");
@@ -347,6 +351,18 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
                 <p className="text-xs text-[#555555]">
                   Made significant changes? Request a new evaluation from judges. This resets the judging queue.
                 </p>
+              </div>
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-bold text-[#555555] uppercase tracking-widest">
+                  WHAT&apos;S NEW: <span className="ml-1 text-[#333333]">(optional)</span>
+                </label>
+                <textarea
+                  value={whatsNew}
+                  onChange={(e) => setWhatsNew(e.target.value)}
+                  placeholder="Describe what changed in this resubmission..."
+                  rows={3}
+                  className="tui-input"
+                />
               </div>
               {isOnCooldown && (
                 <div className="mb-4 border border-[#FF6600]/20 bg-[#FF660008] px-3 py-2">
