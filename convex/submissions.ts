@@ -37,6 +37,7 @@ export const create = mutation({
     projectUrl: v.string(),
     demoUrl: v.optional(v.string()),
     deployedUrl: v.optional(v.string()),
+    whatsNew: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -105,12 +106,14 @@ export const create = mutation({
       }
 
       // Update existing submission
+      const whatsNew = args.whatsNew?.trim() || undefined;
       await ctx.db.patch(existingSubmission._id, {
         name,
         description,
         projectUrl,
         demoUrl,
         deployedUrl,
+        whatsNew,
         submittedAt: Date.now(),
         submittedBy: userId,
         submissionCount: existingSubmission.submissionCount + 1,
