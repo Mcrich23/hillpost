@@ -33,7 +33,7 @@ export function QrCodeButton({ path, label }: QrCodeOverlayProps) {
       <button
         type="button"
         onClick={open}
-        className="rounded-lg bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white"
+        className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors"
         title={`Show QR code for ${label}`}
         aria-label={`Show QR code for ${label}`}
         aria-haspopup="dialog"
