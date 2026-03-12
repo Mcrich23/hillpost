@@ -70,7 +70,7 @@ export default function LeaderboardPage() {
           className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />
-          ← Back to Hackathon
+          Back to Hackathon
         </Link>
 
         <div className="flex items-center justify-between">

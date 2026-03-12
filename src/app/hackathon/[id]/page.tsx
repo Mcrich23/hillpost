@@ -171,7 +171,7 @@ export default function HackathonDetailPage() {
           className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />
-          ← Back to Dashboard
+          Back to Dashboard
         </Link>
 
         <div className="flex items-start justify-between gap-4">
@@ -183,12 +183,12 @@ export default function HackathonDetailPage() {
             {hackathon.isActive ? (
               <span className="flex items-center gap-2 text-xs text-[#00FF41] uppercase tracking-widest border border-[#00FF41]/30 px-2.5 py-1">
                 <span className="status-pulse h-1.5 w-1.5 bg-[#00FF41] inline-block" />
-                [● ACTIVE]
+                [ ACTIVE ]
               </span>
             ) : (
               <span className="flex items-center gap-2 text-xs text-[#555555] uppercase tracking-widest border border-[#1F1F1F] px-2.5 py-1">
                 <span className="h-1.5 w-1.5 bg-[#555555] inline-block" />
-                [○ INACTIVE]
+                [ INACTIVE ]
               </span>
             )}
             {membership && hackathon.organizerId !== user?.id && (
@@ -198,7 +198,7 @@ export default function HackathonDetailPage() {
                 className="flex items-center gap-1.5 border border-red-500/20 px-3 py-1 text-xs text-red-400 uppercase tracking-wider hover:border-red-500 hover:text-red-300 transition-colors disabled:opacity-50"
               >
                 <LogOut className="h-3 w-3" />
-                {isLeaving ? "LEAVING..." : "[ ← LEAVE ]"}
+                {isLeaving ? "LEAVING..." : "[ LEAVE ]"}
               </button>
             )}
           </div>
