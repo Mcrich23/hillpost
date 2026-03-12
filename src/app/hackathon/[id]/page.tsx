@@ -198,7 +198,7 @@ export default function HackathonDetailPage() {
                 className="flex items-center gap-1.5 border border-red-500/20 px-3 py-1 text-xs text-red-400 uppercase tracking-wider hover:border-red-500 hover:text-red-300 transition-colors disabled:opacity-50"
               >
                 <LogOut className="h-3 w-3" />
-                {isLeaving ? "LEAVING..." : "[ ← LEAVE ]"}
+                {isLeaving ? "LEAVING..." : "[ LEAVE ]"}
               </button>
             )}
           </div>

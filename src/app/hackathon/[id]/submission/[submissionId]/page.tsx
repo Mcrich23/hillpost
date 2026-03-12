@@ -77,7 +77,7 @@ export default function SubmissionDetailPage() {
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
-            ← BACK TO LEADERBOARD
+            BACK TO LEADERBOARD
           </Link>
         </div>
       </div>
@@ -96,7 +96,7 @@ export default function SubmissionDetailPage() {
         className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
       >
         <ArrowLeft className="h-3 w-3" />
-        ← BACK TO LEADERBOARD
+        BACK TO LEADERBOARD
       </Link>
 
       {/* Header */}
