@@ -64,7 +64,7 @@ export function QrCodeButton({ path, label }: QrCodeOverlayProps) {
             </button>
 
             <h3 className="text-xs font-bold text-white uppercase tracking-widest text-center mt-2">
-              ── {label}
+              <span aria-hidden="true">── </span>{label}
             </h3>
 
             <div className="bg-white p-4">
