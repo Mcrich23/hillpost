@@ -176,7 +176,7 @@ export default function DashboardPage() {
                   {h.isActive ? (
                     <span className="flex items-center gap-1 text-xs text-[#00FF41] uppercase tracking-widest">
                       <span className="status-pulse h-1.5 w-1.5 bg-[#00FF41] inline-block" />
-                      [● LIVE]
+                      [LiVE]
                     </span>
                   ) : (
                     <span className="flex items-center gap-1 text-xs text-[#555555] uppercase tracking-widest">

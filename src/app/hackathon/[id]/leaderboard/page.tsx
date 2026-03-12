@@ -83,7 +83,7 @@ export default function LeaderboardPage() {
           {hackathon.isActive && (
             <span className="flex items-center gap-2 text-xs text-[#00FF41] uppercase tracking-widest border border-[#00FF41]/30 px-3 py-1.5">
               <span className="status-pulse h-1.5 w-1.5 bg-[#00FF41] inline-block" />
-              [● LIVE]
+              [LiVE]
             </span>
           )}
         </div>
