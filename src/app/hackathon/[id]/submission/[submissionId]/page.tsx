@@ -189,7 +189,7 @@ export default function SubmissionDetailPage() {
                   v{entry.submissionCount} — {format(new Date(entry.submittedAt), "MMM d, yyyy h:mm a")}
                 </p>
                 <div className="text-sm text-[#AAAAAA] leading-relaxed whitespace-pre-wrap">
-                  {entry.whatsNew}
+                  {entry.whatsNew || "No notes provided"}
                 </div>
               </div>
             ))}
