@@ -106,12 +106,14 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                                 <p className="text-xs text-[#00B4FF]/60 uppercase tracking-wider mb-0.5">
                                   v{entry.submissionCount} — {format(new Date(entry.submittedAt), "MMM d, yyyy h:mm a")}
                                 </p>
-                                <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{entry.whatsNew}</p>
+                                <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{entry.whatsNew || "No notes provided"}</p>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{sub.changelog[sub.changelog.length - 1].whatsNew}</p>
+                          <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">
+                            v{sub.changelog[sub.changelog.length - 1].submissionCount} — {sub.changelog[sub.changelog.length - 1].whatsNew || "No notes"}
+                          </p>
                         )}
                       </div>
                     )}
