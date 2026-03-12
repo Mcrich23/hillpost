@@ -154,8 +154,8 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                         </div>
                         {changelogId === sub._id ? (
                           <div className="space-y-2">
-                            {[...sub.changelog].reverse().map((entry, i) => (
-                              <div key={i} className={i > 0 ? "border-t border-[#00B4FF]/10 pt-2" : ""}>
+                            {[...sub.changelog].reverse().map((entry) => (
+                              <div key={`${entry.submissionCount}-${entry.submittedAt}`} className="border-t border-[#00B4FF]/10 pt-2 first:border-t-0 first:pt-0">
                                 <p className="text-xs text-[#00B4FF]/60 uppercase tracking-wider mb-0.5">
                                   v{entry.submissionCount} — {format(new Date(entry.submittedAt), "MMM d, yyyy h:mm a")}
                                 </p>

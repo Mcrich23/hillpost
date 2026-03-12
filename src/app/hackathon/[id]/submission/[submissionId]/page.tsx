@@ -183,8 +183,8 @@ export default function SubmissionDetailPage() {
             <div className="h-px flex-1 bg-[#00B4FF]/20" />
           </div>
           <div className="space-y-3">
-            {[...submission.changelog].reverse().map((entry, i) => (
-              <div key={i} className={i > 0 ? "border-t border-[#00B4FF]/10 pt-3" : ""}>
+            {[...submission.changelog].reverse().map((entry) => (
+              <div key={`${entry.submissionCount}-${entry.submittedAt}`} className="border-t border-[#00B4FF]/10 pt-3 first:border-t-0 first:pt-0">
                 <p className="text-xs font-bold text-[#00B4FF]/80 uppercase tracking-wider mb-1">
                   v{entry.submissionCount} — {format(new Date(entry.submittedAt), "MMM d, yyyy h:mm a")}
                 </p>
