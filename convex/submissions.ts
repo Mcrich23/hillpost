@@ -106,17 +106,30 @@ export const create = mutation({
       }
 
       // Update existing submission
-      const whatsNew = args.whatsNew?.trim() || undefined;
+      const now = Date.now();
+      const newSubmissionCount = existingSubmission.submissionCount + 1;
+      const whatsNewTrimmed = args.whatsNew?.trim() || undefined;
+      const existingChangelog = existingSubmission.changelog ?? [];
+      const changelog = [
+        ...existingChangelog,
+        {
+          submissionCount: newSubmissionCount,
+          whatsNew: whatsNewTrimmed,
+          submittedAt: now,
+        },
+      ];
       await ctx.db.patch(existingSubmission._id, {
         name,
         description,
         projectUrl,
         demoUrl,
         deployedUrl,
-        whatsNew,
-        submittedAt: Date.now(),
+        changelog,
+        // Explicitly unset legacy whatsNew field to avoid stale data
+        whatsNew: undefined,
+        submittedAt: now,
         submittedBy: userId,
-        submissionCount: existingSubmission.submissionCount + 1,
+        submissionCount: newSubmissionCount,
         judgedBy: [],
         baselineScore,
         baselineJudgeCount,

@@ -6,7 +6,7 @@ import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Pencil, X } from "lucide-react";
+import { ArrowLeft, ExternalLink, Pencil, X, History } from "lucide-react";
 import { format } from "date-fns";
 import { cn, safeHref } from "@/lib/utils";
 import { toast } from "sonner";
@@ -174,15 +174,25 @@ export default function SubmissionDetailPage() {
         </div>
       </div>
 
-      {/* What's New */}
-      {submission.submissionCount > 1 && submission.whatsNew && (
+      {/* Changelog */}
+      {submission.submissionCount > 1 && submission.changelog && submission.changelog.length > 0 && (
         <div className="border border-[#00B4FF]/20 bg-[#00B4FF08] p-5 mb-4">
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-xs text-[#00B4FF] uppercase tracking-widest">── WHAT&apos;S NEW IN v{submission.submissionCount}</span>
+            <History className="h-3.5 w-3.5 text-[#00B4FF]" />
+            <span className="text-xs text-[#00B4FF] uppercase tracking-widest">── CHANGELOG</span>
             <div className="h-px flex-1 bg-[#00B4FF]/20" />
           </div>
-          <div className="text-sm text-[#AAAAAA] leading-relaxed whitespace-pre-wrap">
-            {submission.whatsNew}
+          <div className="space-y-3">
+            {[...submission.changelog].reverse().map((entry) => (
+              <div key={`${entry.submissionCount}-${entry.submittedAt}`} className="border-t border-[#00B4FF]/10 pt-3 first:border-t-0 first:pt-0">
+                <p className="text-xs font-bold text-[#00B4FF]/80 uppercase tracking-wider mb-1">
+                  v{entry.submissionCount} — {format(new Date(entry.submittedAt), "MMM d, yyyy h:mm a")}
+                </p>
+                <div className="text-sm text-[#AAAAAA] leading-relaxed whitespace-pre-wrap">
+                  {entry.whatsNew || "No notes provided"}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

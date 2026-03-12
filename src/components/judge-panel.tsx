@@ -13,6 +13,8 @@ import {
   ChevronDown,
   ChevronUp,
   MessageSquare,
+  History,
+  X,
 } from "lucide-react";
 
 interface JudgePanelProps {
@@ -26,6 +28,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
   const teams = useQuery(api.teams.list, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
   const [expandedId, setExpandedId] = useState<Id<"submissions"> | null>(null);
+  const [changelogId, setChangelogId] = useState<Id<"submissions"> | null>(null);
   const [view, setView] = useState<"pending" | "judged">("pending");
 
   const teamMap = new Map(teams?.map((t) => [t._id, t.name]) ?? []);
@@ -136,12 +139,41 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                       )}
                     </div>
                     <p className="text-xs text-[#555555]">{sub.description}</p>
-                    {sub.submissionCount > 1 && sub.whatsNew && (
-                      <div className="mt-2 border border-[#00B4FF]/20 bg-[#00B4FF08] px-3 py-2">
-                        <p className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest mb-1">WHAT&apos;S NEW:</p>
-                        <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">{sub.whatsNew}</p>
-                      </div>
-                    )}
+                    {sub.submissionCount > 1 && sub.changelog && sub.changelog.length > 0 && (() => {
+                      const latestEntry = sub.changelog[sub.changelog.length - 1];
+                      return (
+                        <div className="mt-2 border border-[#00B4FF]/20 bg-[#00B4FF08] px-3 py-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest">WHAT&apos;S NEW:</p>
+                            {sub.changelog.length > 1 && (
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                aria-label="View full changelog"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setChangelogId(sub._id);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setChangelogId(sub._id);
+                                  }
+                                }}
+                                className="flex items-center gap-1 text-xs text-[#00B4FF]/70 hover:text-[#00B4FF] transition-colors uppercase tracking-wider cursor-pointer"
+                              >
+                                <History className="h-3 w-3" />
+                                VIEW ALL ({sub.changelog.length})
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-[#AAAAAA] whitespace-pre-wrap">
+                            v{latestEntry.submissionCount} — {latestEntry.whatsNew || "No notes"}
+                          </p>
+                        </div>
+                      );
+                    })()}
                     <div className="mt-1 flex items-center gap-3 text-xs text-[#333333]">
                       <span>{format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}</span>
                       {projectHref && (
@@ -156,18 +188,6 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                           PROJECT
                         </a>
                       )}
-                      {demoHref && (
-                        <a
-                          href={demoHref}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-[#00B4FF] hover:text-white transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          DEMO
-                        </a>
-                      )}
                       {deployedHref && (
                         <a
                           href={deployedHref}
@@ -177,7 +197,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ExternalLink className="h-3 w-3" />
-                          Project
+                          Try
                         </a>
                       )}
                       {demoHref && (
@@ -212,6 +232,56 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
           </div>
         )}
       </div>
+
+      {/* Changelog Modal */}
+      {changelogId && (() => {
+        const sub = submissions?.find((s) => s._id === changelogId);
+        if (!sub?.changelog || sub.changelog.length === 0) return null;
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="changelog-modal-title"
+            onClick={() => setChangelogId(null)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setChangelogId(null);
+            }}
+          >
+            <div
+              className="relative w-full max-w-lg mx-4 max-h-[80vh] border border-[#00B4FF]/30 bg-[#0A0A0A] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[#1F1F1F]">
+                <div className="flex items-center gap-2">
+                  <History className="h-3.5 w-3.5 text-[#00B4FF]" />
+                  <span id="changelog-modal-title" className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest">
+                    CHANGELOG — {sub.name}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setChangelogId(null)}
+                  className="p-1.5 text-[#555555] hover:text-white transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+                {[...sub.changelog].reverse().map((entry) => (
+                  <div key={`${entry.submissionCount}-${entry.submittedAt}`} className="border-t border-[#00B4FF]/10 pt-3 first:border-t-0 first:pt-0">
+                    <p className="text-xs font-bold text-[#00B4FF]/80 uppercase tracking-wider mb-1">
+                      v{entry.submissionCount} — {format(new Date(entry.submittedAt), "MMM d, yyyy h:mm a")}
+                    </p>
+                    <p className="text-sm text-[#AAAAAA] whitespace-pre-wrap">
+                      {entry.whatsNew || "No notes provided"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
