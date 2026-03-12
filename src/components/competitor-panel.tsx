@@ -218,7 +218,7 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
         projectUrl,
         demoUrl: demoUrl || undefined,
         deployedUrl: deployedUrl || undefined,
-        whatsNew: latestSubmission ? (whatsNew || undefined) : undefined,
+        whatsNew: latestSubmission ? (whatsNew.trim() || undefined) : undefined,
       });
       toast.success(latestSubmission ? "Project resubmitted!" : "Submission created!");
       if (!latestSubmission) {
@@ -227,8 +227,9 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
         setProjectUrl("");
         setDemoUrl("");
         setDeployedUrl("");
+      } else {
+        setWhatsNew("");
       }
-      setWhatsNew("");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to submit");
     } finally {
