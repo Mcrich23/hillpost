@@ -149,6 +149,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                               <span
                                 role="button"
                                 tabIndex={0}
+                                aria-label="View full changelog"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setChangelogId(sub._id);
@@ -239,7 +240,13 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
         return (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="changelog-modal-title"
             onClick={() => setChangelogId(null)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setChangelogId(null);
+            }}
           >
             <div
               className="relative w-full max-w-lg mx-4 max-h-[80vh] border border-[#00B4FF]/30 bg-[#0A0A0A] flex flex-col"
@@ -248,7 +255,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
               <div className="flex items-center justify-between px-5 py-4 border-b border-[#1F1F1F]">
                 <div className="flex items-center gap-2">
                   <History className="h-3.5 w-3.5 text-[#00B4FF]" />
-                  <span className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest">
+                  <span id="changelog-modal-title" className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest">
                     CHANGELOG — {sub.name}
                   </span>
                 </div>
