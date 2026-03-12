@@ -10,10 +10,7 @@ function validateStoredTheme(stored: string | null): Theme {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "system";
-    return validateStoredTheme(localStorage.getItem("hillpost-theme"));
-  });
+  const [theme, setTheme] = useState<Theme>("system");
 
   const applyTheme = (t: Theme) => {
     let activeTheme = t;
@@ -25,7 +22,9 @@ export function ThemeToggle() {
 
   // Mount-only: sync the initial validated theme to the DOM.
   useEffect(() => {
-    applyTheme(validateStoredTheme(localStorage.getItem("hillpost-theme")));
+    const stored = validateStoredTheme(localStorage.getItem("hillpost-theme"));
+    setTheme(stored);
+    applyTheme(stored);
   }, []);
 
   // Only register the system-preference listener when in system mode.
