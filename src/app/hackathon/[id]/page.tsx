@@ -24,6 +24,7 @@ import {
   Check,
   Link as LinkIcon,
   LogOut,
+  ExternalLink,
 } from "lucide-react";
 import { OrganizerPanel } from "@/components/organizer-panel";
 import { CompetitorPanel } from "@/components/competitor-panel";
@@ -53,6 +54,7 @@ export default function HackathonDetailPage() {
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
+  const sponsors = useQuery(api.sponsors.list, { hackathonId });
   const leaveHackathon = useMutation(api.members.leaveHackathon);
   const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
@@ -250,47 +252,49 @@ export default function HackathonDetailPage() {
       {/* Tab content */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              {
-                label: "BUILDERS",
-                value: allMembers?.filter((m) => m.role === "competitor").length ?? "—",
-                color: "#00B4FF",
-                icon: Users,
-              },
-              {
-                label: "PROJECTS",
-                value: submissions?.length ?? "—",
-                color: "#00FF41",
-                icon: Layers,
-              },
-              {
-                label: "CATEGORIES",
-                value: categories?.length ?? "—",
-                color: "#FF6600",
-                icon: Star,
-              },
-              {
-                label: "DAYS LEFT",
-                value: Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))),
-                color: "#555555",
-                icon: Clock,
-              },
-            ].map(({ label, value, color, icon: Icon }) => (
-              <div
-                key={label}
-                className="border border-[#1F1F1F] bg-[#0A0A0A] p-4 text-center"
-              >
-                <div className="mb-1 text-xs text-[#555555] uppercase tracking-widest">
-                  ─ {label} ─
+          {/* Stats Grid — visible to organizers only */}
+          {role === "organizer" && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                {
+                  label: "BUILDERS",
+                  value: allMembers?.filter((m) => m.role === "competitor").length ?? "—",
+                  color: "#00B4FF",
+                  icon: Users,
+                },
+                {
+                  label: "PROJECTS",
+                  value: submissions?.length ?? "—",
+                  color: "#00FF41",
+                  icon: Layers,
+                },
+                {
+                  label: "CATEGORIES",
+                  value: categories?.length ?? "—",
+                  color: "#FF6600",
+                  icon: Star,
+                },
+                {
+                  label: "DAYS LEFT",
+                  value: Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))),
+                  color: "#555555",
+                  icon: Clock,
+                },
+              ].map(({ label, value, color, icon: Icon }) => (
+                <div
+                  key={label}
+                  className="border border-[#1F1F1F] bg-[#0A0A0A] p-4 text-center"
+                >
+                  <div className="mb-1 text-xs text-[#555555] uppercase tracking-widest">
+                    ─ {label} ─
+                  </div>
+                  <div className="text-2xl font-bold tabular-nums" style={{ color }}>
+                    {value}
+                  </div>
                 </div>
-                <div className="text-2xl font-bold tabular-nums" style={{ color }}>
-                  {value}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <Link
@@ -409,6 +413,60 @@ export default function HackathonDetailPage() {
                       </span>
                     </div>
                     <p className="text-xs text-[#555555] leading-relaxed">{cat.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sponsors Section */}
+          {sponsors && sponsors.length > 0 && (
+            <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="text-xs text-[#555555] uppercase tracking-widest">── SPONSORS</span>
+                <div className="h-px flex-1 bg-[#1F1F1F]" />
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {sponsors.map((sponsor) => (
+                  <div key={sponsor._id} className="flex flex-col items-center gap-2">
+                    {sponsor.bannerUrl ? (
+                      <div className="relative w-48 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={sponsor.bannerUrl}
+                          alt={`${sponsor.name} banner`}
+                          className="h-20 w-full object-cover"
+                        />
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={sponsor.pfpUrl}
+                            alt={sponsor.name}
+                            className="absolute bottom-1 left-2 h-8 w-8 rounded-full border-2 border-[#0A0A0A] object-cover"
+                          />
+                        )}
+                      </div>
+                    ) : sponsor.pfpUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={sponsor.pfpUrl}
+                        alt={sponsor.name}
+                        className="h-16 w-16 rounded-full border border-[#1F1F1F] object-cover"
+                      />
+                    ) : null}
+                    {sponsor.websiteUrl ? (
+                      <a
+                        href={sponsor.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors"
+                      >
+                        {sponsor.name}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <p className="text-xs font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                    )}
                   </div>
                 ))}
               </div>

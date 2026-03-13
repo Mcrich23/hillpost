@@ -94,4 +94,13 @@ export default defineSchema({
       "judgeId",
     ])
     .index("by_judgeId", ["judgeId"]),
+
+  sponsors: defineTable({
+    hackathonId: v.id("hackathons"),
+    name: v.string(),
+    pfpUrl: v.optional(v.string()),
+    bannerUrl: v.optional(v.string()),
+    websiteUrl: v.optional(v.string()),
+    order: v.number(),
+  }).index("by_hackathonId", ["hackathonId"]),
 });

@@ -50,6 +50,7 @@ export function OrganizerPanel({
       <HackathonInfoSection hackathonId={hackathonId} hackathon={hackathon} />
       <PendingApprovalsSection hackathonId={hackathonId} />
       <CategoriesSection hackathonId={hackathonId} />
+      <SponsorsSection hackathonId={hackathonId} />
       <TeamsAndProjectsSection hackathonId={hackathonId} />
       <MembersSection hackathonId={hackathonId} />
     </div>
@@ -621,6 +622,148 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
               </div>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
+  const sponsors = useQuery(api.sponsors.list, { hackathonId });
+  const createSponsor = useMutation(api.sponsors.create);
+  const removeSponsor = useMutation(api.sponsors.remove);
+
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPfpUrl, setNewPfpUrl] = useState("");
+  const [newBannerUrl, setNewBannerUrl] = useState("");
+  const [newWebsiteUrl, setNewWebsiteUrl] = useState("");
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    try {
+      await createSponsor({
+        hackathonId,
+        name: newName,
+        pfpUrl: newPfpUrl || undefined,
+        bannerUrl: newBannerUrl || undefined,
+        websiteUrl: newWebsiteUrl || undefined,
+      });
+      toast.success("Sponsor added");
+      setNewName("");
+      setNewPfpUrl("");
+      setNewBannerUrl("");
+      setNewWebsiteUrl("");
+      setShowAddForm(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add sponsor");
+    }
+  };
+
+  const handleRemove = async (sponsorId: Id<"sponsors">) => {
+    try {
+      await removeSponsor({ sponsorId });
+      toast.success("Sponsor removed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to remove sponsor");
+    }
+  };
+
+  return (
+    <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-[#555555] uppercase tracking-widest">── SPONSORS</span>
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-1 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
+        >
+          {showAddForm ? <ChevronUp className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+          {showAddForm ? "CANCEL" : "[ + ADD ]"}
+        </button>
+      </div>
+
+      {showAddForm && (
+        <form onSubmit={handleAdd} className="mb-4 space-y-2 border border-[#1F1F1F] bg-[#111111] p-4">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Sponsor name"
+            className="tui-input"
+            required
+          />
+          <input
+            type="url"
+            value={newPfpUrl}
+            onChange={(e) => setNewPfpUrl(e.target.value)}
+            placeholder="Profile image URL (optional)"
+            className="tui-input"
+          />
+          <input
+            type="url"
+            value={newBannerUrl}
+            onChange={(e) => setNewBannerUrl(e.target.value)}
+            placeholder="Banner image URL (optional)"
+            className="tui-input"
+          />
+          <input
+            type="url"
+            value={newWebsiteUrl}
+            onChange={(e) => setNewWebsiteUrl(e.target.value)}
+            placeholder="Website URL (optional)"
+            className="tui-input"
+          />
+          <button
+            type="submit"
+            className="px-4 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors"
+          >
+            [ ADD SPONSOR ]
+          </button>
+        </form>
+      )}
+
+      {!sponsors ? (
+        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
+      ) : sponsors.length === 0 ? (
+        <p className="text-xs text-[#555555] uppercase tracking-wider">NO SPONSORS YET.</p>
+      ) : (
+        <div className="space-y-2">
+          {sponsors.map((sponsor) => (
+            <div key={sponsor._id} className="flex items-center justify-between border border-[#1F1F1F] bg-[#111111] p-3">
+              <div className="flex items-center gap-3">
+                {sponsor.pfpUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={sponsor.pfpUrl}
+                    alt={sponsor.name}
+                    className="h-8 w-8 rounded-full object-cover border border-[#1F1F1F]"
+                  />
+                )}
+                <div>
+                  <p className="text-sm font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                  {sponsor.websiteUrl && (
+                    <a
+                      href={sponsor.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-[#555555] hover:text-[#00B4FF] transition-colors"
+                    >
+                      {sponsor.websiteUrl}
+                    </a>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => handleRemove(sponsor._id)}
+                className="p-1.5 text-[#555555] hover:text-red-400 transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </div>
