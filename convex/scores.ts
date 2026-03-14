@@ -114,7 +114,11 @@ export const getForSubmission = query({
 
     return allScores.filter(
       (s) => (s.submissionCount ?? 1) === currentIteration
-    );
+    ).map(s => ({
+      ...s,
+      judgeId: "",
+      feedback: undefined,
+    }));
   },
 });
 

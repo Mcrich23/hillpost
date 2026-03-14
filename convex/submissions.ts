@@ -1,6 +1,40 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
-import { requireAuthUserId } from "./auth";
+import { mutation, query, QueryCtx } from "./_generated/server";
+import { requireAuthUserId, getAuthUserId } from "./auth";
+import type { Doc } from "./_generated/dataModel";
+
+async function anonymizeSubmission(ctx: QueryCtx, submission: Doc<"submissions">) {
+  const userId = await getAuthUserId(ctx);
+  
+  if (!userId) {
+    return { ...submission, submittedBy: "", judgedBy: [] };
+  }
+
+  const membership = await ctx.db
+    .query("hackathonMembers")
+    .withIndex("by_hackathonId_userId", (q) =>
+      q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
+    )
+    .first();
+
+  if (!membership) {
+    return { ...submission, submittedBy: "", judgedBy: [] };
+  }
+
+  if (membership.role === "organizer") {
+    return submission;
+  }
+
+  if (membership.role === "judge") {
+    return { ...submission, submittedBy: "" };
+  }
+
+  if (membership.role === "competitor" && membership.teamId === submission.teamId) {
+    return submission;
+  }
+
+  return { ...submission, submittedBy: "", judgedBy: [] };
+}
 
 function sanitizeUrl(url: string | undefined, fieldName: string, required: boolean): string | undefined {
   const trimmed = url?.trim();
@@ -199,40 +233,46 @@ export const list = query({
     teamId: v.optional(v.id("teams")),
   },
   handler: async (ctx, args) => {
+    let submissions;
     if (args.teamId) {
-      return await ctx.db
+      submissions = await ctx.db
         .query("submissions")
         .withIndex("by_hackathonId_teamId", (q) =>
           q.eq("hackathonId", args.hackathonId).eq("teamId", args.teamId!)
         )
         .order("desc")
         .collect();
+    } else {
+      submissions = await ctx.db
+        .query("submissions")
+        .withIndex("by_hackathonId", (q) =>
+          q.eq("hackathonId", args.hackathonId)
+        )
+        .order("desc")
+        .collect();
     }
-    return await ctx.db
-      .query("submissions")
-      .withIndex("by_hackathonId", (q) =>
-        q.eq("hackathonId", args.hackathonId)
-      )
-      .order("desc")
-      .collect();
+    return await Promise.all(submissions.map(s => anonymizeSubmission(ctx, s)));
   },
 });
 
 export const listForTeam = query({
   args: { teamId: v.id("teams") },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const submissions = await ctx.db
       .query("submissions")
       .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
       .order("desc")
       .collect();
+    return await Promise.all(submissions.map(s => anonymizeSubmission(ctx, s)));
   },
 });
 
 export const get = query({
   args: { submissionId: v.id("submissions") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.submissionId);
+    const submission = await ctx.db.get(args.submissionId);
+    if (!submission) return null;
+    return await anonymizeSubmission(ctx, submission);
   },
 });
 
@@ -242,13 +282,15 @@ export const getLatestForTeam = query({
     teamId: v.id("teams"),
   },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const submission = await ctx.db
       .query("submissions")
       .withIndex("by_hackathonId_teamId", (q) =>
         q.eq("hackathonId", args.hackathonId).eq("teamId", args.teamId)
       )
       .order("desc")
       .first();
+    if (!submission) return null;
+    return await anonymizeSubmission(ctx, submission);
   },
 });
 

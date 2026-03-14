@@ -107,7 +107,11 @@ export const get = query({
         return {
           teamId: team._id,
           teamName: team.name,
-          latestSubmission,
+          latestSubmission: {
+            ...latestSubmission,
+            judgedBy: [],
+            submittedBy: "",
+          },
           averageScore,
           overallScore,
           categoryScores,
