@@ -6,10 +6,10 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }): Promise<Metadata> {
-  const resolvedParams = await params;
-  const hackathonId = resolvedParams.id as Id<"hackathons">;
+  const hackathonId = params.id as Id<"hackathons">;
+  
   
   try {
     const hackathon = await fetchQuery(api.hackathons.get, { hackathonId });
