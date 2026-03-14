@@ -226,6 +226,9 @@ export default function HackathonDetailPage() {
               {role.toUpperCase()}
             </span>
           )}
+          <span className="tui-badge border-[#555555] text-[#555555]">
+            {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24)))} {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))) === 1 ? "DAY" : "DAYS"} LEFT
+          </span>
         </div>
       </div>
 
@@ -257,48 +260,48 @@ export default function HackathonDetailPage() {
       {/* Tab content */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          {/* Stats Grid — visible to organizers only */}
+          {/* Stats Grid */}
           {role === "organizer" && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                {
-                  label: "BUILDERS",
-                  value: allMembers?.filter((m) => m.role === "competitor").length ?? "—",
-                  color: "#00B4FF",
-                  icon: Users,
-                },
-                {
-                  label: "PROJECTS",
-                  value: submissions?.length ?? "—",
-                  color: "#00FF41",
-                  icon: Layers,
-                },
-                {
-                  label: "CATEGORIES",
-                  value: categories?.length ?? "—",
-                  color: "#FF6600",
-                  icon: Star,
-                },
-                {
-                  label: "DAYS LEFT",
-                  value: Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))),
-                  color: "#555555",
-                  icon: Clock,
-                },
-              ].map(({ label, value, color, icon: Icon }) => (
-                <div
-                  key={label}
-                  className="border border-[#1F1F1F] bg-[#0A0A0A] p-4 text-center"
-                >
-                  <div className="mb-1 text-xs text-[#555555] uppercase tracking-widest">
-                    ─ {label} ─
-                  </div>
-                  <div className="text-2xl font-bold tabular-nums" style={{ color }}>
-                    {value}
-                  </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              {
+                label: "BUILDERS",
+                value: allMembers?.filter((m) => m.role === "competitor").length ?? "—",
+                color: "#00B4FF",
+                icon: Users,
+              },
+              {
+                label: "PROJECTS",
+                value: submissions?.length ?? "—",
+                color: "#00FF41",
+                icon: Layers,
+              },
+              {
+                label: "CATEGORIES",
+                value: categories?.length ?? "—",
+                color: "#FF6600",
+                icon: Star,
+              },
+              {
+                label: "DAYS LEFT",
+                value: Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))),
+                color: "#555555",
+                icon: Clock,
+              },
+            ].map(({ label, value, color, icon: Icon }) => (
+              <div
+                key={label}
+                className="border border-[#1F1F1F] bg-[#0A0A0A] p-4 text-center"
+              >
+                <div className="mb-1 text-xs text-[#555555] uppercase tracking-widest">
+                  ─ {label} ─
                 </div>
-              ))}
-            </div>
+                <div className="text-2xl font-bold tabular-nums" style={{ color }}>
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
           )}
 
           <div className="grid gap-4 md:grid-cols-2">
