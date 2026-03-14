@@ -661,14 +661,42 @@ function DisplayStyleBadge({ style }: { style: DisplayStyle | undefined }) {
 function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const sponsors = useQuery(api.sponsors.list, { hackathonId });
   const createSponsor = useMutation(api.sponsors.create);
+  const updateSponsor = useMutation(api.sponsors.update);
   const removeSponsor = useMutation(api.sponsors.remove);
 
+  // Add form state
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPfpUrl, setNewPfpUrl] = useState("");
   const [newBannerUrl, setNewBannerUrl] = useState("");
   const [newWebsiteUrl, setNewWebsiteUrl] = useState("");
   const [newDisplayStyle, setNewDisplayStyle] = useState<DisplayStyle>("medium");
+
+  // Edit form state
+  const [editingId, setEditingId] = useState<Id<"sponsors"> | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPfpUrl, setEditPfpUrl] = useState("");
+  const [editBannerUrl, setEditBannerUrl] = useState("");
+  const [editWebsiteUrl, setEditWebsiteUrl] = useState("");
+  const [editDisplayStyle, setEditDisplayStyle] = useState<DisplayStyle>("medium");
+
+  const startEdit = (sponsor: NonNullable<typeof sponsors>[number]) => {
+    setEditingId(sponsor._id);
+    setEditName(sponsor.name);
+    setEditPfpUrl(sponsor.pfpUrl ?? "");
+    setEditBannerUrl(sponsor.bannerUrl ?? "");
+    setEditWebsiteUrl(sponsor.websiteUrl ?? "");
+    setEditDisplayStyle((sponsor.displayStyle as DisplayStyle | undefined) ?? "medium");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName("");
+    setEditPfpUrl("");
+    setEditBannerUrl("");
+    setEditWebsiteUrl("");
+    setEditDisplayStyle("medium");
+  };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -691,6 +719,28 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
       setShowAddForm(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to add sponsor");
+    }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingId || !editName.trim()) {
+      if (editingId && !editName.trim()) toast.error("Sponsor name is required");
+      return;
+    }
+    try {
+      await updateSponsor({
+        sponsorId: editingId,
+        name: editName,
+        pfpUrl: editPfpUrl || undefined,
+        bannerUrl: editBannerUrl || undefined,
+        websiteUrl: editWebsiteUrl || undefined,
+        displayStyle: editDisplayStyle,
+      });
+      toast.success("Sponsor updated");
+      setEditingId(null);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update sponsor");
     }
   };
 
@@ -777,39 +827,113 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
       ) : (
         <div className="space-y-2">
           {sponsors.map((sponsor) => (
-            <div key={sponsor._id} className="flex items-center justify-between border border-[#1F1F1F] bg-[#111111] p-3">
-              <div className="flex items-center gap-3">
-                {sponsor.pfpUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={sponsor.pfpUrl}
-                    alt={sponsor.name}
-                    className="h-8 w-8 rounded-full object-cover border border-[#1F1F1F]"
+            <div key={sponsor._id} className="border border-[#1F1F1F] bg-[#111111]">
+              {editingId === sponsor._id ? (
+                <form onSubmit={handleUpdate} className="space-y-2 p-3">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Sponsor name"
+                    className="tui-input"
+                    required
+                    autoFocus
                   />
-                )}
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
-                    <DisplayStyleBadge style={sponsor.displayStyle as DisplayStyle | undefined} />
-                  </div>
-                  {sponsor.websiteUrl && (
-                    <a
-                      href={sponsor.websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-[#555555] hover:text-[#00B4FF] transition-colors"
+                  <input
+                    type="url"
+                    value={editPfpUrl}
+                    onChange={(e) => setEditPfpUrl(e.target.value)}
+                    placeholder="Profile image URL (optional)"
+                    className="tui-input"
+                  />
+                  <input
+                    type="url"
+                    value={editBannerUrl}
+                    onChange={(e) => setEditBannerUrl(e.target.value)}
+                    placeholder="Banner image URL (optional)"
+                    className="tui-input"
+                  />
+                  <input
+                    type="url"
+                    value={editWebsiteUrl}
+                    onChange={(e) => setEditWebsiteUrl(e.target.value)}
+                    placeholder="Website URL (optional)"
+                    className="tui-input"
+                  />
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-[#555555] uppercase tracking-widest">Display Style</label>
+                    <select
+                      value={editDisplayStyle}
+                      onChange={(e) => setEditDisplayStyle(e.target.value as DisplayStyle)}
+                      className="tui-input"
                     >
-                      {sponsor.websiteUrl}
-                    </a>
-                  )}
+                      {DISPLAY_STYLE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors"
+                    >
+                      [ SAVE ]
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="px-4 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-[#555555] hover:text-white transition-colors"
+                    >
+                      CANCEL
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex items-center justify-between p-3">
+                  <div className="flex items-center gap-3">
+                    {sponsor.pfpUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={sponsor.pfpUrl}
+                        alt={sponsor.name}
+                        className="h-8 w-8 rounded-full object-cover border border-[#1F1F1F]"
+                      />
+                    )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                        <DisplayStyleBadge style={sponsor.displayStyle as DisplayStyle | undefined} />
+                      </div>
+                      {sponsor.websiteUrl && (
+                        <a
+                          href={sponsor.websiteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-[#555555] hover:text-[#00B4FF] transition-colors"
+                        >
+                          {sponsor.websiteUrl}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => startEdit(sponsor)}
+                      className="p-1.5 text-[#555555] hover:text-[#00B4FF] transition-colors"
+                      title="Edit sponsor"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleRemove(sponsor._id)}
+                      className="p-1.5 text-[#555555] hover:text-red-400 transition-colors"
+                      title="Remove sponsor"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <button
-                onClick={() => handleRemove(sponsor._id)}
-                className="p-1.5 text-[#555555] hover:text-red-400 transition-colors"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
+              )}
             </div>
           ))}
         </div>

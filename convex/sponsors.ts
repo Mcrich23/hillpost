@@ -70,6 +70,37 @@ export const create = mutation({
   },
 });
 
+export const update = mutation({
+  args: {
+    sponsorId: v.id("sponsors"),
+    name: v.string(),
+    pfpUrl: v.optional(v.string()),
+    bannerUrl: v.optional(v.string()),
+    websiteUrl: v.optional(v.string()),
+    displayStyle: v.optional(
+      v.union(
+        v.literal("featured"),
+        v.literal("large"),
+        v.literal("medium"),
+        v.literal("small")
+      )
+    ),
+  },
+  handler: async (ctx, args) => {
+    const sponsor = await ctx.db.get(args.sponsorId);
+    if (!sponsor) throw new Error("Sponsor not found");
+    const userId = await requireAuthUserId(ctx);
+    await verifyOrganizer(ctx, sponsor.hackathonId, userId);
+    await ctx.db.patch(args.sponsorId, {
+      name: args.name.trim(),
+      pfpUrl: args.pfpUrl?.trim() || undefined,
+      bannerUrl: args.bannerUrl?.trim() || undefined,
+      websiteUrl: args.websiteUrl?.trim() || undefined,
+      displayStyle: args.displayStyle ?? "medium",
+    });
+  },
+});
+
 export const remove = mutation({
   args: { sponsorId: v.id("sponsors") },
   handler: async (ctx, args) => {
