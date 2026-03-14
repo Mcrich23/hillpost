@@ -27,14 +27,14 @@ export default function FeedbackPage() {
   const hackathonId = params.id as Id<"hackathons">;
   const submissionId = params.submissionId as Id<"submissions">;
 
-  const submission = useQuery(api.submissions.get, { submissionId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
-  const feedback = useQuery(api.scores.getFeedbackForSubmission, {
+  const feedbackData = useQuery(api.scores.getFeedbackForSubmission, {
     submissionId,
   });
 
-  const teamId = submission?.teamId;
-  const team = useQuery(api.teams.get, teamId ? { teamId } : "skip");
+  const submission = feedbackData?.submission ?? null;
+  const team = feedbackData?.team ?? null;
+  const feedback = feedbackData;
 
   const [selectedIteration, setSelectedIteration] = useState<number | null>(
     null
