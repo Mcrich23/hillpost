@@ -221,7 +221,7 @@ export default function SubmissionDetailPage() {
             <div className="space-y-3">
               {categoryAverages.map((cat) => {
                 const barWidth = 10;
-                const filled = cat.maxScore > 0 ? Math.round((cat.avg / cat.maxScore) * barWidth) : 0;
+                const filled = Math.min(barWidth, Math.max(0, cat.maxScore > 0 ? Math.round((cat.avg / cat.maxScore) * barWidth) : 0));
                 const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
 
                 return (

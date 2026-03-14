@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 function ScoreBar({ score, maxScore }: { score: number; maxScore: number }) {
   const barWidth = 10;
-  const filled = maxScore > 0 ? Math.round((score / maxScore) * barWidth) : 0;
+  const filled = Math.min(barWidth, Math.max(0, maxScore > 0 ? Math.round((score / maxScore) * barWidth) : 0));
   const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
   return (
     <span className="font-mono text-xs">
@@ -234,7 +234,7 @@ export default function FeedbackPage() {
                     <MessageSquare className="h-3 w-3 text-[#00B4FF] shrink-0" />
                   )}
                 </div>
-                <span className="text-xs text-[#555555] uppercase tracking-wider shrink-0 ml-3">
+                <span className="text-xs text-[#555555] uppercase tracking-wider shrink-0 sm:ml-3">
                   {isExpanded ? "[ COLLAPSE ]" : "[ EXPAND ]"}
                 </span>
               </button>
