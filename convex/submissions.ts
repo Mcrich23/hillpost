@@ -30,7 +30,7 @@ async function anonymizeSubmission(ctx: QueryCtx, submission: Doc<"submissions">
   }
 
   if (membership.role === "competitor" && membership.teamId === submission.teamId) {
-    return submission;
+    return { ...submission, judgedBy: [] };
   }
 
   return { ...submission, submittedBy: "", judgedBy: [] };
