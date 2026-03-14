@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -379,7 +380,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const [editDescription, setEditDescription] = useState("");
   const [editMaxScore, setEditMaxScore] = useState(10);
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = async (e: FormEvent) => {
     e.preventDefault();
     if (!newName || !newDescription) return;
     try {
@@ -637,6 +638,15 @@ const DISPLAY_STYLE_OPTIONS = [
 
 type DisplayStyle = typeof DISPLAY_STYLE_OPTIONS[number]["value"];
 
+function isSafeHttpUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function DisplayStyleBadge({ style }: { style: DisplayStyle | undefined }) {
   const map: Record<DisplayStyle, string> = {
     featured: "FEATURED",
@@ -698,7 +708,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     setEditDisplayStyle("medium");
   };
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = async (e: FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) return;
     try {
@@ -722,7 +732,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: FormEvent) => {
     e.preventDefault();
     if (!editingId || !editName.trim()) {
       if (editingId && !editName.trim()) toast.error("Sponsor name is required");
@@ -904,7 +914,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                         <p className="text-sm font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
                         <DisplayStyleBadge style={sponsor.displayStyle as DisplayStyle | undefined} />
                       </div>
-                      {sponsor.websiteUrl && (
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && (
                         <a
                           href={sponsor.websiteUrl}
                           target="_blank"

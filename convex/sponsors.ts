@@ -4,6 +4,21 @@ import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { requireAuthUserId } from "./auth";
 
+function sanitizeUrl(url: string | undefined, fieldName: string): string | undefined {
+  const trimmed = url?.trim();
+  if (!trimmed) return undefined;
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw new Error(`Invalid URL format for ${fieldName}`);
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error(`Invalid URL scheme for ${fieldName}: only http and https are allowed`);
+  }
+  return trimmed;
+}
+
 async function verifyOrganizer(
   ctx: MutationCtx,
   hackathonId: Id<"hackathons">,
@@ -64,14 +79,15 @@ export const create = mutation({
         q.eq("hackathonId", args.hackathonId)
       )
       .collect();
+    const maxOrder = existing.reduce((max, s) => Math.max(max, s.order ?? -1), -1);
     return ctx.db.insert("sponsors", {
       hackathonId: args.hackathonId,
       name: args.name.trim(),
-      pfpUrl: args.pfpUrl?.trim() || undefined,
-      bannerUrl: args.bannerUrl?.trim() || undefined,
-      websiteUrl: args.websiteUrl?.trim() || undefined,
+      pfpUrl: sanitizeUrl(args.pfpUrl, "pfpUrl"),
+      bannerUrl: sanitizeUrl(args.bannerUrl, "bannerUrl"),
+      websiteUrl: sanitizeUrl(args.websiteUrl, "websiteUrl"),
       displayStyle: args.displayStyle ?? "medium",
-      order: existing.length,
+      order: maxOrder + 1,
     });
   },
 });
@@ -99,9 +115,9 @@ export const update = mutation({
     await verifyOrganizer(ctx, sponsor.hackathonId, userId);
     await ctx.db.patch(args.sponsorId, {
       name: args.name.trim(),
-      pfpUrl: args.pfpUrl?.trim() || undefined,
-      bannerUrl: args.bannerUrl?.trim() || undefined,
-      websiteUrl: args.websiteUrl?.trim() || undefined,
+      pfpUrl: sanitizeUrl(args.pfpUrl, "pfpUrl"),
+      bannerUrl: sanitizeUrl(args.bannerUrl, "bannerUrl"),
+      websiteUrl: sanitizeUrl(args.websiteUrl, "websiteUrl"),
       displayStyle: args.displayStyle ?? "medium",
     });
   },
