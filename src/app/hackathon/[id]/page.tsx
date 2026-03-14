@@ -24,12 +24,15 @@ import {
   Check,
   Link as LinkIcon,
   LogOut,
+  ExternalLink,
 } from "lucide-react";
 import { OrganizerPanel } from "@/components/organizer-panel";
 import { CompetitorPanel } from "@/components/competitor-panel";
 import { JudgePanel } from "@/components/judge-panel";
 import { PublicSubmissions } from "@/components/public-submissions";
 import { QrCodeButton } from "@/components/qr-code-overlay";
+
+import { isSafeHttpUrl } from "@/lib/url";
 
 type Tab = "overview" | "submissions" | "compete" | "judge" | "manage";
 
@@ -53,6 +56,10 @@ export default function HackathonDetailPage() {
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
+  const sponsors = useQuery(api.sponsors.list, { hackathonId });
+  const featuredSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "featured") ?? [];
+  const largeSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "large") ?? [];
+  const mediumSmallSponsors = sponsors?.filter((s) => { const d = s.displayStyle ?? "medium"; return d === "medium" || d === "small"; }) ?? [];
   const leaveHackathon = useMutation(api.members.leaveHackathon);
   const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
@@ -417,6 +424,190 @@ export default function HackathonDetailPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Sponsors Section */}
+          {sponsors && sponsors.length > 0 && (
+            <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="text-xs text-[#555555] uppercase tracking-widest">── SPONSORS</span>
+                <div className="h-px flex-1 bg-[#1F1F1F]" />
+              </div>
+
+              {/* Featured sponsors — full-width rows */}
+              {featuredSponsors.length > 0 && (
+                <div className="mb-6 space-y-4">
+                  {featuredSponsors.map((sponsor) => {
+                    const imageContent = sponsor.bannerUrl ? (
+                      <div className="relative w-full overflow-hidden border border-[#1F1F1F] bg-[#111111]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className="h-36 w-full object-cover" />
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-2 left-3 h-14 w-14 rounded-full border-2 border-[#0A0A0A] object-cover" />
+                        )}
+                      </div>
+                    ) : sponsor.pfpUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
+                    ) : null;
+
+                    return (
+                    <div key={sponsor._id} className="flex flex-col items-start gap-3 w-full group">
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
+                          {imageContent}
+                        </a>
+                      ) : imageContent}
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                          {sponsor.name}
+                          {sponsor.badgeText && (
+                            <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                          )}
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      ) : (
+                        <p className="text-base font-bold text-white uppercase tracking-wide flex items-center gap-1.5">
+                          {sponsor.name}
+                          {sponsor.badgeText && (
+                            <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  )})}
+                </div>
+              )}
+
+              {/* Large sponsors — own row */}
+              {largeSponsors.length > 0 && (
+                <div className="flex flex-wrap gap-4 items-start mb-4">
+                  {largeSponsors.map((sponsor) => {
+                    const imageContent = sponsor.bannerUrl ? (
+                      <div className="relative w-72 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className="h-28 w-full object-cover" />
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-2 left-2 h-12 w-12 rounded-full border-2 border-[#0A0A0A] object-cover" />
+                        )}
+                      </div>
+                    ) : sponsor.pfpUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
+                    ) : null;
+
+                    return (
+                    <div key={sponsor._id} className="flex flex-col items-center gap-2 group">
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="block">
+                          {imageContent}
+                        </a>
+                      ) : imageContent}
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                          {sponsor.name}
+                          {sponsor.badgeText && (
+                            <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                          )}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        <p className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-1">
+                          {sponsor.name}
+                          {sponsor.badgeText && (
+                            <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  )})}
+                </div>
+              )}
+
+              {/* Medium + Small sponsors — own row */}
+              {mediumSmallSponsors.length > 0 && (
+                <div className="flex flex-wrap gap-4 items-start">
+                  {mediumSmallSponsors.map((sponsor) => {
+                    const isSmall = (sponsor.displayStyle ?? "medium") === "small";
+
+                    if (isSmall) {
+                      const imageContent = sponsor.pfpUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-12 w-12 rounded-full border border-[#1F1F1F] object-cover" />
+                      ) : null;
+
+                      return (
+                        <div key={sponsor._id} className="flex flex-col items-center gap-1.5 group">
+                          {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
+                            <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="block">
+                              {imageContent}
+                            </a>
+                          ) : imageContent}
+                          {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                            <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                              {sponsor.name}
+                              {sponsor.badgeText && (
+                                <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                              )}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <p className="text-xs font-bold text-white uppercase tracking-wide flex items-center gap-1">
+                              {sponsor.name}
+                              {sponsor.badgeText && (
+                                <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    const imageContent = sponsor.bannerUrl ? (
+                      <div className="relative w-48 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className="h-20 w-full object-cover" />
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-1 left-2 h-8 w-8 rounded-full border-2 border-[#0A0A0A] object-cover" />
+                        )}
+                      </div>
+                    ) : sponsor.pfpUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-16 w-16 rounded-full border border-[#1F1F1F] object-cover" />
+                    ) : null;
+
+                    return (
+                      <div key={sponsor._id} className="flex flex-col items-center gap-2 group">
+                        {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="block">
+                            {imageContent}
+                          </a>
+                        ) : imageContent}
+                        {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                            {sponsor.name}
+                            {sponsor.badgeText && (
+                              <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                            )}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <p className="text-xs font-bold text-white uppercase tracking-wide flex items-center gap-1">
+                            {sponsor.name}
+                            {sponsor.badgeText && (
+                              <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>

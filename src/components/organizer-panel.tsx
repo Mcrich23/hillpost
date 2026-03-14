@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import type { FormEvent } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -17,6 +18,7 @@ import {
   UserX,
   ChevronUp,
   Link as LinkIcon,
+  GripVertical,
 } from "lucide-react";
 import { QrCodeButton } from "@/components/qr-code-overlay";
 
@@ -50,6 +52,7 @@ export function OrganizerPanel({
       <HackathonInfoSection hackathonId={hackathonId} hackathon={hackathon} />
       <PendingApprovalsSection hackathonId={hackathonId} />
       <CategoriesSection hackathonId={hackathonId} />
+      <SponsorsSection hackathonId={hackathonId} />
       <TeamsAndProjectsSection hackathonId={hackathonId} />
       <MembersSection hackathonId={hackathonId} />
     </div>
@@ -378,7 +381,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const [editDescription, setEditDescription] = useState("");
   const [editMaxScore, setEditMaxScore] = useState(10);
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const handleAdd = async (e: FormEvent) => {
     e.preventDefault();
     if (!newName || !newDescription) return;
     try {
@@ -621,6 +624,405 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
               </div>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+import { isSafeHttpUrl } from "@/lib/url";
+
+const DISPLAY_STYLE_OPTIONS = [
+  { value: "featured", label: "FEATURED — Full-width banner, large pfp, bold name" },
+  { value: "large",    label: "LARGE — Wide banner, pfp overlay, prominent name" },
+  { value: "medium",   label: "MEDIUM — Standard banner + pfp" },
+  { value: "small",    label: "SMALL — Logo + name only (no banner)" },
+] as const;
+
+type DisplayStyle = typeof DISPLAY_STYLE_OPTIONS[number]["value"];
+
+function DisplayStyleBadge({ style }: { style: DisplayStyle | undefined }) {
+  const map: Record<DisplayStyle, string> = {
+    featured: "FEATURED",
+    large: "LARGE",
+    medium: "MEDIUM",
+    small: "SMALL",
+  };
+  const colorMap: Record<DisplayStyle, string> = {
+    featured: "text-[#FFD700] border-[#FFD700]",
+    large: "text-[#C0C0C0] border-[#C0C0C0]",
+    medium: "text-[#CD7F32] border-[#CD7F32]",
+    small: "text-[#555555] border-[#333333]",
+  };
+  const s = style ?? "medium";
+  return (
+    <span className={`border px-1.5 py-0.5 text-[10px] uppercase tracking-widest font-bold ${colorMap[s]}`}>
+      {map[s]}
+    </span>
+  );
+}
+
+function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
+  const sponsors = useQuery(api.sponsors.list, { hackathonId });
+  const createSponsor = useMutation(api.sponsors.create);
+  const updateSponsor = useMutation(api.sponsors.update);
+  const removeSponsor = useMutation(api.sponsors.remove);
+  const reorderSponsors = useMutation(api.sponsors.reorder);
+
+  // Add form state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPfpUrl, setNewPfpUrl] = useState("");
+  const [newBannerUrl, setNewBannerUrl] = useState("");
+  const [newWebsiteUrl, setNewWebsiteUrl] = useState("");
+  const [newDisplayStyle, setNewDisplayStyle] = useState<DisplayStyle>("medium");
+  const [newBadgeText, setNewBadgeText] = useState("");
+
+  // Edit form state
+  const [editingId, setEditingId] = useState<Id<"sponsors"> | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editPfpUrl, setEditPfpUrl] = useState("");
+  const [editBannerUrl, setEditBannerUrl] = useState("");
+  const [editWebsiteUrl, setEditWebsiteUrl] = useState("");
+  const [editDisplayStyle, setEditDisplayStyle] = useState<DisplayStyle>("medium");
+  const [editBadgeText, setEditBadgeText] = useState("");
+
+  // Drag-to-reorder state
+  const dragIndexRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const startEdit = (sponsor: NonNullable<typeof sponsors>[number]) => {
+    setEditingId(sponsor._id);
+    setEditName(sponsor.name);
+    setEditPfpUrl(sponsor.pfpUrl ?? "");
+    setEditBannerUrl(sponsor.bannerUrl ?? "");
+    setEditWebsiteUrl(sponsor.websiteUrl ?? "");
+    setEditDisplayStyle((sponsor.displayStyle as DisplayStyle | undefined) ?? "medium");
+    setEditBadgeText(sponsor.badgeText ?? "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName("");
+    setEditPfpUrl("");
+    setEditBannerUrl("");
+    setEditWebsiteUrl("");
+    setEditDisplayStyle("medium");
+    setEditBadgeText("");
+  };
+
+  const handleAdd = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    try {
+      await createSponsor({
+        hackathonId,
+        name: newName,
+        pfpUrl: newPfpUrl || undefined,
+        bannerUrl: newBannerUrl || undefined,
+        websiteUrl: newWebsiteUrl || undefined,
+        displayStyle: newDisplayStyle,
+        badgeText: newBadgeText || undefined,
+      });
+      toast.success("Sponsor added");
+      setNewName("");
+      setNewPfpUrl("");
+      setNewBannerUrl("");
+      setNewWebsiteUrl("");
+      setNewDisplayStyle("medium");
+      setNewBadgeText("");
+      setShowAddForm(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add sponsor");
+    }
+  };
+
+  const handleUpdate = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingId || !editName.trim()) {
+      if (editingId && !editName.trim()) toast.error("Sponsor name is required");
+      return;
+    }
+    try {
+      await updateSponsor({
+        sponsorId: editingId,
+        name: editName,
+        pfpUrl: editPfpUrl || undefined,
+        bannerUrl: editBannerUrl || undefined,
+        websiteUrl: editWebsiteUrl || undefined,
+        displayStyle: editDisplayStyle,
+        badgeText: editBadgeText || undefined,
+      });
+      toast.success("Sponsor updated");
+      setEditingId(null);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update sponsor");
+    }
+  };
+
+  const handleRemove = async (sponsorId: Id<"sponsors">) => {
+    try {
+      await removeSponsor({ sponsorId });
+      toast.success("Sponsor removed");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to remove sponsor");
+    }
+  };
+
+  const handleDragStart = (index: number) => {
+    dragIndexRef.current = index;
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    const dragIndex = dragIndexRef.current;
+    if (dragIndex === null || dragIndex === dropIndex || !sponsors) {
+      setDragOverIndex(null);
+      dragIndexRef.current = null;
+      return;
+    }
+    const reordered = [...sponsors];
+    const [moved] = reordered.splice(dragIndex, 1);
+    reordered.splice(dropIndex, 0, moved);
+    setDragOverIndex(null);
+    dragIndexRef.current = null;
+    try {
+      await reorderSponsors({
+        hackathonId,
+        sponsorIds: reordered.map((s) => s._id),
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to reorder sponsors");
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDragOverIndex(null);
+    dragIndexRef.current = null;
+  };
+
+  return (
+    <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-[#555555] uppercase tracking-widest">── SPONSORS</span>
+        </div>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="flex items-center gap-1 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
+        >
+          {showAddForm ? <ChevronUp className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+          {showAddForm ? "CANCEL" : "[ + ADD ]"}
+        </button>
+      </div>
+
+      {showAddForm && (
+        <form onSubmit={handleAdd} className="mb-4 space-y-2 border border-[#1F1F1F] bg-[#111111] p-4">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Sponsor name"
+            className="tui-input"
+            required
+          />
+          <input
+            type="url"
+            value={newPfpUrl}
+            onChange={(e) => setNewPfpUrl(e.target.value)}
+            placeholder="Profile image URL (optional)"
+            className="tui-input"
+          />
+          <input
+            type="url"
+            value={newBannerUrl}
+            onChange={(e) => setNewBannerUrl(e.target.value)}
+            placeholder="Banner image URL (optional)"
+            className="tui-input"
+          />
+          <input
+            type="url"
+            value={newWebsiteUrl}
+            onChange={(e) => setNewWebsiteUrl(e.target.value)}
+            placeholder="Website URL (optional)"
+            className="tui-input"
+          />
+          <input
+            type="text"
+            value={newBadgeText}
+            onChange={(e) => setNewBadgeText(e.target.value)}
+            placeholder="Badge text (optional, e.g. GOLD)"
+            className="tui-input"
+          />
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] text-[#555555] uppercase tracking-widest">Display Style</label>
+            <select
+              value={newDisplayStyle}
+              onChange={(e) => setNewDisplayStyle(e.target.value as DisplayStyle)}
+              className="tui-input"
+            >
+              {DISPLAY_STYLE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            className="px-4 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors"
+          >
+            [ ADD SPONSOR ]
+          </button>
+        </form>
+      )}
+
+      {!sponsors ? (
+        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
+      ) : sponsors.length === 0 ? (
+        <p className="text-xs text-[#555555] uppercase tracking-wider">NO SPONSORS YET.</p>
+      ) : (
+        <div className="space-y-2">
+          {sponsors.map((sponsor, index) => (
+            <div
+              key={sponsor._id}
+              className={cn(
+                "border bg-[#111111] transition-colors",
+                dragOverIndex === index ? "border-[#00FF41]" : "border-[#1F1F1F]"
+              )}
+              draggable={editingId !== sponsor._id}
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+            >
+              {editingId === sponsor._id ? (
+                <form onSubmit={handleUpdate} className="space-y-2 p-3">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Sponsor name"
+                    className="tui-input"
+                    required
+                    autoFocus
+                  />
+                  <input
+                    type="url"
+                    value={editPfpUrl}
+                    onChange={(e) => setEditPfpUrl(e.target.value)}
+                    placeholder="Profile image URL (optional)"
+                    className="tui-input"
+                  />
+                  <input
+                    type="url"
+                    value={editBannerUrl}
+                    onChange={(e) => setEditBannerUrl(e.target.value)}
+                    placeholder="Banner image URL (optional)"
+                    className="tui-input"
+                  />
+                  <input
+                    type="url"
+                    value={editWebsiteUrl}
+                    onChange={(e) => setEditWebsiteUrl(e.target.value)}
+                    placeholder="Website URL (optional)"
+                    className="tui-input"
+                  />
+                  <input
+                    type="text"
+                    value={editBadgeText}
+                    onChange={(e) => setEditBadgeText(e.target.value)}
+                    placeholder="Badge text (optional, e.g. GOLD)"
+                    className="tui-input"
+                  />
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] text-[#555555] uppercase tracking-widest">Display Style</label>
+                    <select
+                      value={editDisplayStyle}
+                      onChange={(e) => setEditDisplayStyle(e.target.value as DisplayStyle)}
+                      className="tui-input"
+                    >
+                      {DISPLAY_STYLE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors"
+                    >
+                      [ SAVE ]
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="px-4 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-[#555555] hover:text-white transition-colors"
+                    >
+                      CANCEL
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="flex items-center justify-between p-3">
+                  <div className="flex items-center gap-3">
+                    <GripVertical
+                      className="h-4 w-4 text-[#333333] cursor-grab active:cursor-grabbing shrink-0"
+                      aria-hidden="true"
+                    />
+                    {sponsor.pfpUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={sponsor.pfpUrl}
+                        alt={sponsor.name}
+                        className="h-8 w-8 rounded-full object-cover border border-[#1F1F1F]"
+                      />
+                    )}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                        {sponsor.badgeText && (
+                          <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                        )}
+                        <DisplayStyleBadge style={sponsor.displayStyle as DisplayStyle | undefined} />
+                      </div>
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && (
+                        <a
+                          href={sponsor.websiteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-[#555555] hover:text-[#00B4FF] transition-colors"
+                        >
+                          {sponsor.websiteUrl}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => startEdit(sponsor)}
+                      className="p-1.5 text-[#555555] hover:text-[#00B4FF] transition-colors"
+                      title="Edit sponsor"
+                      aria-label="Edit sponsor"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleRemove(sponsor._id)}
+                      className="p-1.5 text-[#555555] hover:text-red-400 transition-colors"
+                      title="Remove sponsor"
+                      aria-label="Remove sponsor"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

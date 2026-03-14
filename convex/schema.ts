@@ -94,4 +94,24 @@ export default defineSchema({
       "judgeId",
     ])
     .index("by_judgeId", ["judgeId"]),
+
+  sponsors: defineTable({
+    hackathonId: v.id("hackathons"),
+    name: v.string(),
+    pfpUrl: v.optional(v.string()),
+    bannerUrl: v.optional(v.string()),
+    websiteUrl: v.optional(v.string()),
+    displayStyle: v.optional(
+      v.union(
+        v.literal("featured"),
+        v.literal("large"),
+        v.literal("medium"),
+        v.literal("small")
+      )
+    ),
+    order: v.number(),
+    badgeText: v.optional(v.string()),
+  })
+    .index("by_hackathonId", ["hackathonId"])
+    .index("by_hackathonId_order", ["hackathonId", "order"]),
 });
