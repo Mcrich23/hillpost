@@ -39,7 +39,7 @@ export default function FeedbackPage() {
   const [selectedIteration, setSelectedIteration] = useState<number | null>(
     null
   );
-  const [expandedJudge, setExpandedJudge] = useState<string | null>(null);
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   if (
     submission === undefined ||
@@ -137,7 +137,7 @@ export default function FeedbackPage() {
                 key={iter.submissionCount}
                 onClick={() => {
                   setSelectedIteration(iter.submissionCount);
-                  setExpandedJudge(null);
+                  setExpandedCategory(null);
                 }}
                 className={cn(
                   "px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-[#1F1F1F] last:border-r-0 whitespace-nowrap",
@@ -177,47 +177,54 @@ export default function FeedbackPage() {
         </div>
       )}
 
-      {/* Judge cards */}
+      {/* Category cards */}
       <div className="space-y-3">
-        {judges.map((judge) => {
-          const isExpanded = expandedJudge === judge.label;
-          const totalScore = judge.categoryScores.reduce(
-            (sum, cs) => sum + (cs.score ?? 0),
-            0
-          );
-          const maxTotal = categories.reduce((sum, c) => sum + c.maxScore, 0);
-          // Collect all unique non-null feedback texts from this judge
-          const feedbackTexts = judge.categoryScores
-            .map((cs) => cs.feedback)
-            .filter((f): f is string => !!f);
-          const uniqueFeedback = [...new Set(feedbackTexts)];
-          const hasFeedback = uniqueFeedback.length > 0;
+        {categories.map((cat) => {
+          const isExpanded = expandedCategory === cat._id;
+
+          // Gather each judge's score + feedback for this category
+          const judgeEntries = judges.map((judge) => {
+            const cs = judge.categoryScores.find(
+              (s) => s.categoryId === cat._id
+            );
+            return {
+              label: judge.label,
+              score: cs?.score ?? null,
+              feedback: cs?.feedback ?? null,
+            };
+          });
+
+          // Compute average score across judges who scored
+          const scoredEntries = judgeEntries.filter((e) => e.score != null);
+          const avgScore =
+            scoredEntries.length > 0
+              ? Math.round(
+                  (scoredEntries.reduce((sum, e) => sum + e.score!, 0) /
+                    scoredEntries.length) *
+                    10
+                ) / 10
+              : null;
+          const hasFeedback = judgeEntries.some((e) => e.feedback);
 
           return (
             <div
-              key={judge.label}
+              key={cat._id}
               className="border border-[#1F1F1F] bg-[#0A0A0A] overflow-hidden"
             >
-              {/* Judge header — always visible */}
+              {/* Category header — always visible */}
               <button
-                onClick={() => setExpandedJudge(isExpanded ? null : judge.label)}
+                onClick={() =>
+                  setExpandedCategory(isExpanded ? null : cat._id)
+                }
                 className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#111111] transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span
-                    className={cn(
-                      "tui-badge",
-                      isOrganizer
-                        ? "border-[#FF6600] text-[#FF6600]"
-                        : "border-[#00B4FF] text-[#00B4FF]"
-                    )}
-                  >
-                    {judge.label}
+                  <span className="text-xs font-bold text-white uppercase tracking-widest">
+                    {cat.name}
                   </span>
-                  <span className="font-mono text-xs text-white">
-                    {totalScore}
-                    <span className="text-[#555555]">/{maxTotal}</span>
-                  </span>
+                  {avgScore != null && (
+                    <ScoreBar score={avgScore} maxScore={cat.maxScore} />
+                  )}
                   {hasFeedback && (
                     <MessageSquare className="h-3 w-3 text-[#00B4FF] shrink-0" />
                   )}
@@ -227,56 +234,45 @@ export default function FeedbackPage() {
                 </span>
               </button>
 
-              {/* Expanded content */}
+              {/* Expanded content — per-judge scores + feedback */}
               {isExpanded && (
-                <div className="border-t border-[#1F1F1F] px-5 py-4 space-y-4">
-                  {/* Category scores (no feedback here) */}
-                  {categories.map((cat) => {
-                    const cs = judge.categoryScores.find(
-                      (s) => s.categoryId === cat._id
-                    );
-                    return (
-                      <div key={cat._id}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">
-                            {cat.name}
-                          </span>
-                          {cs?.score != null ? (
-                            <ScoreBar
-                              score={cs.score}
-                              maxScore={cat.maxScore}
-                            />
-                          ) : (
-                            <span className="text-xs text-[#333333] uppercase">
-                              NOT SCORED
-                            </span>
+                <div className="border-t border-[#1F1F1F] px-5 py-4 space-y-3">
+                  {judgeEntries.map((entry) => (
+                    <div
+                      key={entry.label}
+                      className="border border-[#1F1F1F] bg-black p-3"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span
+                          className={cn(
+                            "tui-badge text-[10px]",
+                            isOrganizer
+                              ? "border-[#FF6600] text-[#FF6600]"
+                              : "border-[#00B4FF] text-[#00B4FF]"
                           )}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Overall judge feedback — displayed separately from categories */}
-                  {hasFeedback && (
-                    <div className="border-t border-[#1F1F1F] pt-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MessageSquare className="h-3 w-3 text-[#00B4FF]" />
-                        <span className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest">
-                          FEEDBACK
-                        </span>
-                      </div>
-                      {uniqueFeedback.map((text) => (
-                        <div
-                          key={text}
-                          className="border-l-2 border-[#00B4FF]/30 pl-3 mb-2 last:mb-0"
                         >
+                          {entry.label}
+                        </span>
+                        {entry.score != null ? (
+                          <ScoreBar
+                            score={entry.score}
+                            maxScore={cat.maxScore}
+                          />
+                        ) : (
+                          <span className="text-xs text-[#333333] uppercase">
+                            NOT SCORED
+                          </span>
+                        )}
+                      </div>
+                      {entry.feedback && (
+                        <div className="mt-2 border-l-2 border-[#00B4FF]/30 pl-3">
                           <p className="text-xs text-[#AAAAAA] leading-relaxed whitespace-pre-wrap">
-                            {text}
+                            {entry.feedback}
                           </p>
                         </div>
-                      ))}
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
               )}
             </div>
