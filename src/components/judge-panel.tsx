@@ -302,7 +302,7 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
 
   const [scores, setScores] = useState<Record<string, number>>({});
   const [feedbacks, setFeedbacks] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const getExistingScore = (categoryId: Id<"categories">) => {
     return myScores?.find((s) => s.categoryId === categoryId);
@@ -320,17 +320,21 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
     return existing?.feedback ?? "";
   };
 
-  const handleSubmitScore = async (categoryId: Id<"categories">, maxScore: number) => {
-    setSubmitting(categoryId);
+  const hasAllScored = categories.length > 0 && categories.every((cat) => getExistingScore(cat._id));
+
+  const handleSubmitAll = async () => {
+    setSubmitting(true);
     try {
-      const score = getCurrentScore(categoryId, maxScore);
-      const feedback = getCurrentFeedback(categoryId);
-      await submitScore({ submissionId, categoryId, score, feedback: feedback || undefined });
-      toast.success("Score submitted!");
+      for (const cat of categories) {
+        const score = getCurrentScore(cat._id, cat.maxScore);
+        const feedback = getCurrentFeedback(cat._id);
+        await submitScore({ submissionId, categoryId: cat._id, score, feedback: feedback || undefined });
+      }
+      toast.success("All scores submitted!");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to submit score");
+      toast.error(error instanceof Error ? error.message : "Failed to submit scores");
     } finally {
-      setSubmitting(null);
+      setSubmitting(false);
     }
   };
 
@@ -403,27 +407,29 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
                     className="tui-input flex-1"
                   />
                 </div>
-
-                <button
-                  onClick={() => handleSubmitScore(cat._id, cat.maxScore)}
-                  disabled={submitting === cat._id}
-                  className={cn(
-                    "px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50",
-                    existing
-                      ? "border border-[#00B4FF] text-[#00B4FF] hover:bg-[#00B4FF] hover:text-black"
-                      : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
-                  )}
-                >
-                  {submitting === cat._id
-                    ? "SAVING..."
-                    : existing
-                      ? "[ UPDATE SCORE ]"
-                      : "[ SUBMIT SCORE → ]"}
-                </button>
               </div>
             </div>
           );
         })
+      )}
+
+      {categories.length > 0 && (
+        <button
+          onClick={handleSubmitAll}
+          disabled={submitting}
+          className={cn(
+            "w-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50",
+            hasAllScored
+              ? "border border-[#00B4FF] text-[#00B4FF] hover:bg-[#00B4FF] hover:text-black"
+              : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
+          )}
+        >
+          {submitting
+            ? "SAVING..."
+            : hasAllScored
+              ? "[ UPDATE ALL SCORES ]"
+              : "[ SUBMIT ALL SCORES → ]"}
+        </button>
       )}
     </div>
   );
