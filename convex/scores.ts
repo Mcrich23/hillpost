@@ -46,7 +46,7 @@ export const submit = mutation({
       );
     }
 
-    const currentIteration = submission.submissionCount;
+    const currentIteration = submission.submissionCount ?? 1;
 
     // Upsert: check if this judge already scored this submission+category for the current iteration
     const candidates = await ctx.db

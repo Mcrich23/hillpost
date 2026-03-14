@@ -148,7 +148,7 @@ export default function FeedbackPage() {
               >
                 v{iter.submissionCount}
                 {iter.submissionCount === currentSubmissionCount && (
-                  <span className="ml-1 text-[10px] text-[#00FF41]">
+                  <span className="ml-1 text-[10px] text-[#00FF41]" aria-label="Current version">
                     ●
                   </span>
                 )}
