@@ -58,7 +58,8 @@ export default function HackathonDetailPage() {
   const categories = useQuery(api.categories.list, { hackathonId });
   const sponsors = useQuery(api.sponsors.list, { hackathonId });
   const featuredSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "featured") ?? [];
-  const otherSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") !== "featured") ?? [];
+  const largeSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "large") ?? [];
+  const mediumSmallSponsors = sponsors?.filter((s) => { const d = s.displayStyle ?? "medium"; return d === "medium" || d === "small"; }) ?? [];
   const leaveHackathon = useMutation(api.members.leaveHackathon);
   const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
@@ -470,17 +471,50 @@ export default function HackathonDetailPage() {
                 </div>
               )}
 
-              {/* Large + Medium + Small sponsors — flex-wrap */}
-              {otherSponsors.length > 0 && (
+              {/* Large sponsors — own row */}
+              {largeSponsors.length > 0 && (
+                <div className="flex flex-wrap gap-4 items-start mb-4">
+                  {largeSponsors.map((sponsor) => (
+                    <div key={sponsor._id} className="flex flex-col items-center gap-2">
+                      {sponsor.bannerUrl ? (
+                        <div className="relative w-72 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className="h-28 w-full object-cover" />
+                          {sponsor.pfpUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-2 left-2 h-12 w-12 rounded-full border-2 border-[#0A0A0A] object-cover" />
+                          )}
+                        </div>
+                      ) : sponsor.pfpUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
+                      ) : null}
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors">
+                          {sponsor.name}
+                          {sponsor.badgeText && (
+                            <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                          )}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        <p className="text-sm font-bold text-white uppercase tracking-wide flex items-center gap-1">
+                          {sponsor.name}
+                          {sponsor.badgeText && (
+                            <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Medium + Small sponsors — own row */}
+              {mediumSmallSponsors.length > 0 && (
                 <div className="flex flex-wrap gap-4 items-start">
-                  {otherSponsors.map((sponsor) => {
-                    const style = (sponsor.displayStyle ?? "medium") as "large" | "medium" | "small";
-                    const isSmall = style === "small";
-                    const bannerH = style === "large" ? "h-28" : "h-20";
-                    const pfpSize = style === "large" ? "h-12 w-12" : "h-8 w-8";
-                    const pfpPos = style === "large" ? "bottom-2 left-2" : "bottom-1 left-2";
-                    const cardW = style === "large" ? "w-72" : "w-48";
-                    const nameSize = style === "large" ? "text-sm" : "text-xs";
+                  {mediumSmallSponsors.map((sponsor) => {
+                    const isSmall = (sponsor.displayStyle ?? "medium") === "small";
 
                     if (isSmall) {
                       return (
@@ -512,20 +546,20 @@ export default function HackathonDetailPage() {
                     return (
                       <div key={sponsor._id} className="flex flex-col items-center gap-2">
                         {sponsor.bannerUrl ? (
-                          <div className={`relative ${cardW} overflow-hidden border border-[#1F1F1F] bg-[#111111]`}>
+                          <div className="relative w-48 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className={`${bannerH} w-full object-cover`} />
+                            <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className="h-20 w-full object-cover" />
                             {sponsor.pfpUrl && (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={sponsor.pfpUrl} alt={sponsor.name} className={`absolute ${pfpPos} ${pfpSize} rounded-full border-2 border-[#0A0A0A] object-cover`} />
+                              <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-1 left-2 h-8 w-8 rounded-full border-2 border-[#0A0A0A] object-cover" />
                             )}
                           </div>
                         ) : sponsor.pfpUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={sponsor.pfpUrl} alt={sponsor.name} className={`${style === "large" ? "h-20 w-20" : "h-16 w-16"} rounded-full border border-[#1F1F1F] object-cover`} />
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-16 w-16 rounded-full border border-[#1F1F1F] object-cover" />
                         ) : null}
                         {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1 ${nameSize} font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors`}>
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors">
                             {sponsor.name}
                             {sponsor.badgeText && (
                               <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
@@ -533,7 +567,7 @@ export default function HackathonDetailPage() {
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : (
-                          <p className={`${nameSize} font-bold text-white uppercase tracking-wide flex items-center gap-1`}>
+                          <p className="text-xs font-bold text-white uppercase tracking-wide flex items-center gap-1">
                             {sponsor.name}
                             {sponsor.badgeText && (
                               <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
