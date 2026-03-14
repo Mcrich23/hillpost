@@ -289,8 +289,8 @@ function HackathonInfoSection({
         <div className="flex flex-col gap-4 sm:flex-row border-t border-[#1F1F1F] pt-4">
           <div className="flex-1">
             <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">COMPETITOR CODE:</label>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-base tracking-widest text-[#00FF41] font-bold">
+            <div className="mt-2 flex flex-col gap-2">
+              <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-base tracking-widest text-[#00FF41] font-bold break-all">
                 {hackathon.competitorJoinCode ?? "—"}
               </code>
               <div className="flex items-center gap-2">
@@ -306,8 +306,8 @@ function HackathonInfoSection({
           </div>
           <div className="flex-1">
             <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">JUDGE CODE:</label>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <code className="border border-[#00B4FF]/20 bg-black px-4 py-2 text-base tracking-widest text-[#00B4FF] font-bold">
+            <div className="mt-2 flex flex-col gap-2">
+              <code className="border border-[#00B4FF]/20 bg-black px-4 py-2 text-base tracking-widest text-[#00B4FF] font-bold break-all">
                 {hackathon.judgeJoinCode ?? "—"}
               </code>
               <div className="flex items-center gap-2">
@@ -324,7 +324,7 @@ function HackathonInfoSection({
         </div>
 
         {/* Status toggle */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#1F1F1F] pt-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
           <div>
             <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">STATUS:</label>
             <p className="text-xs text-[#333333] mt-0.5">
@@ -345,7 +345,7 @@ function HackathonInfoSection({
         </div>
 
         {/* Cooldown */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#1F1F1F] pt-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
           <div>
             <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">SUBMISSION COOLDOWN:</label>
             <p className="text-xs text-[#333333] mt-0.5">Minutes competitors must wait before resubmitting.</p>
@@ -519,7 +519,7 @@ function PendingApprovalsSection({ hackathonId }: { hackathonId: Id<"hackathons"
       </div>
       <div className="space-y-2">
         {pendingMembers.map((member) => (
-          <div key={member._id} className="flex flex-wrap items-center justify-between gap-2 border border-[#FF6600]/20 bg-black px-4 py-3">
+          <div key={member._id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border border-[#FF6600]/20 bg-black px-4 py-3">
             <div className="flex items-center gap-3">
               <span className="text-sm font-bold text-white">{member.userName}</span>
               <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{member.role.toUpperCase()}</span>
@@ -591,7 +591,7 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
           {members.map((member) => {
             if (member.status === "pending") return null;
             return (
-              <div key={member._id} className="flex flex-wrap items-center justify-between gap-2 border border-[#1F1F1F] bg-[#111111] px-3 py-2">
+              <div key={member._id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border border-[#1F1F1F] bg-[#111111] px-3 py-2">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-sm text-white truncate">{member.userName}</span>
                   <span className={cn("tui-badge shrink-0", roleBadgeClass(member.role))}>

@@ -375,8 +375,8 @@ export default function HackathonDetailPage() {
                 <h3 className="mb-2 text-xs font-bold text-[#555555] uppercase tracking-widest">
                   ─ COMPETITOR JOIN CODE ─
                 </h3>
-                <div className="flex flex-wrap items-center gap-2">
-                  <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-lg tracking-widest text-[#00FF41] font-bold">
+                <div className="flex flex-col gap-2">
+                  <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-lg tracking-widest text-[#00FF41] font-bold break-all">
                     {hackathon?.competitorJoinCode ?? "—"}
                   </code>
                   <div className="flex items-center gap-2">
