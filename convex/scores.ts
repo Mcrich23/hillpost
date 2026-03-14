@@ -259,14 +259,17 @@ export const getFeedbackForSubmission = query({
     let judgeNameMap: Map<string, string> | undefined;
     if (isOrganizer) {
       judgeNameMap = new Map();
-      for (const jid of sortedJudgeIds) {
-        const member = await ctx.db
-          .query("hackathonMembers")
-          .withIndex("by_hackathonId_userId", (q) =>
-            q.eq("hackathonId", submission.hackathonId).eq("userId", jid)
-          )
-          .first();
-        judgeNameMap.set(jid, member?.userName ?? "Unknown Judge");
+      const members = await ctx.db
+        .query("hackathonMembers")
+        .withIndex("by_hackathonId", (q) =>
+          q.eq("hackathonId", submission.hackathonId)
+        )
+        .collect();
+      for (const member of members) {
+        judgeNameMap.set(
+          member.userId,
+          member.userName ?? "Unknown Judge"
+        );
       }
     }
 
