@@ -33,6 +33,7 @@ export const get = query({
             teamName: team.name,
             latestSubmission: null,
             averageScore: 0,
+            overallScore: 0,
             categoryScores: sortedCategories.map((c) => ({
               categoryId: c._id,
               categoryName: c.name,
@@ -92,6 +93,12 @@ export const get = query({
           }
         }
 
+        // Overall score: sum of per-category averages (full tally)
+        const overallScore = categoryScores.reduce(
+          (sum, cs) => sum + cs.averageScore,
+          0
+        );
+
         // Count unique judges
         const uniqueJudges = new Set(scores.map((s) => s.judgeId));
 
@@ -100,6 +107,7 @@ export const get = query({
           teamName: team.name,
           latestSubmission,
           averageScore,
+          overallScore,
           categoryScores,
           totalJudgeCount: uniqueJudges.size,
           rank: 0,
@@ -113,6 +121,12 @@ export const get = query({
       entry.rank = index + 1;
     });
 
-    return leaderboard;
+    // Max possible score (sum of all category maxScores)
+    const maxPossibleScore = sortedCategories.reduce(
+      (sum, c) => sum + c.maxScore,
+      0
+    );
+
+    return { entries: leaderboard, maxPossibleScore };
   },
 });
