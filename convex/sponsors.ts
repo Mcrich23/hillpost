@@ -140,6 +140,33 @@ export const reorder = mutation({
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
     await verifyOrganizer(ctx, args.hackathonId, userId);
+
+    // Fetch all sponsors for this hackathon to validate ownership and count.
+    const sponsors = await ctx.db
+      .query("sponsors")
+      .withIndex("by_hackathonId_order", (q) =>
+        q.eq("hackathonId", args.hackathonId)
+      )
+      .collect();
+
+    const validSponsorIds = new Set(sponsors.map((s) => s._id));
+
+    // Ensure the payload includes each sponsor exactly once.
+    if (args.sponsorIds.length !== sponsors.length) {
+      throw new Error("Reorder payload must include each sponsor exactly once");
+    }
+
+    const seen = new Set<Id<"sponsors">>();
+    for (const id of args.sponsorIds) {
+      if (!validSponsorIds.has(id)) {
+        throw new Error("Sponsor does not belong to this hackathon");
+      }
+      if (seen.has(id)) {
+        throw new Error("Duplicate sponsorId in reorder payload");
+      }
+      seen.add(id);
+    }
+
     await Promise.all(
       args.sponsorIds.map((id, index) => ctx.db.patch(id, { order: index }))
     );
