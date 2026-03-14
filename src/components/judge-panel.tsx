@@ -298,14 +298,11 @@ interface ScoringFormProps {
 
 function ScoringForm({ submissionId, categories }: ScoringFormProps) {
   const myScores = useQuery(api.scores.getMyScoresForSubmission, { submissionId });
-  const myFeedback = useQuery(api.scores.getMyFeedbackForSubmission, { submissionId });
   const submitScore = useMutation(api.scores.submit);
-  const submitFeedbackMut = useMutation(api.scores.submitFeedback);
 
   const [scores, setScores] = useState<Record<string, number>>({});
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedbacks, setFeedbacks] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState<string | null>(null);
-  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
   const getExistingScore = (categoryId: Id<"categories">) => {
     return myScores?.find((s) => s.categoryId === categoryId);
@@ -317,35 +314,23 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
     return existing?.score ?? Math.floor(maxScore / 2);
   };
 
-  const getCurrentFeedback = () => {
-    if (feedback !== null) return feedback;
-    return myFeedback?.feedback ?? "";
+  const getCurrentFeedback = (categoryId: Id<"categories">) => {
+    if (feedbacks[categoryId] !== undefined) return feedbacks[categoryId];
+    const existing = getExistingScore(categoryId);
+    return existing?.feedback ?? "";
   };
 
   const handleSubmitScore = async (categoryId: Id<"categories">, maxScore: number) => {
     setSubmitting(categoryId);
     try {
       const score = getCurrentScore(categoryId, maxScore);
-      await submitScore({ submissionId, categoryId, score });
+      const feedback = getCurrentFeedback(categoryId);
+      await submitScore({ submissionId, categoryId, score, feedback: feedback || undefined });
       toast.success("Score submitted!");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to submit score");
     } finally {
       setSubmitting(null);
-    }
-  };
-
-  const handleSubmitFeedback = async () => {
-    const text = getCurrentFeedback().trim();
-    if (!text) return;
-    setSubmittingFeedback(true);
-    try {
-      await submitFeedbackMut({ submissionId, feedback: text });
-      toast.success("Feedback saved!");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to save feedback");
-    } finally {
-      setSubmittingFeedback(false);
     }
   };
 
@@ -361,6 +346,7 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
         categories.map((cat) => {
           const existing = getExistingScore(cat._id);
           const currentScore = getCurrentScore(cat._id, cat.maxScore);
+          const currentFeedback = getCurrentFeedback(cat._id);
           const scorePercent = Math.round((currentScore / cat.maxScore) * 10);
           const filledBlocks = "█".repeat(scorePercent);
           const emptyBlocks = "░".repeat(10 - scorePercent);
@@ -407,6 +393,17 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
                   />
                 </div>
 
+                <div className="flex items-start gap-2">
+                  <MessageSquare className="mt-2 h-3.5 w-3.5 flex-shrink-0 text-[#555555]" />
+                  <textarea
+                    value={currentFeedback}
+                    onChange={(e) => setFeedbacks({ ...feedbacks, [cat._id]: e.target.value })}
+                    placeholder="Feedback (optional)"
+                    rows={2}
+                    className="tui-input flex-1"
+                  />
+                </div>
+
                 <button
                   onClick={() => handleSubmitScore(cat._id, cat.maxScore)}
                   disabled={submitting === cat._id}
@@ -428,42 +425,6 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
           );
         })
       )}
-
-      {/* Overall feedback — one per version */}
-      <div className="border border-[#1F1F1F] bg-black p-4">
-        <div className="mb-3">
-          <div className="flex items-center gap-2 mb-1">
-            <MessageSquare className="h-3.5 w-3.5 text-[#00B4FF]" />
-            <p className="text-xs font-bold text-white uppercase tracking-widest">OVERALL FEEDBACK</p>
-          </div>
-          <p className="text-xs text-[#555555]">One set of feedback for this version</p>
-        </div>
-
-        <textarea
-          value={getCurrentFeedback()}
-          onChange={(e) => setFeedback(e.target.value)}
-          placeholder="Write your overall feedback for this submission..."
-          rows={4}
-          className="tui-input w-full mb-3"
-        />
-
-        <button
-          onClick={handleSubmitFeedback}
-          disabled={submittingFeedback || !getCurrentFeedback().trim()}
-          className={cn(
-            "px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50",
-            myFeedback?.feedback
-              ? "border border-[#00B4FF] text-[#00B4FF] hover:bg-[#00B4FF] hover:text-black"
-              : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
-          )}
-        >
-          {submittingFeedback
-            ? "SAVING..."
-            : myFeedback?.feedback
-              ? "[ UPDATE FEEDBACK ]"
-              : "[ SUBMIT FEEDBACK → ]"}
-        </button>
-      </div>
     </div>
   );
 }

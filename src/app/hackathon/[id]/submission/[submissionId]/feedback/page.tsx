@@ -39,7 +39,7 @@ export default function FeedbackPage() {
   const [selectedIteration, setSelectedIteration] = useState<number | null>(
     null
   );
-  const [expandedJudge, setExpandedJudge] = useState<string | null>(null);
+  const [expandedJudge, setExpandedJudge] = useState<number | null>(null);
 
   if (
     submission === undefined ||
@@ -179,23 +179,25 @@ export default function FeedbackPage() {
 
       {/* Judge cards */}
       <div className="space-y-3">
-        {judges.map((judge) => {
-          const isExpanded = expandedJudge === judge.label;
+        {judges.map((judge, idx) => {
+          const isExpanded = expandedJudge === idx;
           const totalScore = judge.categoryScores.reduce(
             (sum, cs) => sum + (cs.score ?? 0),
             0
           );
           const maxTotal = categories.reduce((sum, c) => sum + c.maxScore, 0);
-          const hasFeedback = !!judge.feedback;
+          const hasFeedback = judge.categoryScores.some(
+            (cs) => cs.feedback
+          );
 
           return (
             <div
-              key={judge.label}
+              key={idx}
               className="border border-[#1F1F1F] bg-[#0A0A0A] overflow-hidden"
             >
               {/* Judge header — always visible */}
               <button
-                onClick={() => setExpandedJudge(isExpanded ? null : judge.label)}
+                onClick={() => setExpandedJudge(isExpanded ? null : idx)}
                 className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#111111] transition-colors"
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -225,7 +227,6 @@ export default function FeedbackPage() {
               {/* Expanded content */}
               {isExpanded && (
                 <div className="border-t border-[#1F1F1F] px-5 py-4 space-y-4">
-                  {/* Category scores */}
                   {categories.map((cat) => {
                     const cs = judge.categoryScores.find(
                       (s) => s.categoryId === cat._id
@@ -247,26 +248,16 @@ export default function FeedbackPage() {
                             </span>
                           )}
                         </div>
+                        {cs?.feedback && (
+                          <div className="mt-1 border-l-2 border-[#00B4FF]/30 pl-3">
+                            <p className="text-xs text-[#AAAAAA] leading-relaxed whitespace-pre-wrap">
+                              {cs.feedback}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
-
-                  {/* Overall feedback */}
-                  {judge.feedback && (
-                    <div className="border-t border-[#1F1F1F] pt-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MessageSquare className="h-3 w-3 text-[#00B4FF]" />
-                        <span className="text-xs font-bold text-[#00B4FF] uppercase tracking-widest">
-                          FEEDBACK
-                        </span>
-                      </div>
-                      <div className="border-l-2 border-[#00B4FF]/30 pl-3">
-                        <p className="text-xs text-[#AAAAAA] leading-relaxed whitespace-pre-wrap">
-                          {judge.feedback}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>

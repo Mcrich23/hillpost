@@ -96,20 +96,6 @@ export default defineSchema({
     ])
     .index("by_judgeId", ["judgeId"]),
 
-  judgeFeedback: defineTable({
-    submissionId: v.id("submissions"),
-    judgeId: v.string(),
-    feedback: v.string(),
-    submissionCount: v.number(),
-    updatedAt: v.number(),
-  })
-    .index("by_submissionId", ["submissionId"])
-    .index("by_submissionId_judgeId_submissionCount", [
-      "submissionId",
-      "judgeId",
-      "submissionCount",
-    ]),
-
   sponsors: defineTable({
     hackathonId: v.id("hackathons"),
     name: v.string(),
