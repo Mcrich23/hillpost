@@ -198,14 +198,19 @@ export default function SubmissionDetailPage() {
       )}
 
       {/* Feedback link */}
-      {membership && (membership.role === "competitor" || membership.role === "organizer") && (
-        <Link
-          href={`/hackathon/${hackathonId}/submission/${submissionId}/feedback`}
-          className="mb-4 flex items-center gap-2 border border-[#00B4FF]/30 bg-[#00B4FF08] px-5 py-4 text-xs font-bold text-[#00B4FF] uppercase tracking-wider hover:border-[#00B4FF] hover:bg-[#00B4FF] hover:text-black transition-colors"
-        >
-          <MessageSquare className="h-4 w-4" />
-          VIEW JUDGE FEEDBACK →
-        </Link>
+      {membership && (
+        (membership.role === "organizer" ||
+          (membership.role === "competitor" &&
+            submission &&
+            membership.teamId === submission.teamId)) && (
+          <Link
+            href={`/hackathon/${hackathonId}/submission/${submissionId}/feedback`}
+            className="mb-4 flex items-center gap-2 border border-[#00B4FF]/30 bg-[#00B4FF08] px-5 py-4 text-xs font-bold text-[#00B4FF] uppercase tracking-wider hover:border-[#00B4FF] hover:bg-[#00B4FF] hover:text-black transition-colors"
+          >
+            <MessageSquare className="h-4 w-4" />
+            VIEW JUDGE FEEDBACK →
+          </Link>
+        )
       )}
 
       {/* Team Members */}
