@@ -1,7 +1,7 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../../../../convex/_generated/api";
-import { Id } from "../../../../../../convex/_generated/dataModel";
+import type { Id } from "../../../../../../convex/_generated/dataModel";
 
 export async function generateMetadata({
   params,

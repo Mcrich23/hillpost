@@ -6,7 +6,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)",
   "/leaderboard(.*)",
   "/hackathon/(.*)/leaderboard",
-  "/hackathon/(.*)/submission/(.*)",
+  "/hackathon/:id/submission/:submissionId",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
