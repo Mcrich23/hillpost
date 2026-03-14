@@ -171,6 +171,11 @@ export const getFeedbackForSubmission = query({
       .first();
     if (!membership) return null;
 
+    // Only approved judges are allowed to access feedback as judges.
+    if (membership.role === "judge" && membership.status !== "approved") {
+      return null;
+    }
+
     const isOrganizer = membership.role === "organizer";
     const isJudge = membership.role === "judge";
     const isCompetitor = membership.role === "competitor";
