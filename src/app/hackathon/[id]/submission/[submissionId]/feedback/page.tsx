@@ -265,9 +265,9 @@ export default function FeedbackPage() {
                           FEEDBACK
                         </span>
                       </div>
-                      {uniqueFeedback.map((text, i) => (
+                      {uniqueFeedback.map((text) => (
                         <div
-                          key={i}
+                          key={text}
                           className="border-l-2 border-[#00B4FF]/30 pl-3 mb-2 last:mb-0"
                         >
                           <p className="text-xs text-[#AAAAAA] leading-relaxed whitespace-pre-wrap">
