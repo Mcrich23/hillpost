@@ -103,22 +103,22 @@ export default function SubmissionDetailPage() {
 
       {/* Header */}
       <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="min-w-0 w-full">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <h1 className="text-xl font-bold text-white uppercase tracking-wide">{submission.name}</h1>
+              <h1 className="text-xl font-bold text-white uppercase tracking-wide break-words">{submission.name}</h1>
               {team && (
-                <span className="tui-badge border-[#555555] text-[#555555]">{team.name}</span>
+                <span className="tui-badge border-[#555555] text-[#555555] whitespace-nowrap">{team.name}</span>
               )}
               {submission.submissionCount > 1 && (
-                <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">v{submission.submissionCount}</span>
+                <span className="tui-badge border-[#00B4FF] text-[#00B4FF] whitespace-nowrap">v{submission.submissionCount}</span>
               )}
             </div>
             <p className="text-xs text-[#555555]">
               Submitted {format(new Date(submission.submittedAt), "MMM d, yyyy 'at' h:mm a")}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
             {projectHref && (
               <a
                 href={projectHref}
@@ -220,12 +220,12 @@ export default function SubmissionDetailPage() {
             </div>
             <div className="space-y-3">
               {categoryAverages.map((cat) => {
-                const barWidth = 20;
+                const barWidth = 10;
                 const filled = cat.maxScore > 0 ? Math.round((cat.avg / cat.maxScore) * barWidth) : 0;
                 const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
 
                 return (
-                  <div key={cat._id} className="flex items-center justify-between gap-4 border border-[#1F1F1F] bg-black px-4 py-3">
+                  <div key={cat._id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 border border-[#1F1F1F] bg-black px-4 py-3">
                     <span className="text-xs font-bold text-white uppercase tracking-widest shrink-0">
                       {cat.name}
                     </span>
