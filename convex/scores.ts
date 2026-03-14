@@ -112,8 +112,37 @@ export const getForSubmission = query({
       )
       .collect();
 
-    return allScores.filter(
+    const currentIterationScores = allScores.filter(
       (s) => (s.submissionCount ?? 1) === currentIteration
+    );
+
+    // Aggregate scores by category to avoid exposing per-judge rows
+    const aggregatesByCategory = new Map<
+      string,
+      { categoryId: Id<"categories">; totalScore: number; judgeCount: number }
+    >();
+
+    for (const score of currentIterationScores) {
+      const key = score.categoryId as Id<"categories">;
+      const existing = aggregatesByCategory.get(key);
+      if (existing) {
+        existing.totalScore += score.score;
+        existing.judgeCount += 1;
+      } else {
+        aggregatesByCategory.set(key, {
+          categoryId: key,
+          totalScore: score.score,
+          judgeCount: 1,
+        });
+      }
+    }
+
+    return Array.from(aggregatesByCategory.values()).map(
+      ({ categoryId, totalScore, judgeCount }) => ({
+        categoryId,
+        averageScore: judgeCount > 0 ? totalScore / judgeCount : 0,
+        judgeCount,
+      })
     );
   },
 });
