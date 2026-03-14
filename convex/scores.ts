@@ -355,7 +355,10 @@ export const getFeedbackForSubmission = query({
     // For judges with only feedback (no scores), use their feedback updatedAt
     for (const fb of allFeedback) {
       if (!earliestScoredAt.has(fb.judgeId)) {
-        earliestScoredAt.set(fb.judgeId, fb.updatedAt);
+        const prev = earliestScoredAt.get(fb.judgeId);
+        if (prev === undefined || fb.updatedAt < prev) {
+          earliestScoredAt.set(fb.judgeId, fb.updatedAt);
+        }
       }
     }
 
