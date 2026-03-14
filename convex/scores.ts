@@ -178,7 +178,6 @@ export const getFeedbackForSubmission = query({
 
     const isOrganizer = membership.role === "organizer";
     const isJudge = membership.role === "judge";
-    const isCompetitor = membership.role === "competitor";
 
     // Competitors (and any non-organizer/non-judge roles) may only see
     // feedback for submissions from their own team.
