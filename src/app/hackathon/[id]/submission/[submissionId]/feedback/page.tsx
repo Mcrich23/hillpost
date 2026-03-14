@@ -27,11 +27,16 @@ export default function FeedbackPage() {
   const hackathonId = params.id as Id<"hackathons">;
   const submissionId = params.submissionId as Id<"submissions">;
 
-  const submission = useQuery(api.submissions.get, { submissionId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
   const feedback = useQuery(api.scores.getFeedbackForSubmission, {
     submissionId,
   });
+
+  // Only fetch the submission (and thus its team) once authorized feedback exists.
+  const submission = useQuery(
+    api.submissions.get,
+    feedback ? { submissionId } : "skip"
+  );
 
   const teamId = submission?.teamId;
   const team = useQuery(api.teams.get, teamId ? { teamId } : "skip");
@@ -42,9 +47,9 @@ export default function FeedbackPage() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
   if (
-    submission === undefined ||
     membership === undefined ||
-    feedback === undefined
+    feedback === undefined ||
+    (feedback && submission === undefined)
   ) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
