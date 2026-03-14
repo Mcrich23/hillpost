@@ -219,6 +219,9 @@ export default function HackathonDetailPage() {
               {role.toUpperCase()}
             </span>
           )}
+          <span className="tui-badge border-[#555555] text-[#555555]">
+            {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24)))} {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))) === 1 ? "DAY" : "DAYS"} LEFT
+          </span>
         </div>
       </div>
 
@@ -251,6 +254,7 @@ export default function HackathonDetailPage() {
       {activeTab === "overview" && (
         <div className="space-y-6">
           {/* Stats Grid */}
+          {role === "organizer" && (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               {
@@ -291,6 +295,7 @@ export default function HackathonDetailPage() {
               </div>
             ))}
           </div>
+          )}
 
           <div className="grid gap-4 md:grid-cols-2">
             <Link
