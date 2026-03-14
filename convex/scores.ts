@@ -49,7 +49,7 @@ export const submit = mutation({
     const currentIteration = submission.submissionCount ?? 1;
 
     // Upsert: check if this judge already scored this submission+category for the current iteration
-    const candidates = await ctx.db
+    const existing = await ctx.db
       .query("scores")
       .withIndex("by_submissionId_categoryId_judgeId", (q) =>
         q
@@ -57,22 +57,17 @@ export const submit = mutation({
           .eq("categoryId", args.categoryId)
           .eq("judgeId", judgeId)
       )
-      .collect();
-    const existing = candidates.find(
-      (s) => (s.submissionCount ?? 1) === currentIteration
-    ) ?? null;
+      .filter((q) =>
+        q.eq(q.field("submissionCount"), currentIteration)
+      )
+      .first();
 
     if (existing) {
-      // Backfill legacy scores that don't have submissionCount set
-      const patchData: Record<string, unknown> = {
+      await ctx.db.patch(existing._id, {
         score: args.score,
         feedback: args.feedback,
         scoredAt: Date.now(),
-      };
-      if (existing.submissionCount === undefined) {
-        patchData.submissionCount = 1;
-      }
-      await ctx.db.patch(existing._id, patchData);
+      });
 
       // Ensure judge is in judgedBy array
       if (!submission.judgedBy.includes(judgeId)) {
