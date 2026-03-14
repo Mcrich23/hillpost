@@ -79,7 +79,14 @@ export const get = query({
 
         // Overall average score across all categories and judges
         const totalScore = scores.reduce((sum, s) => sum + s.score, 0);
-        let averageScore = scores.length > 0 ? totalScore / scores.length : 0;
+        const rawAverageScore = scores.length > 0 ? totalScore / scores.length : 0;
+        let averageScore = rawAverageScore;
+
+        // Overall score: sum of per-category averages (full tally)
+        let overallScore = categoryScores.reduce(
+          (sum, cs) => sum + cs.averageScore,
+          0
+        );
 
         // Apply threshold logic for resubmissions
         if (
@@ -90,14 +97,9 @@ export const get = query({
           const threshold = latestSubmission.baselineJudgeCount * 0.75;
           if (currentJudges < threshold) {
             averageScore = Math.max(averageScore, latestSubmission.baselineScore);
+            overallScore = Math.max(overallScore, latestSubmission.baselineScore);
           }
         }
-
-        // Overall score: sum of per-category averages (full tally)
-        const overallScore = categoryScores.reduce(
-          (sum, cs) => sum + cs.averageScore,
-          0
-        );
 
         // Count unique judges
         const uniqueJudges = new Set(scores.map((s) => s.judgeId));
@@ -115,8 +117,8 @@ export const get = query({
       })
     );
 
-    // Sort by average score descending and assign ranks
-    leaderboard.sort((a, b) => b.averageScore - a.averageScore);
+    // Sort by overall score descending and assign ranks
+    leaderboard.sort((a, b) => b.overallScore - a.overallScore);
     leaderboard.forEach((entry, index) => {
       entry.rank = index + 1;
     });
