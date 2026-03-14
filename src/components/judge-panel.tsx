@@ -124,12 +124,12 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
               <div key={sub._id} className="border border-[#1F1F1F] bg-[#111111]">
                 <button
                   onClick={() => setExpandedId(expandedId === sub._id ? null : sub._id)}
-                  className="flex w-full items-center justify-between p-4 text-left hover:bg-[#1a1a1a] transition-colors"
+                  className="flex w-full items-start sm:items-center justify-between p-4 text-left hover:bg-[#1a1a1a] transition-colors gap-4"
                 >
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
-                      <p className="text-sm font-bold text-white uppercase tracking-wide">{sub.name}</p>
-                      <span className="tui-badge border-[#555555] text-[#555555]">
+                      <p className="text-sm font-bold text-white uppercase tracking-wide break-words">{sub.name}</p>
+                      <span className="tui-badge border-[#555555] text-[#555555] whitespace-nowrap">
                         {teamMap.get(sub.teamId) ?? "UNKNOWN TEAM"}
                       </span>
                       {sub.submissionCount > 1 && (
@@ -174,7 +174,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                         </div>
                       );
                     })()}
-                    <div className="mt-1 flex items-center gap-3 text-xs text-[#333333]">
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-[#333333]">
                       <span>{format(new Date(sub.submittedAt), "MMM d, yyyy h:mm a")}</span>
                       {projectHref && (
                         <a

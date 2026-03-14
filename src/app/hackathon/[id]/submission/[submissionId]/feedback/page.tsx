@@ -10,8 +10,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 function ScoreBar({ score, maxScore }: { score: number; maxScore: number }) {
-  const barWidth = 20;
-  const filled = maxScore > 0 ? Math.round((score / maxScore) * barWidth) : 0;
+  const barWidth = 10;
+  const filled = Math.min(barWidth, Math.max(0, maxScore > 0 ? Math.round((score / maxScore) * barWidth) : 0));
   const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
   return (
     <span className="font-mono text-xs">
@@ -221,10 +221,10 @@ export default function FeedbackPage() {
                 onClick={() =>
                   setExpandedCategory(isExpanded ? null : cat._id)
                 }
-                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#111111] transition-colors"
+                className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 px-5 py-4 text-left hover:bg-[#111111] transition-colors"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-xs font-bold text-white uppercase tracking-widest">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 min-w-0">
+                  <span className="text-xs font-bold text-white uppercase tracking-widest break-words">
                     {cat.name}
                   </span>
                   {avgScore != null && (
@@ -234,7 +234,7 @@ export default function FeedbackPage() {
                     <MessageSquare className="h-3 w-3 text-[#00B4FF] shrink-0" />
                   )}
                 </div>
-                <span className="text-xs text-[#555555] uppercase tracking-wider shrink-0 ml-3">
+                <span className="text-xs text-[#555555] uppercase tracking-wider shrink-0 sm:ml-3">
                   {isExpanded ? "[ COLLAPSE ]" : "[ EXPAND ]"}
                 </span>
               </button>
@@ -247,10 +247,10 @@ export default function FeedbackPage() {
                       key={entry.label}
                       className="border border-[#1F1F1F] bg-black p-3"
                     >
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                         <span
                           className={cn(
-                            "tui-badge text-[10px]",
+                            "tui-badge text-[10px] whitespace-nowrap",
                             isOrganizer
                               ? "border-[#FF6600] text-[#FF6600]"
                               : "border-[#00B4FF] text-[#00B4FF]"

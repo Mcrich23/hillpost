@@ -289,38 +289,42 @@ function HackathonInfoSection({
         <div className="flex flex-col gap-4 sm:flex-row border-t border-[#1F1F1F] pt-4">
           <div className="flex-1">
             <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">COMPETITOR CODE:</label>
-            <div className="mt-2 flex items-center gap-2">
-              <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-base tracking-widest text-[#00FF41] font-bold">
+            <div className="mt-2 flex flex-col gap-2">
+              <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-base tracking-widest text-[#00FF41] font-bold break-all">
                 {hackathon.competitorJoinCode ?? "—"}
               </code>
-              <button onClick={copyCompetitorCode} disabled={!hackathon.competitorJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30">
-                {copiedCompetitor ? <Check className="h-4 w-4 text-[#00FF41]" /> : <Copy className="h-4 w-4" />}
-              </button>
-              <button onClick={copyCompetitorLink} disabled={!hackathon.competitorJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30">
-                {copiedCompetitorLink ? <Check className="h-4 w-4 text-[#00FF41]" /> : <LinkIcon className="h-4 w-4" />}
-              </button>
-              {hackathon.competitorJoinCode && <QrCodeButton path={`/join/${hackathon.competitorJoinCode}`} label="Competitor Join QR" />}
+              <div className="flex items-center gap-2">
+                <button onClick={copyCompetitorCode} disabled={!hackathon.competitorJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30" title="Copy competitor code" aria-label="Copy competitor code">
+                  {copiedCompetitor ? <Check className="h-4 w-4 text-[#00FF41]" /> : <Copy className="h-4 w-4" />}
+                </button>
+                <button onClick={copyCompetitorLink} disabled={!hackathon.competitorJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30" title="Copy competitor join link" aria-label="Copy competitor join link">
+                  {copiedCompetitorLink ? <Check className="h-4 w-4 text-[#00FF41]" /> : <LinkIcon className="h-4 w-4" />}
+                </button>
+                {hackathon.competitorJoinCode && <QrCodeButton path={`/join/${hackathon.competitorJoinCode}`} label="Competitor Join QR" />}
+              </div>
             </div>
           </div>
           <div className="flex-1">
             <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">JUDGE CODE:</label>
-            <div className="mt-2 flex items-center gap-2">
-              <code className="border border-[#00B4FF]/20 bg-black px-4 py-2 text-base tracking-widest text-[#00B4FF] font-bold">
+            <div className="mt-2 flex flex-col gap-2">
+              <code className="border border-[#00B4FF]/20 bg-black px-4 py-2 text-base tracking-widest text-[#00B4FF] font-bold break-all">
                 {hackathon.judgeJoinCode ?? "—"}
               </code>
-              <button onClick={copyJudgeCode} disabled={!hackathon.judgeJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30">
-                {copiedJudge ? <Check className="h-4 w-4 text-[#00FF41]" /> : <Copy className="h-4 w-4" />}
-              </button>
-              <button onClick={copyJudgeLink} disabled={!hackathon.judgeJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30">
-                {copiedJudgeLink ? <Check className="h-4 w-4 text-[#00FF41]" /> : <LinkIcon className="h-4 w-4" />}
-              </button>
-              {hackathon.judgeJoinCode && <QrCodeButton path={`/join/${hackathon.judgeJoinCode}`} label="Judge Join QR" />}
+              <div className="flex items-center gap-2">
+                <button onClick={copyJudgeCode} disabled={!hackathon.judgeJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30" title="Copy judge code" aria-label="Copy judge code">
+                  {copiedJudge ? <Check className="h-4 w-4 text-[#00FF41]" /> : <Copy className="h-4 w-4" />}
+                </button>
+                <button onClick={copyJudgeLink} disabled={!hackathon.judgeJoinCode} className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors disabled:opacity-30" title="Copy judge join link" aria-label="Copy judge join link">
+                  {copiedJudgeLink ? <Check className="h-4 w-4 text-[#00FF41]" /> : <LinkIcon className="h-4 w-4" />}
+                </button>
+                {hackathon.judgeJoinCode && <QrCodeButton path={`/join/${hackathon.judgeJoinCode}`} label="Judge Join QR" />}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Status toggle */}
-        <div className="flex items-center justify-between border-t border-[#1F1F1F] pt-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
           <div>
             <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">STATUS:</label>
             <p className="text-xs text-[#333333] mt-0.5">
@@ -341,7 +345,7 @@ function HackathonInfoSection({
         </div>
 
         {/* Cooldown */}
-        <div className="flex items-center justify-between border-t border-[#1F1F1F] pt-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
           <div>
             <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">SUBMISSION COOLDOWN:</label>
             <p className="text-xs text-[#333333] mt-0.5">Minutes competitors must wait before resubmitting.</p>
@@ -515,7 +519,7 @@ function PendingApprovalsSection({ hackathonId }: { hackathonId: Id<"hackathons"
       </div>
       <div className="space-y-2">
         {pendingMembers.map((member) => (
-          <div key={member._id} className="flex items-center justify-between border border-[#FF6600]/20 bg-black px-4 py-3">
+          <div key={member._id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border border-[#FF6600]/20 bg-black px-4 py-3">
             <div className="flex items-center gap-3">
               <span className="text-sm font-bold text-white">{member.userName}</span>
               <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{member.role.toUpperCase()}</span>
@@ -587,19 +591,19 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
           {members.map((member) => {
             if (member.status === "pending") return null;
             return (
-              <div key={member._id} className="flex items-center justify-between border border-[#1F1F1F] bg-[#111111] px-3 py-2">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-white">{member.userName}</span>
-                  <span className={cn("tui-badge", roleBadgeClass(member.role))}>
+              <div key={member._id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border border-[#1F1F1F] bg-[#111111] px-3 py-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-sm text-white truncate">{member.userName}</span>
+                  <span className={cn("tui-badge shrink-0", roleBadgeClass(member.role))}>
                     {member.role.toUpperCase()}
                   </span>
                   {member.status === "rejected" && (
-                    <span className="tui-badge border-red-500/50 text-red-400">REJECTED</span>
+                    <span className="tui-badge shrink-0 border-red-500/50 text-red-400">REJECTED</span>
                   )}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 shrink-0">
                   {changingRole === member._id ? (
-                    <div className="flex gap-1">
+                    <div className="flex flex-wrap gap-1">
                       {(["organizer", "judge", "competitor"] as const).map((r) => (
                         <button key={r} onClick={() => handleRoleChange(member._id, r)}
                           className={cn("px-2 py-1 text-xs uppercase tracking-wider transition-colors",
