@@ -46,8 +46,10 @@ export const submit = mutation({
       );
     }
 
-    // Upsert: check if this judge already scored this submission+category
-    const existing = await ctx.db
+    const currentIteration = submission.submissionCount;
+
+    // Upsert: check if this judge already scored this submission+category for the current iteration
+    const candidates = await ctx.db
       .query("scores")
       .withIndex("by_submissionId_categoryId_judgeId", (q) =>
         q
@@ -55,7 +57,11 @@ export const submit = mutation({
           .eq("categoryId", args.categoryId)
           .eq("judgeId", judgeId)
       )
-      .first();
+      .collect();
+
+    const existing = candidates.find(
+      (s) => (s.submissionCount ?? 1) === currentIteration
+    );
 
     if (existing) {
       await ctx.db.patch(existing._id, {
@@ -81,6 +87,7 @@ export const submit = mutation({
       score: args.score,
       feedback: args.feedback,
       scoredAt: Date.now(),
+      submissionCount: currentIteration,
     });
 
     if (!submission.judgedBy.includes(judgeId)) {
@@ -96,12 +103,19 @@ export const submit = mutation({
 export const getForSubmission = query({
   args: { submissionId: v.id("submissions") },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const submission = await ctx.db.get(args.submissionId);
+    const currentIteration = submission?.submissionCount ?? 1;
+
+    const allScores = await ctx.db
       .query("scores")
       .withIndex("by_submissionId", (q) =>
         q.eq("submissionId", args.submissionId)
       )
       .collect();
+
+    return allScores.filter(
+      (s) => (s.submissionCount ?? 1) === currentIteration
+    );
   },
 });
 
@@ -115,6 +129,9 @@ export const getMyScoresForSubmission = query({
       return [];
     }
 
+    const submission = await ctx.db.get(args.submissionId);
+    const currentIteration = submission?.submissionCount ?? 1;
+
     const allScores = await ctx.db
       .query("scores")
       .withIndex("by_submissionId", (q) =>
@@ -122,15 +139,20 @@ export const getMyScoresForSubmission = query({
       )
       .collect();
 
-    return allScores.filter((s) => s.judgeId === userId);
+    return allScores.filter(
+      (s) =>
+        s.judgeId === userId &&
+        (s.submissionCount ?? 1) === currentIteration
+    );
   },
 });
 
 /**
- * Returns scores/feedback for a submission grouped by judge.
+ * Returns scores/feedback for a submission grouped by iteration and judge.
  * - Organizers see judge names.
  * - Competitors and judges see anonymous labels ("Judge 1", "Judge 2", …)
  *   and judge IDs are NOT sent to the client.
+ * - Returns all iterations so competitors can see score history.
  */
 export const getFeedbackForSubmission = query({
   args: { submissionId: v.id("submissions") },
@@ -152,7 +174,7 @@ export const getFeedbackForSubmission = query({
 
     const isOrganizer = membership.role === "organizer";
 
-    // Fetch all scores for this submission
+    // Fetch all scores for this submission (all iterations)
     const scores = await ctx.db
       .query("scores")
       .withIndex("by_submissionId", (q) =>
@@ -160,7 +182,13 @@ export const getFeedbackForSubmission = query({
       )
       .collect();
 
-    if (scores.length === 0) return { judges: [], categories: [] };
+    if (scores.length === 0) {
+      return {
+        iterations: [],
+        categories: [],
+        currentSubmissionCount: submission.submissionCount,
+      };
+    }
 
     // Fetch categories for this hackathon
     const categories = await ctx.db
@@ -171,16 +199,24 @@ export const getFeedbackForSubmission = query({
       .collect();
     const sortedCategories = categories.sort((a, b) => a.order - b.order);
 
-    // Group scores by judgeId
-    const judgeScoresMap = new Map<
-      string,
-      Array<{ categoryId: Id<"categories">; score: number; feedback?: string; scoredAt: number }>
+    // Group scores by iteration (submissionCount)
+    const iterationMap = new Map<
+      number,
+      Array<{
+        judgeId: string;
+        categoryId: Id<"categories">;
+        score: number;
+        feedback?: string;
+        scoredAt: number;
+      }>
     >();
     for (const s of scores) {
-      if (!judgeScoresMap.has(s.judgeId)) {
-        judgeScoresMap.set(s.judgeId, []);
+      const iter = s.submissionCount ?? 1;
+      if (!iterationMap.has(iter)) {
+        iterationMap.set(iter, []);
       }
-      judgeScoresMap.get(s.judgeId)!.push({
+      iterationMap.get(iter)!.push({
+        judgeId: s.judgeId,
         categoryId: s.categoryId,
         score: s.score,
         feedback: s.feedback,
@@ -188,10 +224,21 @@ export const getFeedbackForSubmission = query({
       });
     }
 
-    // Build judge entries — stable ordering by earliest scoredAt
-    const judgeIds = [...judgeScoresMap.keys()].sort((a, b) => {
-      const aMin = Math.min(...judgeScoresMap.get(a)!.map((s) => s.scoredAt));
-      const bMin = Math.min(...judgeScoresMap.get(b)!.map((s) => s.scoredAt));
+    // Collect all unique judge IDs across all iterations for stable numbering
+    const allJudgeIds = new Set<string>();
+    for (const iterScores of iterationMap.values()) {
+      for (const s of iterScores) {
+        allJudgeIds.add(s.judgeId);
+      }
+    }
+    // Stable ordering by earliest scoredAt across all iterations
+    const sortedJudgeIds = [...allJudgeIds].sort((a, b) => {
+      const aMin = Math.min(
+        ...scores.filter((s) => s.judgeId === a).map((s) => s.scoredAt)
+      );
+      const bMin = Math.min(
+        ...scores.filter((s) => s.judgeId === b).map((s) => s.scoredAt)
+      );
       return aMin - bMin;
     });
 
@@ -199,7 +246,7 @@ export const getFeedbackForSubmission = query({
     let judgeNameMap: Map<string, string> | undefined;
     if (isOrganizer) {
       judgeNameMap = new Map();
-      for (const jid of judgeIds) {
+      for (const jid of sortedJudgeIds) {
         const member = await ctx.db
           .query("hackathonMembers")
           .withIndex("by_hackathonId_userId", (q) =>
@@ -210,33 +257,75 @@ export const getFeedbackForSubmission = query({
       }
     }
 
-    const judges = judgeIds.map((jid, index) => {
-      const judgeScores = judgeScoresMap.get(jid)!;
-      const categoryScores = sortedCategories.map((cat) => {
-        const entry = judgeScores.find((s) => s.categoryId === cat._id);
+    // Build a label map (same label for a judge across all iterations)
+    const judgeLabelMap = new Map<string, string>();
+    sortedJudgeIds.forEach((jid, index) => {
+      judgeLabelMap.set(
+        jid,
+        isOrganizer
+          ? (judgeNameMap!.get(jid) ?? `Judge ${index + 1}`)
+          : `Judge ${index + 1}`
+      );
+    });
+
+    // Build iterations array sorted by submissionCount descending (most recent first)
+    const iterationNumbers = [...iterationMap.keys()].sort((a, b) => b - a);
+
+    const iterations = iterationNumbers.map((iterNum) => {
+      const iterScores = iterationMap.get(iterNum)!;
+
+      // Group by judgeId within this iteration
+      const judgeScoresMap = new Map<
+        string,
+        Array<{ categoryId: Id<"categories">; score: number; feedback?: string }>
+      >();
+      for (const s of iterScores) {
+        if (!judgeScoresMap.has(s.judgeId)) {
+          judgeScoresMap.set(s.judgeId, []);
+        }
+        judgeScoresMap.get(s.judgeId)!.push({
+          categoryId: s.categoryId,
+          score: s.score,
+          feedback: s.feedback,
+        });
+      }
+
+      // Build judge entries for this iteration using global stable ordering
+      const judgeIdsInIter = sortedJudgeIds.filter((jid) =>
+        judgeScoresMap.has(jid)
+      );
+
+      const judges = judgeIdsInIter.map((jid) => {
+        const judgeScores = judgeScoresMap.get(jid)!;
+        const categoryScores = sortedCategories.map((cat) => {
+          const entry = judgeScores.find((s) => s.categoryId === cat._id);
+          return {
+            categoryId: cat._id,
+            score: entry?.score ?? null,
+            feedback: entry?.feedback ?? null,
+          };
+        });
+
         return {
-          categoryId: cat._id,
-          score: entry?.score ?? null,
-          feedback: entry?.feedback ?? null,
+          label: judgeLabelMap.get(jid)!,
+          categoryScores,
         };
       });
 
       return {
-        // Only include judge name for organizers; never send judgeId to non-organizers
-        label: isOrganizer
-          ? (judgeNameMap!.get(jid) ?? `Judge ${index + 1}`)
-          : `Judge ${index + 1}`,
-        categoryScores,
+        submissionCount: iterNum,
+        judges,
       };
     });
 
     return {
-      judges,
+      iterations,
       categories: sortedCategories.map((c) => ({
         _id: c._id,
         name: c.name,
         maxScore: c.maxScore,
       })),
+      currentSubmissionCount: submission.submissionCount,
     };
   },
 });

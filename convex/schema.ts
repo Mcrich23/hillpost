@@ -86,6 +86,7 @@ export default defineSchema({
     score: v.number(),
     feedback: v.optional(v.string()),
     scoredAt: v.number(),
+    submissionCount: v.optional(v.number()),
   })
     .index("by_submissionId", ["submissionId"])
     .index("by_submissionId_categoryId_judgeId", [

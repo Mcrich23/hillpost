@@ -5,7 +5,7 @@ import { api } from "../../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MessageSquare } from "lucide-react";
+import { ArrowLeft, MessageSquare, History } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,9 @@ export default function FeedbackPage() {
   const teamId = submission?.teamId;
   const team = useQuery(api.teams.get, teamId ? { teamId } : "skip");
 
+  const [selectedIteration, setSelectedIteration] = useState<number | null>(
+    null
+  );
   const [expandedJudge, setExpandedJudge] = useState<number | null>(null);
 
   if (
@@ -72,7 +75,17 @@ export default function FeedbackPage() {
   }
 
   const isOrganizer = membership.role === "organizer";
-  const { judges, categories } = feedback;
+  const { iterations, categories, currentSubmissionCount } = feedback;
+
+  // Default to the current (most recent) iteration
+  const activeIteration =
+    selectedIteration ?? currentSubmissionCount;
+  const currentIterData = iterations.find(
+    (it) => it.submissionCount === activeIteration
+  );
+  const judges = currentIterData?.judges ?? [];
+
+  const hasMultipleIterations = iterations.length > 1;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -109,14 +122,57 @@ export default function FeedbackPage() {
         )}
       </div>
 
-      {/* No scores yet */}
+      {/* Iteration selector */}
+      {hasMultipleIterations && (
+        <div className="mb-4 border border-[#1F1F1F] bg-[#0A0A0A] p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <History className="h-3.5 w-3.5 text-[#FF6600]" />
+            <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">
+              SCORE HISTORY
+            </span>
+          </div>
+          <div className="flex gap-0 border border-[#1F1F1F] overflow-x-auto">
+            {iterations.map((iter) => (
+              <button
+                key={iter.submissionCount}
+                onClick={() => {
+                  setSelectedIteration(iter.submissionCount);
+                  setExpandedJudge(null);
+                }}
+                className={cn(
+                  "px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-r border-[#1F1F1F] last:border-r-0 whitespace-nowrap",
+                  activeIteration === iter.submissionCount
+                    ? "bg-white text-black"
+                    : "bg-black text-[#555555] hover:text-white"
+                )}
+              >
+                v{iter.submissionCount}
+                {iter.submissionCount === currentSubmissionCount && (
+                  <span className="ml-1 text-[10px] text-[#00FF41]">
+                    ●
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          {activeIteration !== currentSubmissionCount && (
+            <p className="mt-2 text-xs text-[#FF6600]">
+              Viewing historical scores from v{activeIteration}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* No scores for this iteration */}
       {judges.length === 0 && (
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
           <p className="text-sm text-[#555555] uppercase tracking-wider">
-            NO SCORES YET
+            NO SCORES {hasMultipleIterations ? `FOR V${activeIteration}` : "YET"}
           </p>
           <p className="mt-2 text-xs text-[#333333]">
-            This submission has not been judged yet. Check back later.
+            {hasMultipleIterations
+              ? "No judges scored this iteration."
+              : "This submission has not been judged yet. Check back later."}
           </p>
         </div>
       )}
