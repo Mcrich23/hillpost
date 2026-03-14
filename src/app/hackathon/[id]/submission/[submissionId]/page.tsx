@@ -61,7 +61,7 @@ export default function SubmissionDetailPage() {
     }
   };
 
-  if (hackathon === undefined || submission === undefined || (teamId && team === undefined)) {
+  if (hackathon === undefined || submission === undefined || (teamId && team === undefined) || membership === undefined) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <p className="text-xs text-[#555555] uppercase tracking-widest">▓▓▓░░░ LOADING...</p>
@@ -93,13 +93,15 @@ export default function SubmissionDetailPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Back nav */}
-      <Link
-        href={`/hackathon/${hackathonId}/leaderboard`}
-        className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
-      >
-        <ArrowLeft className="h-3 w-3" />
-        BACK TO LEADERBOARD
-      </Link>
+      {membership && (
+        <Link
+          href={`/hackathon/${hackathonId}/leaderboard`}
+          className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          BACK TO LEADERBOARD
+        </Link>
+      )}
 
       {/* Header */}
       <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">

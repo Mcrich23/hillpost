@@ -14,8 +14,9 @@ export default function LeaderboardPage() {
 
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const leaderboardData = useQuery(api.leaderboard.get, { hackathonId });
+  const membership = useQuery(api.members.getMyMembership, { hackathonId });
 
-  if (hackathon === undefined || leaderboardData === undefined) {
+  if (hackathon === undefined || leaderboardData === undefined || membership === undefined) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="h-96 border border-[#1F1F1F] bg-[#0A0A0A] flex items-center justify-center">
@@ -62,20 +63,37 @@ export default function LeaderboardPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6">
-        <Link
-          href={`/hackathon/${hackathonId}`}
-          className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
-        >
-          <ArrowLeft className="h-3 w-3" />
-          Back to Hackathon
-        </Link>
+        {membership && (
+          <Link
+            href={`/hackathon/${hackathonId}`}
+            className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Back to Hackathon
+          </Link>
+        )}
 
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-bold text-white uppercase tracking-wide">
-              LIVE LEADERBOARD
-            </h1>
-            <p className="text-xs text-[#555555] uppercase tracking-wider mt-1">{hackathon.name}</p>
+            {!membership ? (
+              <>
+                <h1 className="text-2xl font-bold text-white uppercase tracking-wide">
+                  {hackathon.name}
+                </h1>
+                <p className="text-xs text-[#555555] uppercase tracking-wider mt-1">
+                  LIVE LEADERBOARD
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold text-white uppercase tracking-wide">
+                  LIVE LEADERBOARD
+                </h1>
+                <p className="text-xs text-[#555555] uppercase tracking-wider mt-1">
+                  {hackathon.name}
+                </p>
+              </>
+            )}
           </div>
           {hackathon.isActive && (
             <span className="flex items-center gap-2 text-xs text-[#00FF41] uppercase tracking-widest border border-[#00FF41]/30 px-3 py-1.5">
