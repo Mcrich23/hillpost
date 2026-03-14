@@ -110,6 +110,7 @@ export default defineSchema({
       )
     ),
     order: v.number(),
+    badgeText: v.optional(v.string()),
   })
     .index("by_hackathonId", ["hackathonId"])
     .index("by_hackathonId_order", ["hackathonId", "order"]),

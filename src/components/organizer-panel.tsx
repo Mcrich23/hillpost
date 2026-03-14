@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { FormEvent } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -18,6 +18,7 @@ import {
   UserX,
   ChevronUp,
   Link as LinkIcon,
+  GripVertical,
 } from "lucide-react";
 import { QrCodeButton } from "@/components/qr-code-overlay";
 
@@ -666,6 +667,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const createSponsor = useMutation(api.sponsors.create);
   const updateSponsor = useMutation(api.sponsors.update);
   const removeSponsor = useMutation(api.sponsors.remove);
+  const reorderSponsors = useMutation(api.sponsors.reorder);
 
   // Add form state
   const [showAddForm, setShowAddForm] = useState(false);
@@ -674,6 +676,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const [newBannerUrl, setNewBannerUrl] = useState("");
   const [newWebsiteUrl, setNewWebsiteUrl] = useState("");
   const [newDisplayStyle, setNewDisplayStyle] = useState<DisplayStyle>("medium");
+  const [newBadgeText, setNewBadgeText] = useState("");
 
   // Edit form state
   const [editingId, setEditingId] = useState<Id<"sponsors"> | null>(null);
@@ -682,6 +685,11 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const [editBannerUrl, setEditBannerUrl] = useState("");
   const [editWebsiteUrl, setEditWebsiteUrl] = useState("");
   const [editDisplayStyle, setEditDisplayStyle] = useState<DisplayStyle>("medium");
+  const [editBadgeText, setEditBadgeText] = useState("");
+
+  // Drag-to-reorder state
+  const dragIndexRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const startEdit = (sponsor: NonNullable<typeof sponsors>[number]) => {
     setEditingId(sponsor._id);
@@ -690,6 +698,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     setEditBannerUrl(sponsor.bannerUrl ?? "");
     setEditWebsiteUrl(sponsor.websiteUrl ?? "");
     setEditDisplayStyle((sponsor.displayStyle as DisplayStyle | undefined) ?? "medium");
+    setEditBadgeText(sponsor.badgeText ?? "");
   };
 
   const cancelEdit = () => {
@@ -699,6 +708,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     setEditBannerUrl("");
     setEditWebsiteUrl("");
     setEditDisplayStyle("medium");
+    setEditBadgeText("");
   };
 
   const handleAdd = async (e: FormEvent) => {
@@ -712,6 +722,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
         bannerUrl: newBannerUrl || undefined,
         websiteUrl: newWebsiteUrl || undefined,
         displayStyle: newDisplayStyle,
+        badgeText: newBadgeText || undefined,
       });
       toast.success("Sponsor added");
       setNewName("");
@@ -719,6 +730,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
       setNewBannerUrl("");
       setNewWebsiteUrl("");
       setNewDisplayStyle("medium");
+      setNewBadgeText("");
       setShowAddForm(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to add sponsor");
@@ -739,6 +751,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
         bannerUrl: editBannerUrl || undefined,
         websiteUrl: editWebsiteUrl || undefined,
         displayStyle: editDisplayStyle,
+        badgeText: editBadgeText || undefined,
       });
       toast.success("Sponsor updated");
       setEditingId(null);
@@ -754,6 +767,43 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to remove sponsor");
     }
+  };
+
+  const handleDragStart = (index: number) => {
+    dragIndexRef.current = index;
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    const dragIndex = dragIndexRef.current;
+    if (dragIndex === null || dragIndex === dropIndex || !sponsors) {
+      setDragOverIndex(null);
+      dragIndexRef.current = null;
+      return;
+    }
+    const reordered = [...sponsors];
+    const [moved] = reordered.splice(dragIndex, 1);
+    reordered.splice(dropIndex, 0, moved);
+    setDragOverIndex(null);
+    dragIndexRef.current = null;
+    try {
+      await reorderSponsors({
+        hackathonId,
+        sponsorIds: reordered.map((s) => s._id),
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to reorder sponsors");
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDragOverIndex(null);
+    dragIndexRef.current = null;
   };
 
   return (
@@ -802,6 +852,13 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
             placeholder="Website URL (optional)"
             className="tui-input"
           />
+          <input
+            type="text"
+            value={newBadgeText}
+            onChange={(e) => setNewBadgeText(e.target.value)}
+            placeholder="Badge text (optional, e.g. GOLD)"
+            className="tui-input"
+          />
           <div className="flex flex-col gap-1">
             <label className="text-[10px] text-[#555555] uppercase tracking-widest">Display Style</label>
             <select
@@ -829,8 +886,19 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
         <p className="text-xs text-[#555555] uppercase tracking-wider">NO SPONSORS YET.</p>
       ) : (
         <div className="space-y-2">
-          {sponsors.map((sponsor) => (
-            <div key={sponsor._id} className="border border-[#1F1F1F] bg-[#111111]">
+          {sponsors.map((sponsor, index) => (
+            <div
+              key={sponsor._id}
+              className={cn(
+                "border bg-[#111111] transition-colors",
+                dragOverIndex === index ? "border-[#00FF41]" : "border-[#1F1F1F]"
+              )}
+              draggable={editingId !== sponsor._id}
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+            >
               {editingId === sponsor._id ? (
                 <form onSubmit={handleUpdate} className="space-y-2 p-3">
                   <input
@@ -861,6 +929,13 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                     value={editWebsiteUrl}
                     onChange={(e) => setEditWebsiteUrl(e.target.value)}
                     placeholder="Website URL (optional)"
+                    className="tui-input"
+                  />
+                  <input
+                    type="text"
+                    value={editBadgeText}
+                    onChange={(e) => setEditBadgeText(e.target.value)}
+                    placeholder="Badge text (optional, e.g. GOLD)"
                     className="tui-input"
                   />
                   <div className="flex flex-col gap-1">
@@ -894,6 +969,10 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
               ) : (
                 <div className="flex items-center justify-between p-3">
                   <div className="flex items-center gap-3">
+                    <GripVertical
+                      className="h-4 w-4 text-[#333333] cursor-grab active:cursor-grabbing shrink-0"
+                      aria-hidden="true"
+                    />
                     {sponsor.pfpUrl && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -905,6 +984,9 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                        {sponsor.badgeText && (
+                          <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                        )}
                         <DisplayStyleBadge style={sponsor.displayStyle as DisplayStyle | undefined} />
                       </div>
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && (

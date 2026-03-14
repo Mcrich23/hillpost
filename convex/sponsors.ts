@@ -63,6 +63,7 @@ export const create = mutation({
         v.literal("small")
       )
     ),
+    badgeText: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -82,6 +83,7 @@ export const create = mutation({
       websiteUrl: sanitizeUrl(args.websiteUrl, "websiteUrl"),
       displayStyle: args.displayStyle ?? "medium",
       order: maxOrder + 1,
+      badgeText: args.badgeText?.trim() || undefined,
     });
   },
 });
@@ -101,6 +103,7 @@ export const update = mutation({
         v.literal("small")
       )
     ),
+    badgeText: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const sponsor = await ctx.db.get(args.sponsorId);
@@ -113,6 +116,7 @@ export const update = mutation({
       bannerUrl: sanitizeUrl(args.bannerUrl, "bannerUrl"),
       websiteUrl: sanitizeUrl(args.websiteUrl, "websiteUrl"),
       displayStyle: args.displayStyle ?? "medium",
+      badgeText: args.badgeText?.trim() || undefined,
     });
   },
 });
@@ -125,5 +129,19 @@ export const remove = mutation({
     const userId = await requireAuthUserId(ctx);
     await verifyOrganizer(ctx, sponsor.hackathonId, userId);
     await ctx.db.delete(args.sponsorId);
+  },
+});
+
+export const reorder = mutation({
+  args: {
+    hackathonId: v.id("hackathons"),
+    sponsorIds: v.array(v.id("sponsors")),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUserId(ctx);
+    await verifyOrganizer(ctx, args.hackathonId, userId);
+    await Promise.all(
+      args.sponsorIds.map((id, index) => ctx.db.patch(id, { order: index }))
+    );
   },
 });

@@ -452,10 +452,18 @@ export default function HackathonDetailPage() {
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
                         <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors">
                           {sponsor.name}
+                          {sponsor.badgeText && (
+                            <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                          )}
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       ) : (
-                        <p className="text-base font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                        <p className="text-base font-bold text-white uppercase tracking-wide flex items-center gap-1.5">
+                          {sponsor.name}
+                          {sponsor.badgeText && (
+                            <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                          )}
+                        </p>
                       )}
                     </div>
                   ))}
@@ -484,10 +492,18 @@ export default function HackathonDetailPage() {
                           {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
                             <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors">
                               {sponsor.name}
+                              {sponsor.badgeText && (
+                                <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                              )}
                               <ExternalLink className="h-3 w-3" />
                             </a>
                           ) : (
-                            <p className="text-xs font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                            <p className="text-xs font-bold text-white uppercase tracking-wide flex items-center gap-1">
+                              {sponsor.name}
+                              {sponsor.badgeText && (
+                                <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                              )}
+                            </p>
                           )}
                         </div>
                       );
@@ -511,10 +527,18 @@ export default function HackathonDetailPage() {
                         {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
                           <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1 ${nameSize} font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors`}>
                             {sponsor.name}
+                            {sponsor.badgeText && (
+                              <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                            )}
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : (
-                          <p className={`${nameSize} font-bold text-white uppercase tracking-wide`}>{sponsor.name}</p>
+                          <p className={`${nameSize} font-bold text-white uppercase tracking-wide flex items-center gap-1`}>
+                            {sponsor.name}
+                            {sponsor.badgeText && (
+                              <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
+                            )}
+                          </p>
                         )}
                       </div>
                     );
