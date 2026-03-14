@@ -233,7 +233,7 @@ export const list = query({
     teamId: v.optional(v.id("teams")),
   },
   handler: async (ctx, args) => {
-    let submissions;
+    let submissions: Doc<"submissions">[] = [];
     if (args.teamId) {
       submissions = await ctx.db
         .query("submissions")
