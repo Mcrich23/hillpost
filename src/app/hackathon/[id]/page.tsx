@@ -426,50 +426,97 @@ export default function HackathonDetailPage() {
                 <span className="text-xs text-[#555555] uppercase tracking-widest">── SPONSORS</span>
                 <div className="h-px flex-1 bg-[#1F1F1F]" />
               </div>
-              <div className="flex flex-wrap gap-4">
-                {sponsors.map((sponsor) => (
-                  <div key={sponsor._id} className="flex flex-col items-center gap-2">
-                    {sponsor.bannerUrl ? (
-                      <div className="relative w-48 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={sponsor.bannerUrl}
-                          alt={`${sponsor.name} banner`}
-                          className="h-20 w-full object-cover"
-                        />
-                        {sponsor.pfpUrl && (
+
+              {/* Featured sponsors — full-width rows */}
+              {sponsors.filter((s) => (s.displayStyle ?? "medium") === "featured").length > 0 && (
+                <div className="mb-6 space-y-4">
+                  {sponsors.filter((s) => (s.displayStyle ?? "medium") === "featured").map((sponsor) => (
+                    <div key={sponsor._id} className="flex flex-col items-start gap-3 w-full">
+                      {sponsor.bannerUrl ? (
+                        <div className="relative w-full overflow-hidden border border-[#1F1F1F] bg-[#111111]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className="h-36 w-full object-cover" />
+                          {sponsor.pfpUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-2 left-3 h-14 w-14 rounded-full border-2 border-[#0A0A0A] object-cover" />
+                          )}
+                        </div>
+                      ) : sponsor.pfpUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
+                      ) : null}
+                      {sponsor.websiteUrl ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors">
+                          {sponsor.name}
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      ) : (
+                        <p className="text-base font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Large + Medium + Small sponsors — flex-wrap */}
+              {sponsors.filter((s) => (s.displayStyle ?? "medium") !== "featured").length > 0 && (
+                <div className="flex flex-wrap gap-4 items-start">
+                  {sponsors.filter((s) => (s.displayStyle ?? "medium") !== "featured").map((sponsor) => {
+                    const style = (sponsor.displayStyle ?? "medium") as "large" | "medium" | "small";
+                    const isSmall = style === "small";
+                    const bannerH = style === "large" ? "h-28" : "h-20";
+                    const pfpSize = style === "large" ? "h-12 w-12" : "h-8 w-8";
+                    const pfpPos = style === "large" ? "bottom-2 left-2" : "bottom-1 left-2";
+                    const cardW = style === "large" ? "w-72" : "w-48";
+                    const nameSize = style === "large" ? "text-sm" : "text-xs";
+
+                    if (isSmall) {
+                      return (
+                        <div key={sponsor._id} className="flex flex-col items-center gap-1.5">
+                          {sponsor.pfpUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-12 w-12 rounded-full border border-[#1F1F1F] object-cover" />
+                          ) : null}
+                          {sponsor.websiteUrl ? (
+                            <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors">
+                              {sponsor.name}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <p className="text-xs font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={sponsor._id} className="flex flex-col items-center gap-2">
+                        {sponsor.bannerUrl ? (
+                          <div className={`relative ${cardW} overflow-hidden border border-[#1F1F1F] bg-[#111111]`}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className={`${bannerH} w-full object-cover`} />
+                            {sponsor.pfpUrl && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={sponsor.pfpUrl} alt={sponsor.name} className={`absolute ${pfpPos} ${pfpSize} rounded-full border-2 border-[#0A0A0A] object-cover`} />
+                            )}
+                          </div>
+                        ) : sponsor.pfpUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={sponsor.pfpUrl}
-                            alt={sponsor.name}
-                            className="absolute bottom-1 left-2 h-8 w-8 rounded-full border-2 border-[#0A0A0A] object-cover"
-                          />
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className={`${style === "large" ? "h-20 w-20" : "h-16 w-16"} rounded-full border border-[#1F1F1F] object-cover`} />
+                        ) : null}
+                        {sponsor.websiteUrl ? (
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1 ${nameSize} font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors`}>
+                            {sponsor.name}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <p className={`${nameSize} font-bold text-white uppercase tracking-wide`}>{sponsor.name}</p>
                         )}
                       </div>
-                    ) : sponsor.pfpUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={sponsor.pfpUrl}
-                        alt={sponsor.name}
-                        className="h-16 w-16 rounded-full border border-[#1F1F1F] object-cover"
-                      />
-                    ) : null}
-                    {sponsor.websiteUrl ? (
-                      <a
-                        href={sponsor.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors"
-                      >
-                        {sponsor.name}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    ) : (
-                      <p className="text-xs font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>

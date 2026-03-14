@@ -628,6 +628,36 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   );
 }
 
+const DISPLAY_STYLE_OPTIONS = [
+  { value: "featured", label: "FEATURED — Full-width banner, large pfp, bold name" },
+  { value: "large",    label: "LARGE — Wide banner, pfp overlay, prominent name" },
+  { value: "medium",   label: "MEDIUM — Standard banner + pfp" },
+  { value: "small",    label: "SMALL — Logo + name only (no banner)" },
+] as const;
+
+type DisplayStyle = typeof DISPLAY_STYLE_OPTIONS[number]["value"];
+
+function DisplayStyleBadge({ style }: { style: DisplayStyle | undefined }) {
+  const map: Record<DisplayStyle, string> = {
+    featured: "FEATURED",
+    large: "LARGE",
+    medium: "MEDIUM",
+    small: "SMALL",
+  };
+  const colorMap: Record<DisplayStyle, string> = {
+    featured: "text-[#FFD700] border-[#FFD700]",
+    large: "text-[#C0C0C0] border-[#C0C0C0]",
+    medium: "text-[#CD7F32] border-[#CD7F32]",
+    small: "text-[#555555] border-[#333333]",
+  };
+  const s = style ?? "medium";
+  return (
+    <span className={`border px-1.5 py-0.5 text-[10px] uppercase tracking-widest font-bold ${colorMap[s]}`}>
+      {map[s]}
+    </span>
+  );
+}
+
 function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const sponsors = useQuery(api.sponsors.list, { hackathonId });
   const createSponsor = useMutation(api.sponsors.create);
@@ -638,6 +668,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const [newPfpUrl, setNewPfpUrl] = useState("");
   const [newBannerUrl, setNewBannerUrl] = useState("");
   const [newWebsiteUrl, setNewWebsiteUrl] = useState("");
+  const [newDisplayStyle, setNewDisplayStyle] = useState<DisplayStyle>("medium");
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -649,12 +680,14 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
         pfpUrl: newPfpUrl || undefined,
         bannerUrl: newBannerUrl || undefined,
         websiteUrl: newWebsiteUrl || undefined,
+        displayStyle: newDisplayStyle,
       });
       toast.success("Sponsor added");
       setNewName("");
       setNewPfpUrl("");
       setNewBannerUrl("");
       setNewWebsiteUrl("");
+      setNewDisplayStyle("medium");
       setShowAddForm(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to add sponsor");
@@ -716,6 +749,18 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
             placeholder="Website URL (optional)"
             className="tui-input"
           />
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] text-[#555555] uppercase tracking-widest">Display Style</label>
+            <select
+              value={newDisplayStyle}
+              onChange={(e) => setNewDisplayStyle(e.target.value as DisplayStyle)}
+              className="tui-input"
+            >
+              {DISPLAY_STYLE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
           <button
             type="submit"
             className="px-4 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors"
@@ -743,7 +788,10 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                   />
                 )}
                 <div>
-                  <p className="text-sm font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-white uppercase tracking-wide">{sponsor.name}</p>
+                    <DisplayStyleBadge style={sponsor.displayStyle as DisplayStyle | undefined} />
+                  </div>
                   {sponsor.websiteUrl && (
                     <a
                       href={sponsor.websiteUrl}

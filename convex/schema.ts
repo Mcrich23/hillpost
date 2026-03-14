@@ -101,6 +101,14 @@ export default defineSchema({
     pfpUrl: v.optional(v.string()),
     bannerUrl: v.optional(v.string()),
     websiteUrl: v.optional(v.string()),
+    displayStyle: v.optional(
+      v.union(
+        v.literal("featured"),
+        v.literal("large"),
+        v.literal("medium"),
+        v.literal("small")
+      )
+    ),
     order: v.number(),
   }).index("by_hackathonId", ["hackathonId"]),
 });

@@ -40,6 +40,14 @@ export const create = mutation({
     pfpUrl: v.optional(v.string()),
     bannerUrl: v.optional(v.string()),
     websiteUrl: v.optional(v.string()),
+    displayStyle: v.optional(
+      v.union(
+        v.literal("featured"),
+        v.literal("large"),
+        v.literal("medium"),
+        v.literal("small")
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -56,6 +64,7 @@ export const create = mutation({
       pfpUrl: args.pfpUrl?.trim() || undefined,
       bannerUrl: args.bannerUrl?.trim() || undefined,
       websiteUrl: args.websiteUrl?.trim() || undefined,
+      displayStyle: args.displayStyle ?? "medium",
       order: existing.length,
     });
   },
