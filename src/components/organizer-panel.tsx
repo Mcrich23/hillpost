@@ -769,8 +769,12 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     }
   };
 
-  const handleDragStart = (index: number) => {
+  const handleDragStart = (e: React.DragEvent, index: number) => {
     dragIndexRef.current = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.setData("text/plain", String(index));
+      e.dataTransfer.effectAllowed = "move";
+    }
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
