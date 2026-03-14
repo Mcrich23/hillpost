@@ -13,9 +13,9 @@ export default function LeaderboardPage() {
   const hackathonId = params.id as Id<"hackathons">;
 
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
-  const leaderboard = useQuery(api.leaderboard.get, { hackathonId });
+  const leaderboardData = useQuery(api.leaderboard.get, { hackathonId });
 
-  if (hackathon === undefined || leaderboard === undefined) {
+  if (hackathon === undefined || leaderboardData === undefined) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="h-96 border border-[#1F1F1F] bg-[#0A0A0A] flex items-center justify-center">
@@ -57,10 +57,7 @@ export default function LeaderboardPage() {
     }
   };
 
-  const categoryNames =
-    leaderboard.length > 0
-      ? leaderboard[0].categoryScores.map((cs) => cs.categoryName)
-      : [];
+  const { entries: leaderboard, maxPossibleScore } = leaderboardData;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -107,16 +104,8 @@ export default function LeaderboardPage() {
                 <th className="px-4 py-3 text-xs font-bold text-[#555555] uppercase tracking-widest">RANK</th>
                 <th className="px-4 py-3 text-xs font-bold text-[#555555] uppercase tracking-widest">TEAM</th>
                 <th className="px-4 py-3 text-center text-xs font-bold text-[#555555] uppercase tracking-widest">
-                  AVG SCORE
+                  SCORE
                 </th>
-                {categoryNames.map((name) => (
-                  <th
-                    key={name}
-                    className="px-4 py-3 text-center text-xs font-bold text-[#555555] uppercase tracking-widest"
-                  >
-                    {name}
-                  </th>
-                ))}
                 <th className="px-4 py-3 text-center text-xs font-bold text-[#555555] uppercase tracking-widest"></th>
               </tr>
             </thead>
@@ -158,33 +147,16 @@ export default function LeaderboardPage() {
                     <span
                       className={cn(
                         "text-sm font-bold tabular-nums",
-                        entry.averageScore > 0
+                        entry.overallScore > 0
                           ? entry.rank === 1 ? "text-[#FF6600]" : "text-[#00FF41]"
                           : "text-[#333333]"
                       )}
                     >
-                      {entry.averageScore > 0
-                        ? entry.averageScore.toFixed(1)
+                      {entry.overallScore > 0
+                        ? `${entry.overallScore.toFixed(1)}/${maxPossibleScore}`
                         : "—"}
                     </span>
                   </td>
-                  {entry.categoryScores.map((cs) => (
-                    <td
-                      key={cs.categoryId}
-                      className="px-4 py-3 text-center"
-                    >
-                      <span
-                        className={cn(
-                          "text-xs tabular-nums",
-                          cs.averageScore > 0 ? "text-[#555555]" : "text-[#333333]"
-                        )}
-                      >
-                        {cs.averageScore > 0
-                          ? `${cs.averageScore.toFixed(1)}/${cs.maxScore}`
-                          : "—"}
-                      </span>
-                    </td>
-                  ))}
                   <td className="px-4 py-3 text-center">
                     {entry.latestSubmission ? (
                       <Link

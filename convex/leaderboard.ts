@@ -33,6 +33,7 @@ export const get = query({
             teamName: team.name,
             latestSubmission: null,
             averageScore: 0,
+            overallScore: 0,
             categoryScores: sortedCategories.map((c) => ({
               categoryId: c._id,
               categoryName: c.name,
@@ -78,7 +79,14 @@ export const get = query({
 
         // Overall average score across all categories and judges
         const totalScore = scores.reduce((sum, s) => sum + s.score, 0);
-        let averageScore = scores.length > 0 ? totalScore / scores.length : 0;
+        const rawAverageScore = scores.length > 0 ? totalScore / scores.length : 0;
+        let averageScore = rawAverageScore;
+
+        // Overall score: sum of per-category averages (full tally)
+        let overallScore = categoryScores.reduce(
+          (sum, cs) => sum + cs.averageScore,
+          0
+        );
 
         // Apply threshold logic for resubmissions
         if (
@@ -89,6 +97,7 @@ export const get = query({
           const threshold = latestSubmission.baselineJudgeCount * 0.75;
           if (currentJudges < threshold) {
             averageScore = Math.max(averageScore, latestSubmission.baselineScore);
+            overallScore = Math.max(overallScore, latestSubmission.baselineScore);
           }
         }
 
@@ -100,6 +109,7 @@ export const get = query({
           teamName: team.name,
           latestSubmission,
           averageScore,
+          overallScore,
           categoryScores,
           totalJudgeCount: uniqueJudges.size,
           rank: 0,
@@ -107,12 +117,18 @@ export const get = query({
       })
     );
 
-    // Sort by average score descending and assign ranks
-    leaderboard.sort((a, b) => b.averageScore - a.averageScore);
+    // Sort by overall score descending and assign ranks
+    leaderboard.sort((a, b) => b.overallScore - a.overallScore);
     leaderboard.forEach((entry, index) => {
       entry.rank = index + 1;
     });
 
-    return leaderboard;
+    // Max possible score (sum of all category maxScores)
+    const maxPossibleScore = sortedCategories.reduce(
+      (sum, c) => sum + c.maxScore,
+      0
+    );
+
+    return { entries: leaderboard, maxPossibleScore };
   },
 });
