@@ -173,6 +173,16 @@ export const getFeedbackForSubmission = query({
     if (!membership) return null;
 
     const isOrganizer = membership.role === "organizer";
+    const isJudge = membership.role === "judge";
+    const isCompetitor = membership.role === "competitor";
+
+    // Competitors (and any non-organizer/non-judge roles) may only see
+    // feedback for submissions from their own team.
+    if (!isOrganizer && !isJudge) {
+      if (!membership.teamId || membership.teamId !== submission.teamId) {
+        return null;
+      }
+    }
 
     // Fetch all scores for this submission (all iterations)
     const scores = await ctx.db
