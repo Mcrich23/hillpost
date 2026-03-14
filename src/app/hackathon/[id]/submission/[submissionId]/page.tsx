@@ -204,11 +204,8 @@ export default function SubmissionDetailPage() {
       {/* Scoring Breakdown */}
       {categories && scores && categories.length > 0 && scores.length > 0 && (() => {
         const categoryAverages = categories.map((cat) => {
-          const catScores = scores.filter((s) => s.categoryId === cat._id);
-          const avg =
-            catScores.length > 0
-              ? catScores.reduce((sum, s) => sum + s.score, 0) / catScores.length
-              : 0;
+          const catScoreObj = scores.find((s) => s.categoryId === cat._id);
+          const avg = catScoreObj ? catScoreObj.averageScore : 0;
           return { ...cat, avg };
         });
         const overallScore = categoryAverages.reduce((sum, c) => sum + c.avg, 0);
