@@ -10,12 +10,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const resolvedParams = await params;
   const submissionId = resolvedParams.submissionId as Id<"submissions">;
-  const hackathonId = resolvedParams.id as Id<"hackathons">;
   
   try {
     const submission = await fetchQuery(api.submissions.get, { submissionId });
     
-    if (!submission || submission.hackathonId !== hackathonId) {
+    if (!submission) {
       return {
         title: "Project Submission | Hillpost",
         description: "View this project submission on Hillpost.",
