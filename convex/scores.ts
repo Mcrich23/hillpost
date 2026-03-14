@@ -49,7 +49,7 @@ export const submit = mutation({
     const currentIteration = submission.submissionCount ?? 1;
 
     // Upsert: check if this judge already scored this submission+category for the current iteration
-    const candidates = await ctx.db
+    const existing = await ctx.db
       .query("scores")
       .withIndex("by_submissionId_categoryId_judgeId", (q) =>
         q
@@ -57,11 +57,10 @@ export const submit = mutation({
           .eq("categoryId", args.categoryId)
           .eq("judgeId", judgeId)
       )
-      .collect();
-
-    const existing = candidates.find(
-      (s) => (s.submissionCount ?? 1) === currentIteration
-    );
+      .filter((q) =>
+        q.eq(q.field("submissionCount"), currentIteration)
+      )
+      .first();
 
     if (existing) {
       await ctx.db.patch(existing._id, {
