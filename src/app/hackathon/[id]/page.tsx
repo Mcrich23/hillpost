@@ -32,14 +32,7 @@ import { JudgePanel } from "@/components/judge-panel";
 import { PublicSubmissions } from "@/components/public-submissions";
 import { QrCodeButton } from "@/components/qr-code-overlay";
 
-function isSafeHttpUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
+import { isSafeHttpUrl } from "@/lib/url";
 
 type Tab = "overview" | "submissions" | "compete" | "judge" | "manage";
 
@@ -64,6 +57,8 @@ export default function HackathonDetailPage() {
   const allMembers = useQuery(api.members.listMembers, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
   const sponsors = useQuery(api.sponsors.list, { hackathonId });
+  const featuredSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "featured") ?? [];
+  const otherSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") !== "featured") ?? [];
   const leaveHackathon = useMutation(api.members.leaveHackathon);
   const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
@@ -437,9 +432,9 @@ export default function HackathonDetailPage() {
               </div>
 
               {/* Featured sponsors — full-width rows */}
-              {sponsors.filter((s) => (s.displayStyle ?? "medium") === "featured").length > 0 && (
+              {featuredSponsors.length > 0 && (
                 <div className="mb-6 space-y-4">
-                  {sponsors.filter((s) => (s.displayStyle ?? "medium") === "featured").map((sponsor) => (
+                  {featuredSponsors.map((sponsor) => (
                     <div key={sponsor._id} className="flex flex-col items-start gap-3 w-full">
                       {sponsor.bannerUrl ? (
                         <div className="relative w-full overflow-hidden border border-[#1F1F1F] bg-[#111111]">
@@ -468,9 +463,9 @@ export default function HackathonDetailPage() {
               )}
 
               {/* Large + Medium + Small sponsors — flex-wrap */}
-              {sponsors.filter((s) => (s.displayStyle ?? "medium") !== "featured").length > 0 && (
+              {otherSponsors.length > 0 && (
                 <div className="flex flex-wrap gap-4 items-start">
-                  {sponsors.filter((s) => (s.displayStyle ?? "medium") !== "featured").map((sponsor) => {
+                  {otherSponsors.map((sponsor) => {
                     const style = (sponsor.displayStyle ?? "medium") as "large" | "medium" | "small";
                     const isSmall = style === "small";
                     const bannerH = style === "large" ? "h-28" : "h-20";
@@ -486,7 +481,7 @@ export default function HackathonDetailPage() {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-12 w-12 rounded-full border border-[#1F1F1F] object-cover" />
                           ) : null}
-                          {sponsor.websiteUrl ? (
+                          {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
                             <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors">
                               {sponsor.name}
                               <ExternalLink className="h-3 w-3" />
@@ -513,7 +508,7 @@ export default function HackathonDetailPage() {
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={sponsor.pfpUrl} alt={sponsor.name} className={`${style === "large" ? "h-20 w-20" : "h-16 w-16"} rounded-full border border-[#1F1F1F] object-cover`} />
                         ) : null}
-                        {sponsor.websiteUrl ? (
+                        {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
                           <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1 ${nameSize} font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors`}>
                             {sponsor.name}
                             <ExternalLink className="h-3 w-3" />

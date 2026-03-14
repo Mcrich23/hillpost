@@ -110,5 +110,7 @@ export default defineSchema({
       )
     ),
     order: v.number(),
-  }).index("by_hackathonId", ["hackathonId"]),
+  })
+    .index("by_hackathonId", ["hackathonId"])
+    .index("by_hackathonId_order", ["hackathonId", "order"]),
 });

@@ -38,19 +38,13 @@ async function verifyOrganizer(
 export const list = query({
   args: { hackathonId: v.id("hackathons") },
   handler: async (ctx, args) => {
-    const sponsors = await ctx.db
+    return ctx.db
       .query("sponsors")
-      .withIndex("by_hackathonId", (q) =>
+      .withIndex("by_hackathonId_order", (q) =>
         q.eq("hackathonId", args.hackathonId)
       )
       .order("asc")
       .collect();
-    sponsors.sort((a, b) => {
-      const aOrder = (a as any).order ?? 0;
-      const bOrder = (b as any).order ?? 0;
-      return aOrder - bOrder;
-    });
-    return sponsors;
   },
 });
 

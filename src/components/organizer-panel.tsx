@@ -629,6 +629,8 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   );
 }
 
+import { isSafeHttpUrl } from "@/lib/url";
+
 const DISPLAY_STYLE_OPTIONS = [
   { value: "featured", label: "FEATURED — Full-width banner, large pfp, bold name" },
   { value: "large",    label: "LARGE — Wide banner, pfp overlay, prominent name" },
@@ -637,15 +639,6 @@ const DISPLAY_STYLE_OPTIONS = [
 ] as const;
 
 type DisplayStyle = typeof DISPLAY_STYLE_OPTIONS[number]["value"];
-
-function isSafeHttpUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
 
 function DisplayStyleBadge({ style }: { style: DisplayStyle | undefined }) {
   const map: Record<DisplayStyle, string> = {
@@ -931,6 +924,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                       onClick={() => startEdit(sponsor)}
                       className="p-1.5 text-[#555555] hover:text-[#00B4FF] transition-colors"
                       title="Edit sponsor"
+                      aria-label="Edit sponsor"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
@@ -938,6 +932,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                       onClick={() => handleRemove(sponsor._id)}
                       className="p-1.5 text-[#555555] hover:text-red-400 transition-colors"
                       title="Remove sponsor"
+                      aria-label="Remove sponsor"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
