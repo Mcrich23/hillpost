@@ -63,16 +63,13 @@ export const submit = mutation({
     ) ?? null;
 
     if (existing) {
-      // Backfill legacy scores that don't have submissionCount set
-      const patchData: Record<string, unknown> = {
+      await ctx.db.patch(existing._id, {
         score: args.score,
         feedback: args.feedback,
         scoredAt: Date.now(),
-      };
-      if (existing.submissionCount === undefined) {
-        patchData.submissionCount = 1;
-      }
-      await ctx.db.patch(existing._id, patchData);
+        // Backfill legacy scores that don't have submissionCount set
+        submissionCount: existing.submissionCount ?? 1,
+      });
 
       // Ensure judge is in judgedBy array
       if (!submission.judgedBy.includes(judgeId)) {
