@@ -200,61 +200,56 @@ export default function SubmissionDetailPage() {
       )}
 
       {/* Scoring Breakdown */}
-      {categories && scores && categories.length > 0 && scores.length > 0 && (
-        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-xs text-[#555555] uppercase tracking-widest">── SCORING BREAKDOWN</span>
-            <div className="h-px flex-1 bg-[#1F1F1F]" />
-          </div>
-          <div className="space-y-3">
-            {categories.map((cat) => {
-              const catScores = scores.filter((s) => s.categoryId === cat._id);
-              const avg =
-                catScores.length > 0
-                  ? catScores.reduce((sum, s) => sum + s.score, 0) / catScores.length
-                  : 0;
-              const barWidth = 20;
-              const filled = cat.maxScore > 0 ? Math.round((avg / cat.maxScore) * barWidth) : 0;
-              const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
+      {categories && scores && categories.length > 0 && scores.length > 0 && (() => {
+        const categoryAverages = categories.map((cat) => {
+          const catScores = scores.filter((s) => s.categoryId === cat._id);
+          const avg =
+            catScores.length > 0
+              ? catScores.reduce((sum, s) => sum + s.score, 0) / catScores.length
+              : 0;
+          return { ...cat, avg };
+        });
+        const overallScore = categoryAverages.reduce((sum, c) => sum + c.avg, 0);
+        const maxPossible = categories.reduce((sum, c) => sum + c.maxScore, 0);
 
-              return (
-                <div key={cat._id} className="flex items-center justify-between gap-4 border border-[#1F1F1F] bg-black px-4 py-3">
-                  <span className="text-xs font-bold text-white uppercase tracking-widest shrink-0">
-                    {cat.name}
-                  </span>
-                  <span className="font-mono text-xs">
-                    <span className="text-[#00FF41]">{bar}</span>{" "}
-                    <span className="text-white">{avg > 0 ? avg.toFixed(1) : "0"}</span>
-                    <span className="text-[#555555]">/{cat.maxScore}</span>
-                  </span>
-                </div>
-              );
-            })}
-            {/* Overall tally */}
-            {(() => {
-              const overallScore = categories.reduce((total, cat) => {
-                const catScores = scores.filter((s) => s.categoryId === cat._id);
-                const avg =
-                  catScores.length > 0
-                    ? catScores.reduce((sum, s) => sum + s.score, 0) / catScores.length
-                    : 0;
-                return total + avg;
-              }, 0);
-              const maxPossible = categories.reduce((sum, c) => sum + c.maxScore, 0);
-              return (
-                <div className="flex items-center justify-between gap-4 border border-[#00FF41]/30 bg-[#00FF4108] px-4 py-3">
-                  <span className="text-xs font-bold text-[#00FF41] uppercase tracking-widest">
-                    OVERALL
-                  </span>
-                  <span className="font-mono text-sm font-bold text-[#00FF41]">
-                    {overallScore > 0 ? overallScore.toFixed(1) : "0"}/{maxPossible}
-                  </span>
-                </div>
-              );
-            })()}
+        return (
+          <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-xs text-[#555555] uppercase tracking-widest">── SCORING BREAKDOWN</span>
+              <div className="h-px flex-1 bg-[#1F1F1F]" />
+            </div>
+            <div className="space-y-3">
+              {categoryAverages.map((cat) => {
+                const barWidth = 20;
+                const filled = cat.maxScore > 0 ? Math.round((cat.avg / cat.maxScore) * barWidth) : 0;
+                const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
+
+                return (
+                  <div key={cat._id} className="flex items-center justify-between gap-4 border border-[#1F1F1F] bg-black px-4 py-3">
+                    <span className="text-xs font-bold text-white uppercase tracking-widest shrink-0">
+                      {cat.name}
+                    </span>
+                    <span className="font-mono text-xs">
+                      <span className="text-[#00FF41]">{bar}</span>{" "}
+                      <span className="text-white">{cat.avg.toFixed(1)}</span>
+                      <span className="text-[#555555]">/{cat.maxScore}</span>
+                    </span>
+                  </div>
+                );
+              })}
+              {/* Overall tally */}
+              <div className="flex items-center justify-between gap-4 border border-[#00FF41]/30 bg-[#00FF4108] px-4 py-3">
+                <span className="text-xs font-bold text-[#00FF41] uppercase tracking-widest">
+                  OVERALL
+                </span>
+                <span className="font-mono text-sm font-bold text-[#00FF41]">
+                  {overallScore.toFixed(1)}/{maxPossible}
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Feedback link */}
       {membership && (
