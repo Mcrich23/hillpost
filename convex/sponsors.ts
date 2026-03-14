@@ -23,13 +23,19 @@ async function verifyOrganizer(
 export const list = query({
   args: { hackathonId: v.id("hackathons") },
   handler: async (ctx, args) => {
-    return ctx.db
+    const sponsors = await ctx.db
       .query("sponsors")
       .withIndex("by_hackathonId", (q) =>
         q.eq("hackathonId", args.hackathonId)
       )
       .order("asc")
       .collect();
+    sponsors.sort((a, b) => {
+      const aOrder = (a as any).order ?? 0;
+      const bOrder = (b as any).order ?? 0;
+      return aOrder - bOrder;
+    });
+    return sponsors;
   },
 });
 
