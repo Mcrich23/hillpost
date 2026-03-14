@@ -70,7 +70,7 @@ export default function LeaderboardPage() {
           Back to Hackathon
         </Link>
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <h1 className="text-2xl font-bold text-white uppercase tracking-wide">
               LIVE LEADERBOARD

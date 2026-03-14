@@ -181,12 +181,12 @@ export default function HackathonDetailPage() {
           Back to Dashboard
         </Link>
 
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-white uppercase tracking-wide">{hackathon.name}</h1>
             <p className="mt-1 text-xs text-[#555555]">{hackathon.description}</p>
           </div>
-          <div className="flex flex-col items-end gap-2 shrink-0">
+          <div className="flex flex-row items-center gap-2 sm:flex-col sm:items-end">
             {hackathon.isActive ? (
               <span className="flex items-center gap-2 text-xs text-[#00FF41] uppercase tracking-widest border border-[#00FF41]/30 px-2.5 py-1">
                 <span className="status-pulse h-1.5 w-1.5 bg-[#00FF41] inline-block" />
@@ -375,28 +375,30 @@ export default function HackathonDetailPage() {
                 <h3 className="mb-2 text-xs font-bold text-[#555555] uppercase tracking-widest">
                   ─ COMPETITOR JOIN CODE ─
                 </h3>
-                <div className="flex items-center gap-3">
-                  <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-lg tracking-widest text-[#00FF41] font-bold">
+                <div className="flex flex-col gap-2">
+                  <code className="border border-[#1F1F1F] bg-black px-4 py-2 text-lg tracking-widest text-[#00FF41] font-bold break-all">
                     {hackathon?.competitorJoinCode ?? "—"}
                   </code>
-                  <button
-                    onClick={copyCompetitorJoinLink}
-                    className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors"
-                    title="Copy join link"
-                    aria-label="Copy join link"
-                  >
-                    {copiedJoinLink ? (
-                      <Check className="h-4 w-4 text-[#00FF41]" />
-                    ) : (
-                      <LinkIcon className="h-4 w-4" />
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={copyCompetitorJoinLink}
+                      className="border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors"
+                      title="Copy join link"
+                      aria-label="Copy join link"
+                    >
+                      {copiedJoinLink ? (
+                        <Check className="h-4 w-4 text-[#00FF41]" />
+                      ) : (
+                        <LinkIcon className="h-4 w-4" />
+                      )}
+                    </button>
+                    {hackathon?.competitorJoinCode && (
+                      <QrCodeButton
+                        path={`/join/${hackathon.competitorJoinCode}`}
+                        label="Competitor Join QR"
+                      />
                     )}
-                  </button>
-                  {hackathon?.competitorJoinCode && (
-                    <QrCodeButton
-                      path={`/join/${hackathon.competitorJoinCode}`}
-                      label="Competitor Join QR"
-                    />
-                  )}
+                  </div>
                 </div>
                 <p className="mt-2 text-xs text-[#333333]">
                   Share this code or copy the join link to invite competitors.
@@ -486,7 +488,7 @@ export default function HackathonDetailPage() {
                 <div className="flex flex-wrap gap-4 items-start mb-4">
                   {largeSponsors.map((sponsor) => {
                     const imageContent = sponsor.bannerUrl ? (
-                      <div className="relative w-72 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
+                      <div className="relative w-full sm:w-72 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className="h-28 w-full object-cover" />
                         {sponsor.pfpUrl && (
@@ -500,9 +502,9 @@ export default function HackathonDetailPage() {
                     ) : null;
 
                     return (
-                    <div key={sponsor._id} className="flex flex-col items-center gap-2 group">
+                    <div key={sponsor._id} className="flex w-full flex-col items-start gap-2 sm:w-72 sm:items-center group">
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="block">
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
                           {imageContent}
                         </a>
                       ) : imageContent}
@@ -567,7 +569,7 @@ export default function HackathonDetailPage() {
                     }
 
                     const imageContent = sponsor.bannerUrl ? (
-                      <div className="relative w-48 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
+                      <div className="relative w-full sm:w-48 overflow-hidden border border-[#1F1F1F] bg-[#111111]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={sponsor.bannerUrl} alt={`${sponsor.name} banner`} className="h-20 w-full object-cover" />
                         {sponsor.pfpUrl && (
@@ -581,9 +583,9 @@ export default function HackathonDetailPage() {
                     ) : null;
 
                     return (
-                      <div key={sponsor._id} className="flex flex-col items-center gap-2 group">
+                      <div key={sponsor._id} className="flex w-full flex-col items-start gap-2 sm:w-48 sm:items-center group">
                         {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
-                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="block">
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
                             {imageContent}
                           </a>
                         ) : imageContent}
