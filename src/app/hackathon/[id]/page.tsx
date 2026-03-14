@@ -32,6 +32,15 @@ import { JudgePanel } from "@/components/judge-panel";
 import { PublicSubmissions } from "@/components/public-submissions";
 import { QrCodeButton } from "@/components/qr-code-overlay";
 
+function isSafeHttpUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 type Tab = "overview" | "submissions" | "compete" | "judge" | "manage";
 
 const roleColor = (role: string) => {
@@ -445,7 +454,7 @@ export default function HackathonDetailPage() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
                       ) : null}
-                      {sponsor.websiteUrl ? (
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
                         <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base font-bold text-white uppercase tracking-wide hover:text-[#00B4FF] transition-colors">
                           {sponsor.name}
                           <ExternalLink className="h-4 w-4" />
