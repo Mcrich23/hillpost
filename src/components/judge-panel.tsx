@@ -325,12 +325,22 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
   const handleSubmitAll = async () => {
     setSubmitting(true);
     try {
-      for (const cat of categories) {
-        const score = getCurrentScore(cat._id, cat.maxScore);
-        const feedback = getCurrentFeedback(cat._id);
-        await submitScore({ submissionId, categoryId: cat._id, score, feedback: feedback || undefined });
+      const results = await Promise.allSettled(
+        categories.map((cat) => {
+          const score = getCurrentScore(cat._id, cat.maxScore);
+          const feedback = getCurrentFeedback(cat._id);
+          return submitScore({ submissionId, categoryId: cat._id, score, feedback: feedback || undefined });
+        })
+      );
+      const failed = results.filter((r) => r.status === "rejected");
+      if (failed.length === 0) {
+        toast.success("All scores submitted!");
+      } else if (failed.length === results.length) {
+        const reason = (failed[0] as PromiseRejectedResult).reason;
+        toast.error(reason instanceof Error ? reason.message : "Failed to submit scores");
+      } else {
+        toast.warning(`${results.length - failed.length}/${results.length} scores submitted. Some failed — please retry.`);
       }
-      toast.success("All scores submitted!");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to submit scores");
     } finally {
