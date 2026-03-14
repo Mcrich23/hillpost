@@ -45,12 +45,14 @@ export const get = query({
           };
         }
 
-        // Get all scores for this submission
+        // Get scores for this submission for the current iteration only
+        const currentIteration = latestSubmission.submissionCount;
         const scores = await ctx.db
           .query("scores")
           .withIndex("by_submissionId", (q) =>
             q.eq("submissionId", latestSubmission._id)
           )
+          .filter((q) => q.eq(q.field("submissionCount"), currentIteration))
           .collect();
 
         // Compute per-category averages

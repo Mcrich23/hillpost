@@ -5,7 +5,8 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { toast } from "sonner";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MessageSquare } from "lucide-react";
+import Link from "next/link";
 
 interface CompetitorPanelProps {
   hackathonId: Id<"hackathons">;
@@ -340,6 +341,16 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
               </button>
             )}
           </form>
+
+          {latestSubmission && (
+            <Link
+              href={`/hackathon/${hackathonId}/submission/${latestSubmission._id}/feedback`}
+              className="mt-4 flex items-center gap-2 border border-[#00B4FF]/30 bg-[#00B4FF08] px-4 py-3 text-xs font-bold text-[#00B4FF] uppercase tracking-wider hover:border-[#00B4FF] hover:bg-[#00B4FF] hover:text-black transition-colors"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              VIEW JUDGE FEEDBACK →
+            </Link>
+          )}
 
           {latestSubmission && (
             <div className="mt-6 border border-[#00B4FF]/20 bg-[#00B4FF08] p-5">
