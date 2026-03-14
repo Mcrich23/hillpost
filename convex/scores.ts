@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { requireAuthUserId, getAuthUserId } from "./auth";
 
 export const submit = mutation({
@@ -173,14 +174,14 @@ export const getFeedbackForSubmission = query({
     // Group scores by judgeId
     const judgeScoresMap = new Map<
       string,
-      Array<{ categoryId: string; score: number; feedback?: string; scoredAt: number }>
+      Array<{ categoryId: Id<"categories">; score: number; feedback?: string; scoredAt: number }>
     >();
     for (const s of scores) {
       if (!judgeScoresMap.has(s.judgeId)) {
         judgeScoresMap.set(s.judgeId, []);
       }
       judgeScoresMap.get(s.judgeId)!.push({
-        categoryId: s.categoryId as string,
+        categoryId: s.categoryId,
         score: s.score,
         feedback: s.feedback,
         scoredAt: s.scoredAt,
@@ -212,9 +213,9 @@ export const getFeedbackForSubmission = query({
     const judges = judgeIds.map((jid, index) => {
       const judgeScores = judgeScoresMap.get(jid)!;
       const categoryScores = sortedCategories.map((cat) => {
-        const entry = judgeScores.find((s) => s.categoryId === (cat._id as string));
+        const entry = judgeScores.find((s) => s.categoryId === cat._id);
         return {
-          categoryId: cat._id as string,
+          categoryId: cat._id,
           score: entry?.score ?? null,
           feedback: entry?.feedback ?? null,
         };
@@ -232,7 +233,7 @@ export const getFeedbackForSubmission = query({
     return {
       judges,
       categories: sortedCategories.map((c) => ({
-        _id: c._id as string,
+        _id: c._id,
         name: c.name,
         maxScore: c.maxScore,
       })),
