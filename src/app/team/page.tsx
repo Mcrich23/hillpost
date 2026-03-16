@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { Github, Linkedin } from "lucide-react";
+import { Globe } from "lucide-react";
+import { XIcon, LinkedInIcon, GitHubIcon } from "@/components/icons";
 
 export default function TeamPage() {
   return (
@@ -45,8 +46,17 @@ export default function TeamPage() {
             </p>
             
             <div className="flex gap-4">
-              <a href="https://github.com/Mcrich23" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
-                <Github className="h-5 w-5" />
+              <a href="https://x.com/morrisinlife" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
+                <XIcon className="h-5 w-5" />
+              </a>
+              <a href="https://github.com/mcrich23" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
+                <GitHubIcon className="h-5 w-5" />
+              </a>
+              <a href="https://www.linkedin.com/in/morris-richman/" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
+                <LinkedInIcon className="h-5 w-5" />
+              </a>
+              <a href="https://mcrich23.com" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
+                <Globe className="h-5 w-5" />
               </a>
             </div>
           </div>
@@ -78,7 +88,7 @@ export default function TeamPage() {
             
             <div className="flex gap-4">
               <a href="https://www.linkedin.com/in/cyruscorrell/" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
-                <Linkedin className="h-5 w-5" />
+                <LinkedInIcon className="h-5 w-5" />
               </a>
             </div>
           </div>
