@@ -40,6 +40,10 @@ export default function TeamPage() {
               {">"} Co-Creator 
             </div>
             
+            <p className="mb-6 text-sm leading-relaxed text-[#aaaaaa]">
+              Hey I’m Morris, a CS B.S. student at UC Santa Cruz who loves turning random ideas into reality! Driven by the love of the game, I thrive on building tools and exploring the depths of cybersecurity research. After hosting hackathons and seeing first-hand the friction in manual judging, I teamed up with Cyrus to build Hillpost. Whether it's reverse-engineering a new protocol or shipping platforms that bring communities together, I'm always looking for the next challenge!
+            </p>
+            
             <div className="flex gap-4">
               <a href="https://github.com/Mcrich23" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
                 <Github className="h-5 w-5" />
@@ -67,6 +71,10 @@ export default function TeamPage() {
             <div className="mb-4 text-xs text-[#00FF41] font-mono">
               {">"} Co-Creator
             </div>
+
+            <p className="mb-6 text-sm leading-relaxed text-[#aaaaaa]">
+              Hey I’m Cyrus, a CSE M.S. student at UC Santa Cruz who loves building! I specialize in AI for small biz development but tackle projects across a variety of areas, from biomedical engineering to real estate. Hackathons fuel the pursuit of innovation in a way that’s second to none, which is why I built Hillpost alongside Morris. Together we’ve hosted hackathons in SF with over 300 hackers and $1M+ in aggregate sponsorship, and we knew the judging process needed fixing. Happy building, I hope to see you at an event soon!
+            </p>
             
             <div className="flex gap-4">
               <a href="https://www.linkedin.com/in/cyruscorrell/" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
