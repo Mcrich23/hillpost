@@ -9,6 +9,15 @@ export function FooterSection() {
           <span className="text-xs uppercase tracking-widest">HILLPOST</span>
         </div>
         <p className="text-xs text-[#333333] tracking-wider">
+          <a
+            href="https://github.com/Mcrich23/hillpost"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#555555] hover:text-[#00FF41] transition-colors"
+          >
+            Free & Open Source
+          </a>
+          {" "}|{" "}
           Made with ♥ by{" "}
           <a
             href="https://github.com/Mcrich23"
