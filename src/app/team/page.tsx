@@ -42,7 +42,7 @@ export default function TeamPage() {
             </div>
             
             <p className="mb-6 text-sm leading-relaxed text-[#aaaaaa]">
-              Hey I’m Morris, a CS B.S. student at UC Santa Cruz who loves turning random ideas into reality! Driven by the love of the game, I thrive on building tools and exploring the depths of cybersecurity research. After hosting hackathons and seeing first-hand the friction in manual judging, I teamed up with Cyrus to build Hillpost. Whether it's reverse-engineering a new protocol or shipping platforms that bring communities together, I'm always looking for the next challenge!
+              Hey I’m Morris, a CS B.S. student at UC Santa Cruz who loves turning random ideas into reality! Driven by the love of the game, I thrive on building tools and exploring the depths of cybersecurity research. After hosting hackathons and seeing first-hand the friction in manual judging, I teamed up with Cyrus to build Hillpost. Whether it's reverse-engineering a new piece of software or shipping platforms that bring communities together, I'm always looking for the next challenge!
             </p>
             
             <div className="flex gap-4">
