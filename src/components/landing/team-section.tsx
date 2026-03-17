@@ -96,10 +96,22 @@ export function TeamSection() {
               </p>
               
               <div className="flex gap-4 mt-auto">
-                <a href="https://www.linkedin.com/in/cyruscorrell/" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
+                <a
+                  href="https://www.linkedin.com/in/cyruscorrell/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#555555] hover:text-white transition-colors"
+                  aria-label="Visit Cyrus Correll's LinkedIn profile"
+                >
                   <LinkedInIcon className="h-5 w-5" />
                 </a>
-                <a href="https://www.cyruscorrell.com/" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
+                <a
+                  href="https://www.cyruscorrell.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#555555] hover:text-white transition-colors"
+                  aria-label="Visit Cyrus Correll's personal website"
+                >
                   <Globe className="h-5 w-5" />
                 </a>
               </div>
