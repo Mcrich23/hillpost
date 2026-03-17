@@ -80,6 +80,7 @@ export function TeamSection() {
                   src="/cyrus.jpeg" 
                   alt="Cyrus Correll" 
                   fill
+                  sizes="(min-width: 768px) 50vw, 12rem"
                   className="object-cover grayscale transition-all duration-300 group-hover:grayscale-0"
                 />
               </div>
