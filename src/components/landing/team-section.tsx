@@ -39,6 +39,7 @@ export function TeamSection() {
                   src="/morris.jpeg" 
                   alt="Morris Richman" 
                   fill
+                  sizes="(max-width: 768px) 12rem, 50vw"
                   className="object-cover grayscale transition-all duration-300 group-hover:grayscale-0"
                 />
               </div>
