@@ -31,8 +31,8 @@ export function TeamSection() {
           <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto w-full">
             {/* Morris Card */}
             <div className="group relative border border-[#1F1F1F] bg-black p-6 transition-all hover:border-[#00FF41]">
-              <div className="pointer-events-none absolute top-0 right-0 w-8 h-8 border-t border-r border-[#1F1F1F] group-hover:border-[#00FF41] transition-colors" />
-              <div className="pointer-events-none absolute bottom-0 left-0 w-8 h-8 border-b border-l border-[#1F1F1F] group-hover:border-[#00FF41] transition-colors" />
+              <div className="pointer-events-none absolute -top-px -right-px w-8 h-8 border-t border-r border-transparent group-hover:border-[#00FF41] transition-colors" />
+              <div className="pointer-events-none absolute -bottom-px -left-px w-8 h-8 border-b border-l border-transparent group-hover:border-[#00FF41] transition-colors" />
               
               <div className="mb-6 aspect-square overflow-hidden border border-[#1F1F1F] bg-[#111] relative">
                 <Image 
@@ -72,8 +72,8 @@ export function TeamSection() {
 
             {/* Cyrus Card */}
             <div className="group relative border border-[#1F1F1F] bg-black p-6 transition-all hover:border-[#00FF41]">
-              <div className="pointer-events-none absolute top-0 left-0 w-8 h-8 border-t border-l border-[#1F1F1F] group-hover:border-[#00FF41] transition-colors" />
-              <div className="pointer-events-none absolute bottom-0 right-0 w-8 h-8 border-b border-r border-[#1F1F1F] group-hover:border-[#00FF41] transition-colors" />
+              <div className="pointer-events-none absolute -top-px -left-px w-8 h-8 border-t border-l border-transparent group-hover:border-[#00FF41] transition-colors" />
+              <div className="pointer-events-none absolute -bottom-px -right-px w-8 h-8 border-b border-r border-transparent group-hover:border-[#00FF41] transition-colors" />
               
               <div className="mb-6 aspect-square overflow-hidden border border-[#1F1F1F] bg-[#111] relative">
                 <Image 
