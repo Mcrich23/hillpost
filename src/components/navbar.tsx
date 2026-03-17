@@ -27,12 +27,6 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-1 md:flex">
-          <Link
-            href="/team"
-            className="flex items-center gap-2 px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors border border-transparent hover:border-[#1F1F1F]"
-          >
-            ~/team
-          </Link>
           {isAuthenticated && (
             <Link
               href="/dashboard"
@@ -99,7 +93,7 @@ export function Navbar() {
       >
         <div className="space-y-1 px-4 py-3 bg-black">
           <Link
-            href="/team"
+            href="/#team"
             className="flex items-center gap-2 px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
             onClick={() => setMobileMenuOpen(false)}
           >
