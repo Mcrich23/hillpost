@@ -7,7 +7,7 @@ import { XIcon, LinkedInIcon, GitHubIcon } from "@/components/icons";
 
 export function TeamSection() {
   return (
-    <section id="team" className="relative border-t border-[#1F1F1F] bg-[#0A0A0A] px-4 py-24">
+    <section id="team" className="relative border-t border-[#1F1F1F] bg-[#0A0A0A] px-4 py-12 md:py-24">
       <div className="relative z-10 mx-auto max-w-5xl text-center">
         <div className="mb-4 flex items-center justify-center gap-3 text-[#555555]">
           <span className="text-xs uppercase tracking-widest">## MEET THE TEAM</span>
@@ -16,7 +16,7 @@ export function TeamSection() {
         <h2 className="mb-4 text-2xl font-bold text-white uppercase tracking-wide sm:text-3xl">
           Meet the Builders
         </h2>
-        <p className="mx-auto mb-12 max-w-2xl text-sm text-[#555555]">
+        <p className="mx-auto mb-6 md:mb-12 max-w-2xl text-sm text-[#555555]">
           The minds behind the ultimate king-of-the-hill hackathon platform.
         </p>
         
@@ -25,12 +25,12 @@ export function TeamSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.5 }}
-          className="mx-auto flex flex-col gap-12 text-left"
+          className="mx-auto flex flex-col gap-6 md:gap-12 text-left"
         >
           {/* Team Cards */}
-          <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto w-full">
+          <div className="grid gap-6 md:gap-8 md:grid-cols-2 max-w-4xl mx-auto w-full">
             {/* Morris Card */}
-            <div className="group relative border border-[#1F1F1F] bg-black p-6 transition-all hover:border-[#00FF41]">
+            <div className="group relative border border-[#1F1F1F] bg-black p-5 md:p-6 transition-all hover:border-[#00FF41]">
               <div className="pointer-events-none absolute -top-px -right-px w-8 h-8 border-t border-r border-transparent group-hover:border-[#00FF41] transition-colors" />
               <div className="pointer-events-none absolute -bottom-px -left-px w-8 h-8 border-b border-l border-transparent group-hover:border-[#00FF41] transition-colors" />
               
@@ -71,7 +71,7 @@ export function TeamSection() {
             </div>
 
             {/* Cyrus Card */}
-            <div className="group relative border border-[#1F1F1F] bg-black p-6 transition-all hover:border-[#00FF41]">
+            <div className="group relative border border-[#1F1F1F] bg-black p-5 md:p-6 transition-all hover:border-[#00FF41]">
               <div className="pointer-events-none absolute -top-px -left-px w-8 h-8 border-t border-l border-transparent group-hover:border-[#00FF41] transition-colors" />
               <div className="pointer-events-none absolute -bottom-px -right-px w-8 h-8 border-b border-r border-transparent group-hover:border-[#00FF41] transition-colors" />
               
