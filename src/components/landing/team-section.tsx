@@ -34,7 +34,7 @@ export function TeamSection() {
               <div className="pointer-events-none absolute -top-px -right-px w-8 h-8 border-t border-r border-transparent group-hover:border-[#00FF41] transition-colors" />
               <div className="pointer-events-none absolute -bottom-px -left-px w-8 h-8 border-b border-l border-transparent group-hover:border-[#00FF41] transition-colors" />
               
-              <div className="mb-6 aspect-square overflow-hidden border border-[#1F1F1F] bg-[#111] relative">
+              <div className="mb-6 mx-auto w-48 h-48 md:w-full md:h-auto aspect-square overflow-hidden border border-[#1F1F1F] bg-[#111] relative">
                 <Image 
                   src="/morris.jpeg" 
                   alt="Morris Richman" 
@@ -75,7 +75,7 @@ export function TeamSection() {
               <div className="pointer-events-none absolute -top-px -left-px w-8 h-8 border-t border-l border-transparent group-hover:border-[#00FF41] transition-colors" />
               <div className="pointer-events-none absolute -bottom-px -right-px w-8 h-8 border-b border-r border-transparent group-hover:border-[#00FF41] transition-colors" />
               
-              <div className="mb-6 aspect-square overflow-hidden border border-[#1F1F1F] bg-[#111] relative">
+              <div className="mb-6 mx-auto w-48 h-48 md:w-full md:h-auto aspect-square overflow-hidden border border-[#1F1F1F] bg-[#111] relative">
                 <Image 
                   src="/cyrus.jpeg" 
                   alt="Cyrus Correll" 
