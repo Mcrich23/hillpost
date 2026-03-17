@@ -61,7 +61,7 @@ export function TeamSection() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#555555] hover:text-white transition-colors"
-                  aria-label="Morris Richman on X"
+                  aria-label="Visit Morris Richman's X profile"
                 >
                   <XIcon className="h-5 w-5" aria-hidden="true" />
                 </a>
@@ -70,7 +70,7 @@ export function TeamSection() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#555555] hover:text-white transition-colors"
-                  aria-label="Morris Richman on GitHub"
+                  aria-label="Visit Morris Richman's GitHub profile"
                 >
                   <GitHubIcon className="h-5 w-5" aria-hidden="true" />
                 </a>
@@ -79,7 +79,7 @@ export function TeamSection() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#555555] hover:text-white transition-colors"
-                  aria-label="Morris Richman on LinkedIn"
+                  aria-label="Visit Morris Richman's LinkedIn profile"
                 >
                   <LinkedInIcon className="h-5 w-5" aria-hidden="true" />
                 </a>
@@ -88,7 +88,7 @@ export function TeamSection() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[#555555] hover:text-white transition-colors"
-                  aria-label="Morris Richman personal website"
+                  aria-label="Visit Morris Richman's personal website"
                 >
                   <Globe className="h-5 w-5" aria-hidden="true" />
                 </a>
