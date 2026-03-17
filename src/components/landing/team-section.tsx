@@ -56,17 +56,41 @@ export function TeamSection() {
               </p>
               
               <div className="flex gap-4 mt-auto">
-                <a href="https://x.com/morrisinlife" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
-                  <XIcon className="h-5 w-5" />
+                <a
+                  href="https://x.com/morrisinlife"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#555555] hover:text-white transition-colors"
+                  aria-label="Morris Richman on X"
+                >
+                  <XIcon className="h-5 w-5" aria-hidden="true" />
                 </a>
-                <a href="https://github.com/mcrich23" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
-                  <GitHubIcon className="h-5 w-5" />
+                <a
+                  href="https://github.com/mcrich23"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#555555] hover:text-white transition-colors"
+                  aria-label="Morris Richman on GitHub"
+                >
+                  <GitHubIcon className="h-5 w-5" aria-hidden="true" />
                 </a>
-                <a href="https://www.linkedin.com/in/morris-richman/" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
-                  <LinkedInIcon className="h-5 w-5" />
+                <a
+                  href="https://www.linkedin.com/in/morris-richman/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#555555] hover:text-white transition-colors"
+                  aria-label="Morris Richman on LinkedIn"
+                >
+                  <LinkedInIcon className="h-5 w-5" aria-hidden="true" />
                 </a>
-                <a href="https://mcrich23.com" target="_blank" rel="noopener noreferrer" className="text-[#555555] hover:text-white transition-colors">
-                  <Globe className="h-5 w-5" />
+                <a
+                  href="https://mcrich23.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#555555] hover:text-white transition-colors"
+                  aria-label="Morris Richman personal website"
+                >
+                  <Globe className="h-5 w-5" aria-hidden="true" />
                 </a>
               </div>
             </div>
