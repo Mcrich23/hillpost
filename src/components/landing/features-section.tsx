@@ -53,11 +53,11 @@ export function FeaturesSection() {
   return (
     <section
       id="features"
-      className="relative border-t border-[#1F1F1F] bg-black px-4 py-12 md:py-24"
+      className="relative border-t border-[#1F1F1F] bg-black px-4 py-8 md:py-16"
     >
       <div className="relative z-10 mx-auto max-w-6xl">
         {/* Section header */}
-        <div className="mb-8 md:mb-16 text-center">
+        <div className="mb-6 md:mb-12 text-center">
           <div className="mb-4 flex items-center justify-center gap-3 text-[#555555]">
             <span className="text-xs uppercase tracking-widest">## FEATURES</span>
             <div className="h-px flex-1 max-w-xs bg-[#1F1F1F]" />

@@ -7,7 +7,7 @@ import { XIcon, LinkedInIcon, GitHubIcon } from "@/components/icons";
 
 export function TeamSection() {
   return (
-    <section id="team" className="relative border-t border-[#1F1F1F] bg-[#0A0A0A] px-4 py-12 md:py-24">
+    <section id="team" className="relative border-t border-[#1F1F1F] bg-[#0A0A0A] px-4 py-8 md:py-16">
       <div className="relative z-10 mx-auto max-w-5xl text-center">
         <div className="mb-4 flex items-center justify-center gap-3 text-[#555555]">
           <span className="text-xs uppercase tracking-widest">## MEET THE TEAM</span>
@@ -16,7 +16,7 @@ export function TeamSection() {
         <h2 className="mb-4 text-2xl font-bold text-white uppercase tracking-wide sm:text-3xl">
           Meet the Builders
         </h2>
-        <p className="mx-auto mb-6 md:mb-12 max-w-2xl text-sm text-[#555555]">
+        <p className="mx-auto mb-6 md:mb-10 max-w-2xl text-sm text-[#555555]">
           The minds behind the ultimate king-of-the-hill hackathon platform.
         </p>
         
