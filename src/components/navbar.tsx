@@ -92,13 +92,6 @@ export function Navbar() {
         )}
       >
         <div className="space-y-1 px-4 py-3 bg-black">
-          <Link
-            href="/#team"
-            className="flex items-center gap-2 px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            ~/team
-          </Link>
           {isAuthenticated && (
             <Link
               href="/dashboard"
