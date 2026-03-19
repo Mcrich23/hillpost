@@ -16,6 +16,7 @@ import {
   History,
   X,
 } from "lucide-react";
+import { PanelSkeleton } from "@/components/skeleton";
 
 interface JudgePanelProps {
   hackathonId: Id<"hackathons">;
@@ -33,16 +34,18 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
 
   const teamMap = new Map(teams?.map((t) => [t._id, t.name]) ?? []);
 
-  const displayedSubmissions = submissions?.filter((sub) => {
+  const displayedSubmissions = submissions ? submissions.filter((sub) => {
     if (!user?.id) return false;
     const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
     return view === "pending" ? !hasJudged : hasJudged;
-  });
+  }) : [];
 
-  if (membership === undefined) {
-    return (
-      <div className="text-xs text-[#555555] uppercase tracking-widest cursor-blink">▓▓▓░░░ LOADING...</div>
-    );
+  if (membership === undefined || submissions === undefined || categories === undefined || teams === undefined) {
+    return <PanelSkeleton />;
+  }
+
+  if (membership === null || (membership.role !== "judge" && membership.role !== "organizer")) {
+    throw new Error("Unauthorized: Only judges and organizers can access this panel");
   }
 
   if (membership?.role === "judge" && membership?.status === "pending") {
@@ -106,9 +109,7 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
           </button>
         </div>
 
-        {!displayedSubmissions || !categories ? (
-          <p className="text-xs text-[#555555] uppercase tracking-wider cursor-blink">▓▓▓░░░ LOADING...</p>
-        ) : displayedSubmissions.length === 0 ? (
+        {displayedSubmissions.length === 0 ? (
           <p className="text-xs text-[#555555] uppercase tracking-wider">
             {view === "pending"
               ? "NO PENDING SUBMISSIONS. GREAT JOB!"
@@ -227,10 +228,10 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
                   </div>
                 )}
               </div>
-              );
-            })}
-          </div>
-        )}
+            );
+          })}
+        </div>
+      )}
       </div>
 
       {/* Changelog Modal */}
@@ -349,7 +350,7 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
   };
 
   if (!myScores) {
-    return <p className="text-xs text-[#555555] uppercase tracking-wider cursor-blink">▓▓▓░░░ LOADING...</p>;
+    return null;
   }
 
   return (

@@ -53,9 +53,10 @@ export default function HackathonDetailPage() {
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
+  const role = membership?.role;
 
   const submissions = useQuery(api.submissions.list, { hackathonId });
-  const allMembers = useQuery(api.members.listMembers, { hackathonId });
+  const allMembers = useQuery(api.members.listMembers, role === "organizer" ? { hackathonId } : "skip");
   const categories = useQuery(api.categories.list, { hackathonId });
   const sponsors = useQuery(api.sponsors.list, { hackathonId });
   const featuredSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "featured") ?? [];
@@ -92,8 +93,6 @@ export default function HackathonDetailPage() {
     const qs = newParams.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
-
-  const role = membership?.role;
 
   const copyCompetitorJoinLink = async () => {
     if (!hackathon?.competitorJoinCode) return;

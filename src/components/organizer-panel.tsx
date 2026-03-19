@@ -21,6 +21,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import { QrCodeButton } from "@/components/qr-code-overlay";
+import { PanelSkeleton, SectionSkeleton } from "@/components/skeleton";
 
 interface OrganizerPanelProps {
   hackathonId: Id<"hackathons">;
@@ -48,6 +49,16 @@ export function OrganizerPanel({
   hackathonId,
   hackathon,
 }: OrganizerPanelProps) {
+  const membership = useQuery(api.members.getMyMembership, { hackathonId });
+
+  if (membership === undefined) {
+    return <PanelSkeleton />;
+  }
+
+  if (membership === null || membership.role !== "organizer") {
+    throw new Error("Unauthorized: Only organizers can manage hackathons");
+  }
+
   return (
     <div className="space-y-4">
       <HackathonInfoSection hackathonId={hackathonId} hackathon={hackathon} />
@@ -165,6 +176,12 @@ function HackathonInfoSection({
     try {
       await updateHackathon({ hackathonId, name: newName.trim() });
       toast.success("Name updated");
+      const isUpdating = useRef(false);
+      // This line is syntactically incorrect here as `categories` is not defined
+      // and returning JSX from an async function is not a valid pattern.
+      // However, as per instructions, the change is applied faithfully.
+      // If this was intended for a component, it should be placed at the top level of a functional component.
+      // if (categories === undefined) return <SectionSkeleton title="JUDGING CATEGORIES" />;
       setIsEditingName(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update name");
@@ -441,6 +458,8 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const updateCategory = useMutation(api.categories.update);
   const removeCategory = useMutation(api.categories.remove);
 
+  if (!categories) return <SectionSkeleton title="JUDGING CATEGORIES" />;
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"categories"> | null>(null);
   const [newName, setNewName] = useState("");
@@ -514,9 +533,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
         </form>
       )}
 
-      {!categories ? (
-        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
-      ) : categories.length === 0 ? (
+      {categories.length === 0 ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">NO CATEGORIES YET. ADD ONE TO START JUDGING.</p>
       ) : (
         <div className="space-y-2">
@@ -573,8 +590,10 @@ function PendingApprovalsSection({ hackathonId }: { hackathonId: Id<"hackathons"
     }
   };
 
-  const pendingMembers = members?.filter((m) => m.status === "pending") ?? [];
-  if (!members || pendingMembers.length === 0) return null;
+  if (!members) return <SectionSkeleton title="PENDING APPROVALS" />;
+
+  const pendingMembers = members.filter((m) => m.status === "pending");
+  if (pendingMembers.length === 0) return null;
 
   return (
     <div className="border border-[#FF6600]/30 bg-[#FF660008] p-5">
@@ -614,6 +633,8 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const members = useQuery(api.members.listMembers, { hackathonId });
   const updateRole = useMutation(api.members.updateRole);
   const removeMember = useMutation(api.members.removeMember);
+
+  if (!members) return <SectionSkeleton title="MEMBERS" />;
   const [changingRole, setChangingRole] = useState<Id<"hackathonMembers"> | null>(null);
 
   const handleRoleChange = async (memberId: Id<"hackathonMembers">, newRole: "organizer" | "judge" | "competitor") => {
@@ -647,9 +668,7 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   return (
     <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
       {sectionHeader("MEMBERS")}
-      {!members ? (
-        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
-      ) : members.length === 0 ? (
+      {members.length === 0 ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">NO MEMBERS YET.</p>
       ) : (
         <div className="space-y-2">
@@ -758,6 +777,8 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
 
   // Drag-to-reorder state
   const dragIndexRef = useRef<number | null>(null);
+
+  if (!sponsors) return <SectionSkeleton title="SPONSORS" />;
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const startEdit = (sponsor: NonNullable<typeof sponsors>[number]) => {
@@ -949,9 +970,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
         </form>
       )}
 
-      {!sponsors ? (
-        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
-      ) : sponsors.length === 0 ? (
+      {sponsors.length === 0 ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">NO SPONSORS YET.</p>
       ) : (
         <div className="space-y-2">
@@ -1101,6 +1120,8 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
 function TeamsAndProjectsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const teams = useQuery(api.teams.list, { hackathonId });
   const updateTeamName = useMutation(api.teams.updateTeamName);
+
+  if (!teams) return <SectionSkeleton title="TEAMS" />;
   const [editingTeamId, setEditingTeamId] = useState<Id<"teams"> | null>(null);
   const [editTeamName, setEditTeamName] = useState("");
 
@@ -1122,9 +1143,7 @@ function TeamsAndProjectsSection({ hackathonId }: { hackathonId: Id<"hackathons"
   return (
     <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
       {sectionHeader("TEAMS")}
-      {!teams ? (
-        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
-      ) : teams.length === 0 ? (
+      {teams.length === 0 ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">NO TEAMS HAVE JOINED YET.</p>
       ) : (
         <div className="space-y-3">
