@@ -34,8 +34,9 @@ import { QrCodeButton } from "@/components/qr-code-overlay";
 
 import { isSafeHttpUrl } from "@/lib/url";
 
-type Tab = "overview" | "submissions" | "compete" | "judge" | "manage";
-const VALID_TABS: Tab[] = ["overview", "submissions", "compete", "judge", "manage"];
+const ALL_TABS = ["overview", "submissions", "compete", "judge", "manage"] as const;
+type Tab = (typeof ALL_TABS)[number];
+const VALID_TABS: Tab[] = ALL_TABS;
 
 const roleColor = (role: string) => {
   switch (role) {
