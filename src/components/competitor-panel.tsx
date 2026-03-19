@@ -7,6 +7,7 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { toast } from "sonner";
 import { ExternalLink, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { SectionSkeleton } from "@/components/skeleton";
 
 interface CompetitorPanelProps {
   hackathonId: Id<"hackathons">;
@@ -65,12 +66,8 @@ function TeamSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     }
   };
 
-  if (myTeam === undefined) {
-    return (
-      <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
-        <p className="text-xs text-[#555555] uppercase tracking-wider cursor-blink">▓▓▓░░░ LOADING...</p>
-      </div>
-    );
+  if (myTeam === undefined || teams === undefined) {
+    return <SectionSkeleton title="TEAM" />;
   }
 
   if (myTeam) {
@@ -264,6 +261,10 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
   const cooldownMinutes = Math.floor(totalSeconds / 60);
   const cooldownSeconds = totalSeconds % 60;
   const cooldownStr = cooldownMinutes > 0 ? `${String(cooldownMinutes).padStart(2, "0")}:${String(cooldownSeconds).padStart(2, "0")}` : `00:${String(cooldownSeconds).padStart(2, "0")}`;
+
+  if (myTeam === undefined || (myTeam !== null && latestSubmission === undefined)) {
+    return <SectionSkeleton title="PROJECT DETAILS" />;
+  }
 
   return (
     <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">

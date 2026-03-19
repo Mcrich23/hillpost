@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -34,7 +34,8 @@ import { QrCodeButton } from "@/components/qr-code-overlay";
 
 import { isSafeHttpUrl } from "@/lib/url";
 
-type Tab = "overview" | "submissions" | "compete" | "judge" | "manage";
+const ALL_TABS = ["overview", "submissions", "compete", "judge", "manage"] as const;
+type Tab = (typeof ALL_TABS)[number];
 
 const roleColor = (role: string) => {
   switch (role) {
@@ -48,13 +49,14 @@ const roleColor = (role: string) => {
 export default function HackathonDetailPage() {
   const params = useParams();
   const { user } = useUser();
-  const { isAuthenticated } = useConvexAuth();
+  const { isAuthenticated, isLoading } = useConvexAuth();
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
+  const role = membership?.role;
 
   const submissions = useQuery(api.submissions.list, { hackathonId });
-  const allMembers = useQuery(api.members.listMembers, { hackathonId });
+  const allMembers = useQuery(api.members.listMembers, role === "organizer" ? { hackathonId } : "skip");
   const categories = useQuery(api.categories.list, { hackathonId });
   const sponsors = useQuery(api.sponsors.list, { hackathonId });
   const featuredSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "featured") ?? [];
@@ -63,6 +65,8 @@ export default function HackathonDetailPage() {
   const leaveHackathon = useMutation(api.members.leaveHackathon);
   const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [isLeaving, setIsLeaving] = useState(false);
 
   React.useEffect(() => {
@@ -74,10 +78,21 @@ export default function HackathonDetailPage() {
     }
   }, [isAuthenticated, user?.imageUrl, membership, hackathonId, syncProfile]);
 
-  const [activeTab, setActiveTab] = React.useState<Tab>("overview");
+  const tabParam = searchParams.get("tab");
+  const parsedTab = (ALL_TABS as readonly string[]).includes(tabParam ?? "") ? (tabParam as Tab) : null;
+  const activeTab: Tab = parsedTab ?? "overview";
   const [copiedJoinLink, setCopiedJoinLink] = useState(false);
 
-  const role = membership?.role;
+  const handleTabChange = (tab: Tab) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    if (tab === "overview") {
+      newParams.delete("tab");
+    } else {
+      newParams.set("tab", tab);
+    }
+    const qs = newParams.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   const copyCompetitorJoinLink = async () => {
     if (!hackathon?.competitorJoinCode) return;
@@ -108,12 +123,14 @@ export default function HackathonDetailPage() {
     return allMembers.filter((m) => m.status === "pending").length;
   }, [role, allMembers]);
 
-  if (hackathon === undefined || membership === undefined) {
+  const isMembershipLoading = membership === undefined || isLoading;
+
+  if (hackathon === undefined || isMembershipLoading) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="h-64 border border-[#1F1F1F] bg-[#0A0A0A] flex items-center justify-center">
-          <span className="text-xs text-[#555555] uppercase tracking-widest cursor-blink">
-            ▓▓▓░░░ LOADING...
+          <span className="text-xs text-[#555555] uppercase tracking-widest">
+            ▓▓▓░░░ LOADING HACKATHON...
           </span>
         </div>
       </div>
@@ -151,23 +168,44 @@ export default function HackathonDetailPage() {
     );
   }
 
+  const isCreator = user?.id === hackathon.organizerId;
+
   const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
     { id: "overview", label: "OVERVIEW", show: true },
-    { id: "submissions", label: "SUBMISSIONS", show: role === "organizer" },
+    { id: "submissions", label: "SUBMISSIONS", show: true },
     { id: "compete", label: "COMPETE", show: role === "competitor" },
     {
       id: "judge",
       label: "JUDGE",
-      show: role === "judge" || role === "organizer",
+      show: role === "judge" || role === "organizer" || isCreator,
       badge: pendingSubmissionsCount,
     },
     {
       id: "manage",
       label: "MANAGE",
-      show: role === "organizer",
+      show: role === "organizer" || isCreator,
       badge: pendingApprovalsCount,
     },
   ];
+
+  const activeTabConfig = tabs.find((t) => t.id === activeTab);
+  if (activeTabConfig && !activeTabConfig.show) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
+          <p className="text-sm text-white uppercase tracking-wide">404 — Page Not Found</p>
+          <p className="mt-2 text-xs text-[#555555]">The requested section could not be found or you do not have permission to access it.</p>
+          <button
+            onClick={() => handleTabChange("overview")}
+            className="mt-4 inline-flex items-center gap-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Back to Overview
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
@@ -239,7 +277,7 @@ export default function HackathonDetailPage() {
           .map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={cn(
                 "relative flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap border-r border-[#1F1F1F] last:border-r-0",
                 activeTab === tab.id
@@ -352,7 +390,7 @@ export default function HackathonDetailPage() {
                   </div>
                   {pendingSubmissionsCount > 0 && (
                     <button
-                      onClick={() => setActiveTab("judge")}
+                      onClick={() => handleTabChange("judge")}
                       className="mt-6 w-full border border-[#00B4FF] py-2 text-xs font-bold text-[#00B4FF] uppercase tracking-wider transition-colors hover:bg-[#00B4FF] hover:text-black"
                     >
                       [ START JUDGING → ]
@@ -619,16 +657,16 @@ export default function HackathonDetailPage() {
         <PublicSubmissions hackathonId={hackathonId} role={role} />
       )}
 
-      {activeTab === "manage" && role === "organizer" && (
+      {activeTab === "manage" && (
         <OrganizerPanel hackathonId={hackathonId} hackathon={hackathon} />
       )}
 
-      {activeTab === "compete" && role === "competitor" && (
+      {activeTab === "compete" && (
         <CompetitorPanel hackathonId={hackathonId} hackathon={hackathon} />
       )}
 
-      {activeTab === "judge" && (role === "judge" || role === "organizer") && (
-        <JudgePanel hackathonId={hackathonId} />
+      {activeTab === "judge" && (
+        <JudgePanel hackathonId={hackathonId} hackathon={hackathon} />
       )}
     </div>
   );

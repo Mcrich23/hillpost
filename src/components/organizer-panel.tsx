@@ -2,12 +2,13 @@
 
 import { useState, useRef } from "react";
 import type { FormEvent } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useUser } from "@clerk/nextjs";
 import {
   Copy,
   Check,
@@ -21,12 +22,14 @@ import {
   GripVertical,
 } from "lucide-react";
 import { QrCodeButton } from "@/components/qr-code-overlay";
+import { PanelSkeleton, SectionSkeleton } from "@/components/skeleton";
 
 interface OrganizerPanelProps {
   hackathonId: Id<"hackathons">;
   hackathon: {
     name: string;
     description: string;
+    organizerId: string;
     competitorJoinCode: string | undefined;
     judgeJoinCode: string | undefined;
     startDate: number;
@@ -48,6 +51,20 @@ export function OrganizerPanel({
   hackathonId,
   hackathon,
 }: OrganizerPanelProps) {
+  const { user } = useUser();
+  const { isLoading } = useConvexAuth();
+  const membership = useQuery(api.members.getMyMembership, { hackathonId });
+
+  if (membership === undefined || isLoading || user === undefined) {
+    return <PanelSkeleton />;
+  }
+
+  const isCreator = user?.id === hackathon.organizerId;
+
+  if (!isCreator && (membership === null || membership.role !== "organizer")) {
+    throw new Error("Unauthorized: Only organizers can manage hackathons");
+  }
+
   return (
     <div className="space-y-4">
       <HackathonInfoSection hackathonId={hackathonId} hackathon={hackathon} />
@@ -450,6 +467,8 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const [editDescription, setEditDescription] = useState("");
   const [editMaxScore, setEditMaxScore] = useState(10);
 
+  if (!categories) return <SectionSkeleton title="JUDGING CATEGORIES" />;
+
   const handleAdd = async (e: FormEvent) => {
     e.preventDefault();
     if (!newName || !newDescription) return;
@@ -514,9 +533,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
         </form>
       )}
 
-      {!categories ? (
-        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
-      ) : categories.length === 0 ? (
+      {categories.length === 0 ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">NO CATEGORIES YET. ADD ONE TO START JUDGING.</p>
       ) : (
         <div className="space-y-2">
@@ -573,8 +590,11 @@ function PendingApprovalsSection({ hackathonId }: { hackathonId: Id<"hackathons"
     }
   };
 
-  const pendingMembers = members?.filter((m) => m.status === "pending") ?? [];
-  if (!members || pendingMembers.length === 0) return null;
+  if (members === undefined) return <SectionSkeleton title="PENDING APPROVALS" />;
+  if (members === null) return null;
+
+  const pendingMembers = members.filter((m) => m.status === "pending");
+  if (pendingMembers.length === 0) return null;
 
   return (
     <div className="border border-[#FF6600]/30 bg-[#FF660008] p-5">
@@ -614,7 +634,11 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const members = useQuery(api.members.listMembers, { hackathonId });
   const updateRole = useMutation(api.members.updateRole);
   const removeMember = useMutation(api.members.removeMember);
+
   const [changingRole, setChangingRole] = useState<Id<"hackathonMembers"> | null>(null);
+
+  if (members === undefined) return <SectionSkeleton title="MEMBERS" />;
+  if (members === null) return null;
 
   const handleRoleChange = async (memberId: Id<"hackathonMembers">, newRole: "organizer" | "judge" | "competitor") => {
     try {
@@ -647,9 +671,7 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   return (
     <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
       {sectionHeader("MEMBERS")}
-      {!members ? (
-        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
-      ) : members.length === 0 ? (
+      {members.length === 0 ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">NO MEMBERS YET.</p>
       ) : (
         <div className="space-y-2">
@@ -759,6 +781,8 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   // Drag-to-reorder state
   const dragIndexRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  if (!sponsors) return <SectionSkeleton title="SPONSORS" />;
 
   const startEdit = (sponsor: NonNullable<typeof sponsors>[number]) => {
     setEditingId(sponsor._id);
@@ -949,9 +973,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
         </form>
       )}
 
-      {!sponsors ? (
-        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
-      ) : sponsors.length === 0 ? (
+      {sponsors.length === 0 ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">NO SPONSORS YET.</p>
       ) : (
         <div className="space-y-2">
@@ -1101,8 +1123,11 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
 function TeamsAndProjectsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const teams = useQuery(api.teams.list, { hackathonId });
   const updateTeamName = useMutation(api.teams.updateTeamName);
+
   const [editingTeamId, setEditingTeamId] = useState<Id<"teams"> | null>(null);
   const [editTeamName, setEditTeamName] = useState("");
+
+  if (!teams) return <SectionSkeleton title="TEAMS" />;
 
   const startEditingTeam = (team: { _id: Id<"teams">; name: string }) => {
     setEditingTeamId(team._id); setEditTeamName(team.name);
@@ -1122,9 +1147,7 @@ function TeamsAndProjectsSection({ hackathonId }: { hackathonId: Id<"hackathons"
   return (
     <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
       {sectionHeader("TEAMS")}
-      {!teams ? (
-        <p className="text-xs text-[#555555] uppercase tracking-wider">LOADING...</p>
-      ) : teams.length === 0 ? (
+      {teams.length === 0 ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">NO TEAMS HAVE JOINED YET.</p>
       ) : (
         <div className="space-y-3">

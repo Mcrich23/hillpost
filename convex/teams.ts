@@ -92,7 +92,11 @@ export const getMyTeam = query({
       )
       .first();
 
-    if (!membership || !membership.teamId) {
+    if (!membership || membership.role !== "competitor") {
+      throw new Error("Unauthorized: Only competitors can view this");
+    }
+
+    if (!membership.teamId) {
       return null;
     }
 

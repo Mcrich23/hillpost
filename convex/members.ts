@@ -45,6 +45,20 @@ export const syncUserProfile = mutation({
 export const listMembers = query({
   args: { hackathonId: v.id("hackathons") },
   handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
+
+    const callerMembership = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+      )
+      .first();
+
+    if (!callerMembership || callerMembership.role !== "organizer") {
+      return null;
+    }
+
     return await ctx.db
       .query("hackathonMembers")
       .withIndex("by_hackathonId", (q) =>
