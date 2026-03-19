@@ -14,6 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Hillpost",
   description: "King-of-the-hill style hackathon judging platform",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com"),
   openGraph: {
     title: "Hillpost",
     description: "King-of-the-hill style hackathon judging platform",
