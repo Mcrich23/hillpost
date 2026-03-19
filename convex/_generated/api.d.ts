@@ -13,6 +13,7 @@ import type * as categories from "../categories.js";
 import type * as hackathons from "../hackathons.js";
 import type * as leaderboard from "../leaderboard.js";
 import type * as members from "../members.js";
+import type * as migrations from "../migrations.js";
 import type * as scores from "../scores.js";
 import type * as sponsors from "../sponsors.js";
 import type * as submissions from "../submissions.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   hackathons: typeof hackathons;
   leaderboard: typeof leaderboard;
   members: typeof members;
+  migrations: typeof migrations;
   scores: typeof scores;
   sponsors: typeof sponsors;
   submissions: typeof submissions;

@@ -12,6 +12,7 @@ export default defineSchema({
     isActive: v.boolean(),
     competitorJoinCode: v.string(),
     judgeJoinCode: v.string(),
+    openGraphImageUrl: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_competitorJoinCode", ["competitorJoinCode"])
