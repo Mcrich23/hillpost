@@ -129,7 +129,7 @@ export default function HackathonDetailPage() {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="h-64 border border-[#1F1F1F] bg-[#0A0A0A] flex items-center justify-center">
-          <span className="text-xs text-[#555555] uppercase tracking-widest cursor-blink">
+          <span className="text-xs text-[#555555] uppercase tracking-widest">
             ▓▓▓░░░ LOADING HACKATHON...
           </span>
         </div>

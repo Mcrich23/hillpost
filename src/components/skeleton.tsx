@@ -7,7 +7,7 @@ export function SectionSkeleton({ title }: { title?: string }) {
           <div className="h-px flex-1 bg-[#1F1F1F]" />
         </div>
       )}
-      <p className="text-xs text-[#555555] uppercase tracking-wider cursor-blink">
+      <p className="text-xs text-[#555555] uppercase tracking-wider">
         ▓▓▓░░░ LOADING...
       </p>
     </div>
