@@ -34,7 +34,7 @@ export default async function Image({
     (
       <div
         style={{
-          ...(bgImage ? {} : { background: "#0A0A0A" }),
+          background: "#0A0A0A",
           width: "100%",
           height: "100%",
           display: "flex",
@@ -56,18 +56,7 @@ export default async function Image({
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              zIndex: -2,
-            }}
-          />
-        )}
-        {bgImage && (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: "linear-gradient(to bottom, rgba(10,10,10,0.4), rgba(10,10,10,0.9))",
-              zIndex: -1,
-              display: "flex",
+              opacity: 0.25,
             }}
           />
         )}
