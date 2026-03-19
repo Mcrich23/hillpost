@@ -49,7 +49,7 @@ const roleColor = (role: string) => {
 export default function HackathonDetailPage() {
   const params = useParams();
   const { user } = useUser();
-  const { isAuthenticated } = useConvexAuth();
+  const { isAuthenticated, isLoading } = useConvexAuth();
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
@@ -123,19 +123,19 @@ export default function HackathonDetailPage() {
     return allMembers.filter((m) => m.status === "pending").length;
   }, [role, allMembers]);
 
-  if (hackathon === undefined) {
+  const isMembershipLoading = membership === undefined || isLoading;
+
+  if (hackathon === undefined || isMembershipLoading) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="h-64 border border-[#1F1F1F] bg-[#0A0A0A] flex items-center justify-center">
           <span className="text-xs text-[#555555] uppercase tracking-widest cursor-blink">
-            ▓▓▓░░░ LOADING...
+            ▓▓▓░░░ LOADING HACKATHON...
           </span>
         </div>
       </div>
     );
   }
-
-  const isMembershipLoading = membership === undefined;
 
   const handleLeave = async () => {
     if (!user?.id || hackathon?.organizerId === user.id) return;
@@ -168,20 +168,22 @@ export default function HackathonDetailPage() {
     );
   }
 
+  const isCreator = user?.id === hackathon.organizerId;
+
   const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
     { id: "overview", label: "OVERVIEW", show: true },
-    { id: "submissions", label: "SUBMISSIONS", show: isMembershipLoading || role === "organizer" || parsedTab === "submissions" },
-    { id: "compete", label: "COMPETE", show: isMembershipLoading || role === "competitor" || parsedTab === "compete" },
+    { id: "submissions", label: "SUBMISSIONS", show: true },
+    { id: "compete", label: "COMPETE", show: role === "competitor" },
     {
       id: "judge",
       label: "JUDGE",
-      show: isMembershipLoading || role === "judge" || role === "organizer" || parsedTab === "judge",
+      show: role === "judge" || role === "organizer" || isCreator,
       badge: pendingSubmissionsCount,
     },
     {
       id: "manage",
       label: "MANAGE",
-      show: isMembershipLoading || role === "organizer" || parsedTab === "manage",
+      show: role === "organizer" || isCreator,
       badge: pendingApprovalsCount,
     },
   ];
