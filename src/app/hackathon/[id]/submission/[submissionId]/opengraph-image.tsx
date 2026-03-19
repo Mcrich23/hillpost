@@ -7,6 +7,19 @@ export const alt = "Project Submission";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+function getSafeHttpUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+  } catch {
+    // Invalid URL; fall through to return empty string.
+  }
+  return "";
+}
+
 export default async function Image({
   params,
 }: {
@@ -29,7 +42,7 @@ export default async function Image({
     const hackathon = await fetchQuery(api.hackathons.get, { hackathonId });
     if (hackathon) {
       hackathonName = hackathon.name;
-      bgImage = (hackathon as any).openGraphImageUrl || "";
+      bgImage = getSafeHttpUrl(hackathon.openGraphImageUrl as string | null | undefined);
     }
   } catch {
     // fallback to defaults
