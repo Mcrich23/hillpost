@@ -9,6 +9,8 @@ const isPublicRoute = createRouteMatcher([
   "/hackathon/:id/submission/:submissionId",
   "/hackathon/:id/submission/:submissionId/opengraph-image",
   "/hackathon/:id/leaderboard/opengraph-image",
+  "/opengraph-image",
+  "/twitter-image",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
