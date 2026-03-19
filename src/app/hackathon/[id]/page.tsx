@@ -36,7 +36,6 @@ import { isSafeHttpUrl } from "@/lib/url";
 
 const ALL_TABS = ["overview", "submissions", "compete", "judge", "manage"] as const;
 type Tab = (typeof ALL_TABS)[number];
-const VALID_TABS: Tab[] = ALL_TABS;
 
 const roleColor = (role: string) => {
   switch (role) {
@@ -79,7 +78,7 @@ export default function HackathonDetailPage() {
   }, [isAuthenticated, user?.imageUrl, membership, hackathonId, syncProfile]);
 
   const tabParam = searchParams.get("tab");
-  const parsedTab = (VALID_TABS as string[]).includes(tabParam ?? "") ? (tabParam as Tab) : null;
+  const parsedTab = (ALL_TABS as readonly string[]).includes(tabParam ?? "") ? (tabParam as Tab) : null;
   const activeTab: Tab = parsedTab ?? "overview";
   const [copiedJoinLink, setCopiedJoinLink] = useState(false);
 
