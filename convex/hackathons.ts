@@ -11,6 +11,18 @@ function generateJoinCode(): string {
   return code;
 }
 
+function sanitizeUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.toString();
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export const create = mutation({
   args: {
     name: v.string(),
@@ -219,6 +231,17 @@ export const update = mutation({
       throw new Error("Only organizers can update hackathons");
     }
 
+    const sanitizedOpenGraphImageUrl =
+      args.openGraphImageUrl === undefined
+        ? undefined
+        : args.openGraphImageUrl === null
+        ? null
+        : sanitizeUrl(args.openGraphImageUrl);
+
+    if (sanitizedOpenGraphImageUrl === null && args.openGraphImageUrl !== null && args.openGraphImageUrl !== undefined) {
+      throw new Error("Invalid openGraphImageUrl");
+    }
+
     await ctx.db.patch(args.hackathonId, {
       ...(args.name !== undefined && { name: args.name }),
       ...(args.description !== undefined && { description: args.description }),
@@ -229,7 +252,8 @@ export const update = mutation({
       }),
       ...(args.isActive !== undefined && { isActive: args.isActive }),
       ...(args.openGraphImageUrl !== undefined && {
-        openGraphImageUrl: args.openGraphImageUrl === null ? undefined : args.openGraphImageUrl,
+        openGraphImageUrl:
+          sanitizedOpenGraphImageUrl === null ? undefined : sanitizedOpenGraphImageUrl,
       }),
     });
     return args.hackathonId;
