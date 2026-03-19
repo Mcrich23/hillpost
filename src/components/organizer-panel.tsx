@@ -33,6 +33,7 @@ interface OrganizerPanelProps {
     endDate: number;
     isActive: boolean;
     submissionFrequencyMinutes: number;
+    openGraphImageUrl?: string;
   };
 }
 
@@ -76,7 +77,7 @@ function HackathonInfoSection({
   const [newDesc, setNewDesc] = useState(hackathon.description);
 
   const [isEditingOgImage, setIsEditingOgImage] = useState(false);
-  const [newOgImage, setNewOgImage] = useState((hackathon as any).openGraphImageUrl || "");
+  const [newOgImage, setNewOgImage] = useState(hackathon.openGraphImageUrl ?? "");
 
   const [isEditingDates, setIsEditingDates] = useState(false);
   const [newStartDate, setNewStartDate] = useState(
