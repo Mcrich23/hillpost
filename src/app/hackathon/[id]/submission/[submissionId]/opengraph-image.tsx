@@ -18,6 +18,7 @@ export default async function Image({
 
   let submissionName = "Project Submission";
   let hackathonName = "Hackathon";
+  let bgImage = "";
 
   try {
     const submission = await fetchQuery(api.submissions.get, { submissionId });
@@ -28,6 +29,7 @@ export default async function Image({
     const hackathon = await fetchQuery(api.hackathons.get, { hackathonId });
     if (hackathon) {
       hackathonName = hackathon.name;
+      bgImage = (hackathon as any).openGraphImageUrl || "";
     }
   } catch {
     // fallback to defaults
@@ -37,7 +39,7 @@ export default async function Image({
     (
       <div
         style={{
-          background: "#0A0A0A",
+          ...(bgImage ? {} : { background: "#0A0A0A" }),
           width: "100%",
           height: "100%",
           display: "flex",
@@ -48,12 +50,39 @@ export default async function Image({
           justifyContent: "center",
         }}
       >
+        {bgImage && (
+          <img
+            src={bgImage}
+            alt="background"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              zIndex: -2,
+            }}
+          />
+        )}
+        {bgImage && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(to bottom, rgba(10,10,10,0.4), rgba(10,10,10,0.9))",
+              zIndex: -1,
+              display: "flex",
+            }}
+          />
+        )}
+
         {/* Border */}
         <div
           style={{
             position: "absolute",
             inset: "24px",
-            border: "2px solid #1F1F1F",
+            border: "2px solid rgba(255,255,255,0.1)",
             display: "flex",
           }}
         />
@@ -91,7 +120,7 @@ export default async function Image({
         <div
           style={{
             fontSize: "32px",
-            color: "#555555",
+            color: "#AAAAAA",
             letterSpacing: "4px",
             textTransform: "uppercase",
             textAlign: "center",
@@ -128,7 +157,7 @@ export default async function Image({
           <div
             style={{
               fontSize: "20px",
-              color: "#555555",
+              color: "#AAAAAA",
               letterSpacing: "3px",
               display: "flex",
             }}

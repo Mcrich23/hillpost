@@ -17,12 +17,14 @@ export default async function Image({
 
   let hackathonName = "Hackathon";
   let isActive = false;
+  let bgImage = "";
 
   try {
     const hackathon = await fetchQuery(api.hackathons.get, { hackathonId });
     if (hackathon) {
       hackathonName = hackathon.name;
       isActive = hackathon.isActive;
+      bgImage = (hackathon as any).openGraphImageUrl || "";
     }
   } catch (e) {
     console.error("OG image fetch error:", e);
@@ -32,7 +34,7 @@ export default async function Image({
     (
       <div
         style={{
-          background: "#0A0A0A",
+          ...(bgImage ? {} : { background: "#0A0A0A" }),
           width: "100%",
           height: "100%",
           display: "flex",
@@ -43,12 +45,39 @@ export default async function Image({
           justifyContent: "center",
         }}
       >
+        {bgImage && (
+          <img
+            src={bgImage}
+            alt="background"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              zIndex: -2,
+            }}
+          />
+        )}
+        {bgImage && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(to bottom, rgba(10,10,10,0.4), rgba(10,10,10,0.9))",
+              zIndex: -1,
+              display: "flex",
+            }}
+          />
+        )}
+
         {/* Border */}
         <div
           style={{
             position: "absolute",
             inset: "24px",
-            border: "2px solid #1F1F1F",
+            border: "2px solid rgba(255,255,255,0.1)",
             display: "flex",
           }}
         />
@@ -108,7 +137,7 @@ export default async function Image({
           <div
             style={{
               fontSize: "20px",
-              color: "#555555",
+              color: "#AAAAAA",
               letterSpacing: "3px",
               display: "flex",
             }}

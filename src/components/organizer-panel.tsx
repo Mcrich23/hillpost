@@ -75,6 +75,9 @@ function HackathonInfoSection({
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [newDesc, setNewDesc] = useState(hackathon.description);
 
+  const [isEditingOgImage, setIsEditingOgImage] = useState(false);
+  const [newOgImage, setNewOgImage] = useState((hackathon as any).openGraphImageUrl || "");
+
   const [isEditingDates, setIsEditingDates] = useState(false);
   const [newStartDate, setNewStartDate] = useState(
     format(new Date(hackathon.startDate), "yyyy-MM-dd")
@@ -178,6 +181,19 @@ function HackathonInfoSection({
     }
   };
 
+  const saveOgImage = async () => {
+    try {
+      await updateHackathon({
+        hackathonId,
+        openGraphImageUrl: newOgImage.trim() || undefined,
+      });
+      toast.success("OG Image updated");
+      setIsEditingOgImage(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update OG Image");
+    }
+  };
+
   const saveDates = async () => {
     if (!newStartDate || !newEndDate) return;
     const start = new Date(newStartDate).getTime();
@@ -253,6 +269,38 @@ function HackathonInfoSection({
               </button>
             </div>
           )}
+        </div>
+
+        {/* OG Image URL */}
+        <div className="border-t border-[#1F1F1F] pt-4">
+          <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">SOCIAL SHARE IMAGE URL (OPTIONAL):</label>
+          {isEditingOgImage ? (
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                type="url"
+                value={newOgImage}
+                onChange={(e) => setNewOgImage(e.target.value)}
+                placeholder="https://..."
+                className="tui-input flex-1"
+              />
+              <button onClick={saveOgImage} className="px-3 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors">
+                SAVE
+              </button>
+              <button onClick={() => setIsEditingOgImage(false)} className="px-3 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors">
+                CANCEL
+              </button>
+            </div>
+          ) : (
+            <div className="mt-1 flex items-center gap-3">
+              <span className="text-xs text-[#555555] flex-1 truncate">
+                {(hackathon as any).openGraphImageUrl || "—"}
+              </span>
+              <button onClick={() => setIsEditingOgImage(true)} className="p-1.5 text-[#555555] hover:text-white transition-colors">
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+          <p className="mt-1 text-[10px] text-[#333333] uppercase">Used as background for leaderboard and submission social images.</p>
         </div>
 
         {/* Dates */}
