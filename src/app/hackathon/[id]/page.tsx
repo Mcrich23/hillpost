@@ -664,7 +664,7 @@ export default function HackathonDetailPage() {
       )}
 
       {activeTab === "judge" && (
-        <JudgePanel hackathonId={hackathonId} />
+        <JudgePanel hackathonId={hackathonId} hackathon={hackathon} />
       )}
     </div>
   );

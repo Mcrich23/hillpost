@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
@@ -20,10 +20,14 @@ import { PanelSkeleton } from "@/components/skeleton";
 
 interface JudgePanelProps {
   hackathonId: Id<"hackathons">;
+  hackathon: {
+    organizerId: string;
+  };
 }
 
-export function JudgePanel({ hackathonId }: JudgePanelProps) {
+export function JudgePanel({ hackathonId, hackathon }: JudgePanelProps) {
   const { user } = useUser();
+  const { isLoading } = useConvexAuth();
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const categories = useQuery(api.categories.list, { hackathonId });
   const teams = useQuery(api.teams.list, { hackathonId });
@@ -40,11 +44,13 @@ export function JudgePanel({ hackathonId }: JudgePanelProps) {
     return view === "pending" ? !hasJudged : hasJudged;
   }) : [];
 
-  if (membership === undefined || submissions === undefined || categories === undefined || teams === undefined) {
+  if (membership === undefined || submissions === undefined || categories === undefined || teams === undefined || isLoading || user === undefined) {
     return <PanelSkeleton />;
   }
 
-  if (membership === null || (membership.role !== "judge" && membership.role !== "organizer")) {
+  const isCreator = user?.id === hackathon.organizerId;
+
+  if (!isCreator && (membership === null || (membership.role !== "judge" && membership.role !== "organizer"))) {
     throw new Error("Unauthorized: Only judges and organizers can access this panel");
   }
 

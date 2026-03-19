@@ -2,12 +2,13 @@
 
 import { useState, useRef } from "react";
 import type { FormEvent } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useUser } from "@clerk/nextjs";
 import {
   Copy,
   Check,
@@ -28,6 +29,7 @@ interface OrganizerPanelProps {
   hackathon: {
     name: string;
     description: string;
+    organizerId: string;
     competitorJoinCode: string | undefined;
     judgeJoinCode: string | undefined;
     startDate: number;
@@ -49,13 +51,17 @@ export function OrganizerPanel({
   hackathonId,
   hackathon,
 }: OrganizerPanelProps) {
+  const { user } = useUser();
+  const { isLoading } = useConvexAuth();
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
 
-  if (membership === undefined) {
+  if (membership === undefined || isLoading || user === undefined) {
     return <PanelSkeleton />;
   }
 
-  if (membership === null || membership.role !== "organizer") {
+  const isCreator = user?.id === hackathon.organizerId;
+
+  if (!isCreator && (membership === null || membership.role !== "organizer")) {
     throw new Error("Unauthorized: Only organizers can manage hackathons");
   }
 
@@ -458,8 +464,6 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const updateCategory = useMutation(api.categories.update);
   const removeCategory = useMutation(api.categories.remove);
 
-  if (!categories) return <SectionSkeleton title="JUDGING CATEGORIES" />;
-
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"categories"> | null>(null);
   const [newName, setNewName] = useState("");
@@ -468,6 +472,8 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editMaxScore, setEditMaxScore] = useState(10);
+
+  if (!categories) return <SectionSkeleton title="JUDGING CATEGORIES" />;
 
   const handleAdd = async (e: FormEvent) => {
     e.preventDefault();
@@ -634,8 +640,9 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const updateRole = useMutation(api.members.updateRole);
   const removeMember = useMutation(api.members.removeMember);
 
-  if (!members) return <SectionSkeleton title="MEMBERS" />;
   const [changingRole, setChangingRole] = useState<Id<"hackathonMembers"> | null>(null);
+
+  if (!members) return <SectionSkeleton title="MEMBERS" />;
 
   const handleRoleChange = async (memberId: Id<"hackathonMembers">, newRole: "organizer" | "judge" | "competitor") => {
     try {
@@ -777,9 +784,9 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
 
   // Drag-to-reorder state
   const dragIndexRef = useRef<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   if (!sponsors) return <SectionSkeleton title="SPONSORS" />;
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const startEdit = (sponsor: NonNullable<typeof sponsors>[number]) => {
     setEditingId(sponsor._id);
@@ -1121,9 +1128,10 @@ function TeamsAndProjectsSection({ hackathonId }: { hackathonId: Id<"hackathons"
   const teams = useQuery(api.teams.list, { hackathonId });
   const updateTeamName = useMutation(api.teams.updateTeamName);
 
-  if (!teams) return <SectionSkeleton title="TEAMS" />;
   const [editingTeamId, setEditingTeamId] = useState<Id<"teams"> | null>(null);
   const [editTeamName, setEditTeamName] = useState("");
+
+  if (!teams) return <SectionSkeleton title="TEAMS" />;
 
   const startEditingTeam = (team: { _id: Id<"teams">; name: string }) => {
     setEditingTeamId(team._id); setEditTeamName(team.name);
