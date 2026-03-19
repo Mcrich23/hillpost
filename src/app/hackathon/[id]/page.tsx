@@ -124,7 +124,7 @@ export default function HackathonDetailPage() {
     return allMembers.filter((m) => m.status === "pending").length;
   }, [role, allMembers]);
 
-  if (hackathon === undefined || membership === undefined) {
+  if (hackathon === undefined) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="h-64 border border-[#1F1F1F] bg-[#0A0A0A] flex items-center justify-center">
@@ -135,6 +135,8 @@ export default function HackathonDetailPage() {
       </div>
     );
   }
+
+  const isMembershipLoading = membership === undefined;
 
   const handleLeave = async () => {
     if (!user?.id || hackathon?.organizerId === user.id) return;
@@ -169,18 +171,18 @@ export default function HackathonDetailPage() {
 
   const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
     { id: "overview", label: "OVERVIEW", show: true },
-    { id: "submissions", label: "SUBMISSIONS", show: role === "organizer" },
-    { id: "compete", label: "COMPETE", show: role === "competitor" },
+    { id: "submissions", label: "SUBMISSIONS", show: isMembershipLoading || role === "organizer" || parsedTab === "submissions" },
+    { id: "compete", label: "COMPETE", show: isMembershipLoading || role === "competitor" || parsedTab === "compete" },
     {
       id: "judge",
       label: "JUDGE",
-      show: role === "judge" || role === "organizer",
+      show: isMembershipLoading || role === "judge" || role === "organizer" || parsedTab === "judge",
       badge: pendingSubmissionsCount,
     },
     {
       id: "manage",
       label: "MANAGE",
-      show: role === "organizer",
+      show: isMembershipLoading || role === "organizer" || parsedTab === "manage",
       badge: pendingApprovalsCount,
     },
   ];
@@ -654,15 +656,15 @@ export default function HackathonDetailPage() {
         <PublicSubmissions hackathonId={hackathonId} role={role} />
       )}
 
-      {activeTab === "manage" && role === "organizer" && (
+      {activeTab === "manage" && (
         <OrganizerPanel hackathonId={hackathonId} hackathon={hackathon} />
       )}
 
-      {activeTab === "compete" && role === "competitor" && (
+      {activeTab === "compete" && (
         <CompetitorPanel hackathonId={hackathonId} hackathon={hackathon} />
       )}
 
-      {activeTab === "judge" && (role === "judge" || role === "organizer") && (
+      {activeTab === "judge" && (
         <JudgePanel hackathonId={hackathonId} />
       )}
     </div>
