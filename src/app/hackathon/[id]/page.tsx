@@ -34,6 +34,47 @@ import { QrCodeButton } from "@/components/qr-code-overlay";
 
 import { isSafeHttpUrl } from "@/lib/url";
 
+const ROLE_CACHE_KEY = "hillpost_hackathon_roles";
+const ROLE_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+function getCachedHackathonRole(hackathonId: string): string | null {
+  try {
+    const raw = localStorage.getItem(ROLE_CACHE_KEY);
+    if (!raw) return null;
+    const cache = JSON.parse(raw);
+    if (!cache || typeof cache !== "object") return null;
+    const entry = (cache as Record<string, unknown>)[hackathonId];
+    if (!entry || typeof entry !== "object") return null;
+    const { role, ts } = entry as Record<string, unknown>;
+    if (typeof role !== "string" || typeof ts !== "number") return null;
+    if (Date.now() - ts > ROLE_CACHE_TTL) return null;
+    return role;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedHackathonRole(hackathonId: string, role: string | null) {
+  try {
+    const raw = localStorage.getItem(ROLE_CACHE_KEY);
+    let cache: Record<string, { role: string; ts: number }> = {};
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        cache = parsed as typeof cache;
+      }
+    }
+    if (role) {
+      cache[hackathonId] = { role, ts: Date.now() };
+    } else {
+      delete cache[hackathonId];
+    }
+    localStorage.setItem(ROLE_CACHE_KEY, JSON.stringify(cache));
+  } catch {
+    // ignore storage errors
+  }
+}
+
 const ALL_TABS = ["overview", "submissions", "compete", "judge", "manage"] as const;
 type Tab = (typeof ALL_TABS)[number];
 
@@ -67,6 +108,11 @@ export default function HackathonDetailPage() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [isLeaving, setIsLeaving] = useState(false);
+  const [cachedRole, setCachedRoleState] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    setCachedRoleState(getCachedHackathonRole(hackathonId));
+  }, [hackathonId]);
 
   React.useEffect(() => {
     if (isAuthenticated && membership && user?.imageUrl) {
@@ -76,6 +122,16 @@ export default function HackathonDetailPage() {
       }).catch(console.error);
     }
   }, [isAuthenticated, user?.imageUrl, membership, hackathonId, syncProfile]);
+
+  const membershipLoaded = membership !== undefined;
+
+  React.useEffect(() => {
+    if (membershipLoaded) {
+      const newRole = membership?.role ?? null;
+      setCachedRoleState(newRole);
+      setCachedHackathonRole(hackathonId, newRole);
+    }
+  }, [membershipLoaded, membership?.role, hackathonId]);
 
   const tabParam = searchParams.get("tab");
   const parsedTab = (ALL_TABS as readonly string[]).includes(tabParam ?? "") ? (tabParam as Tab) : null;
@@ -93,7 +149,9 @@ export default function HackathonDetailPage() {
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
-  const role = membership?.role;
+  // Use Convex-confirmed role once loaded, fall back to localStorage cache while loading.
+  const effectiveRole = membershipLoaded ? membership?.role : (cachedRole ?? undefined);
+  const role = effectiveRole;
 
   const copyCompetitorJoinLink = async () => {
     if (!hackathon?.competitorJoinCode) return;
@@ -124,7 +182,7 @@ export default function HackathonDetailPage() {
     return allMembers.filter((m) => m.status === "pending").length;
   }, [role, allMembers]);
 
-  if (hackathon === undefined || membership === undefined) {
+  if (hackathon === undefined) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="h-64 border border-[#1F1F1F] bg-[#0A0A0A] flex items-center justify-center">
@@ -186,7 +244,8 @@ export default function HackathonDetailPage() {
   ];
 
   const activeTabConfig = tabs.find((t) => t.id === activeTab);
-  if (activeTabConfig && !activeTabConfig.show) {
+  // Only show 404 once Convex has confirmed the role — never during the loading phase.
+  if (membershipLoaded && activeTabConfig && !activeTabConfig.show) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
@@ -270,7 +329,9 @@ export default function HackathonDetailPage() {
       {/* TUI Tabs */}
       <div className="mb-6 flex gap-0 overflow-x-auto border border-[#1F1F1F]">
         {tabs
-          .filter((t) => t.show)
+          // Always show the currently-active tab (from the URL) so users can see where they
+          // are while membership is still being confirmed, plus any other visible tabs.
+          .filter((t) => t.show || t.id === activeTab)
           .map((tab) => (
             <button
               key={tab.id}
@@ -664,6 +725,17 @@ export default function HackathonDetailPage() {
 
       {activeTab === "judge" && (role === "judge" || role === "organizer") && (
         <JudgePanel hackathonId={hackathonId} />
+      )}
+
+      {/* Skeleton placeholder: membership not yet confirmed and the active tab has no
+          content to show yet (role unknown / cached role doesn't match). Prevents an
+          empty content area while Convex is still resolving the user's membership. */}
+      {!membershipLoaded && activeTab !== "overview" && !role && (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-20 border border-[#1F1F1F] bg-[#0A0A0A] animate-pulse" />
+          ))}
+        </div>
       )}
     </div>
   );
