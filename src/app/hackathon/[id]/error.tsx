@@ -14,7 +14,7 @@ export default function HackathonError({ error, reset }: { error: Error & { dige
       <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
         <p className="text-sm text-white uppercase tracking-wide">404 — Page Not Found</p>
         <p className="mt-2 text-xs text-[#555555]">
-          The requested section could not be found or you do not have permission.
+          The requested section could not be found or you do not have permission or you do not have permission to access it.
         </p>
         <button
           onClick={() => {
