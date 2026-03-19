@@ -11,22 +11,31 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "700"],
 });
 
-export const metadata: Metadata = {
-  title: "Hillpost",
-  description: "King-of-the-hill style hackathon judging platform",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com"),
-  openGraph: {
+import { headers } from "next/headers";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headersList = await headers();
+  const host = headersList.get("host") || "example.com";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const siteUrl = `${protocol}://${host}`;
+
+  return {
     title: "Hillpost",
     description: "King-of-the-hill style hackathon judging platform",
-    type: "website",
-    siteName: "Hillpost",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Hillpost",
-    description: "King-of-the-hill style hackathon judging platform",
-  },
-};
+    metadataBase: new URL(siteUrl),
+    openGraph: {
+      title: "Hillpost",
+      description: "King-of-the-hill style hackathon judging platform",
+      type: "website",
+      siteName: "Hillpost",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Hillpost",
+      description: "King-of-the-hill style hackathon judging platform",
+    },
+  };
+}
 
 export default function RootLayout({
   children,
