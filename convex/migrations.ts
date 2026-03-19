@@ -6,7 +6,7 @@ export const removeBackgroundImageUrl = internalMutation({
     const hackathons = await ctx.db.query("hackathons").collect();
     for (const h of hackathons) {
       if ((h as any).backgroundImageUrl !== undefined) {
-        const { backgroundImageUrl, ...rest } = h as any;
+        const { backgroundImageUrl, _id, _creationTime, ...rest } = h as any;
         await ctx.db.replace(h._id, rest);
       }
     }
