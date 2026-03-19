@@ -182,11 +182,27 @@ function HackathonInfoSection({
     }
   };
 
+  const isSafeHttpUrl = (value: string): boolean => {
+    try {
+      const url = new URL(value);
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+      return false;
+    }
+  };
+
   const saveOgImage = async () => {
+    const trimmed = newOgImage.trim();
+
+    if (trimmed && !isSafeHttpUrl(trimmed)) {
+      toast.error("Please enter a valid http or https URL for the OG image");
+      return;
+    }
+
     try {
       await updateHackathon({
         hackathonId,
-        openGraphImageUrl: newOgImage.trim() || null,
+        openGraphImageUrl: trimmed || null,
       });
       toast.success("OG Image updated");
       setIsEditingOgImage(false);
