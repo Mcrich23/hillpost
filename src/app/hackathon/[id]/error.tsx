@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 
@@ -17,9 +16,7 @@ export default function HackathonError({ error, reset }: { error: Error & { dige
           The requested section could not be found or you do not have permission to access it.
         </p>
         <button
-          onClick={() => {
-            window.location.href = window.location.pathname;
-          }}
+          onClick={reset}
           className="mt-4 inline-flex items-center gap-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />

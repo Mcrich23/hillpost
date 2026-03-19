@@ -182,12 +182,6 @@ function HackathonInfoSection({
     try {
       await updateHackathon({ hackathonId, name: newName.trim() });
       toast.success("Name updated");
-      const isUpdating = useRef(false);
-      // This line is syntactically incorrect here as `categories` is not defined
-      // and returning JSX from an async function is not a valid pattern.
-      // However, as per instructions, the change is applied faithfully.
-      // If this was intended for a component, it should be placed at the top level of a functional component.
-      // if (categories === undefined) return <SectionSkeleton title="JUDGING CATEGORIES" />;
       setIsEditingName(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update name");
@@ -596,7 +590,8 @@ function PendingApprovalsSection({ hackathonId }: { hackathonId: Id<"hackathons"
     }
   };
 
-  if (!members) return <SectionSkeleton title="PENDING APPROVALS" />;
+  if (members === undefined) return <SectionSkeleton title="PENDING APPROVALS" />;
+  if (members === null) return null;
 
   const pendingMembers = members.filter((m) => m.status === "pending");
   if (pendingMembers.length === 0) return null;
@@ -642,7 +637,8 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
 
   const [changingRole, setChangingRole] = useState<Id<"hackathonMembers"> | null>(null);
 
-  if (!members) return <SectionSkeleton title="MEMBERS" />;
+  if (members === undefined) return <SectionSkeleton title="MEMBERS" />;
+  if (members === null) return null;
 
   const handleRoleChange = async (memberId: Id<"hackathonMembers">, newRole: "organizer" | "judge" | "competitor") => {
     try {

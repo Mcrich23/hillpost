@@ -49,7 +49,7 @@ const roleColor = (role: string) => {
 export default function HackathonDetailPage() {
   const params = useParams();
   const { user } = useUser();
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { isAuthenticated } = useConvexAuth();
   const hackathonId = params.id as Id<"hackathons">;
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
@@ -123,9 +123,9 @@ export default function HackathonDetailPage() {
     return allMembers.filter((m) => m.status === "pending").length;
   }, [role, allMembers]);
 
-  const isMembershipLoading = membership === undefined || isLoading;
+  const membershipLoaded = membership !== undefined;
 
-  if (hackathon === undefined || isMembershipLoading) {
+  if (hackathon === undefined) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="h-64 border border-[#1F1F1F] bg-[#0A0A0A] flex items-center justify-center">
@@ -189,7 +189,7 @@ export default function HackathonDetailPage() {
   ];
 
   const activeTabConfig = tabs.find((t) => t.id === activeTab);
-  if (activeTabConfig && !activeTabConfig.show) {
+  if (membershipLoaded && activeTabConfig && !activeTabConfig.show) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">

@@ -56,7 +56,7 @@ export const listMembers = query({
       .first();
 
     if (!callerMembership || callerMembership.role !== "organizer") {
-      throw new Error("Unauthorized: Only organizers can view members");
+      return null;
     }
 
     return await ctx.db
