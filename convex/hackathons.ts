@@ -198,7 +198,7 @@ export const update = mutation({
     endDate: v.optional(v.number()),
     submissionFrequencyMinutes: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
-    openGraphImageUrl: v.optional(v.string()),
+    openGraphImageUrl: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -228,7 +228,9 @@ export const update = mutation({
         submissionFrequencyMinutes: args.submissionFrequencyMinutes,
       }),
       ...(args.isActive !== undefined && { isActive: args.isActive }),
-      ...(args.openGraphImageUrl !== undefined && { openGraphImageUrl: args.openGraphImageUrl }),
+      ...(args.openGraphImageUrl !== undefined && {
+        openGraphImageUrl: args.openGraphImageUrl === null ? undefined : args.openGraphImageUrl,
+      }),
     });
     return args.hackathonId;
   },

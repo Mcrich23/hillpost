@@ -185,7 +185,7 @@ function HackathonInfoSection({
     try {
       await updateHackathon({
         hackathonId,
-        openGraphImageUrl: newOgImage.trim() || undefined,
+        openGraphImageUrl: newOgImage.trim() || null,
       });
       toast.success("OG Image updated");
       setIsEditingOgImage(false);
