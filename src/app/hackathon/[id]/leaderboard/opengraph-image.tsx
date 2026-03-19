@@ -24,11 +24,17 @@ export default async function Image({
     if (hackathon) {
       hackathonName = hackathon.name;
       isActive = hackathon.isActive;
-      bgImage = (hackathon as any).openGraphImageUrl || "";
+      bgImage = hackathon.openGraphImageUrl ?? "";
     }
   } catch (e) {
     console.error("OG image fetch error:", e);
   }
+
+  const safeBgImage =
+    typeof bgImage === "string" &&
+    (bgImage.startsWith("http://") || bgImage.startsWith("https://"))
+      ? bgImage
+      : "";
 
   return new ImageResponse(
     (
@@ -45,9 +51,9 @@ export default async function Image({
           justifyContent: "center",
         }}
       >
-        {bgImage && (
+        {safeBgImage && (
           <img
-            src={bgImage}
+            src={safeBgImage}
             alt="background"
             style={{
               position: "absolute",
