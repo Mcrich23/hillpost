@@ -3,7 +3,7 @@
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -35,6 +35,7 @@ import { QrCodeButton } from "@/components/qr-code-overlay";
 import { isSafeHttpUrl } from "@/lib/url";
 
 type Tab = "overview" | "submissions" | "compete" | "judge" | "manage";
+const VALID_TABS: Tab[] = ["overview", "submissions", "compete", "judge", "manage"];
 
 const roleColor = (role: string) => {
   switch (role) {
@@ -63,6 +64,8 @@ export default function HackathonDetailPage() {
   const leaveHackathon = useMutation(api.members.leaveHackathon);
   const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [isLeaving, setIsLeaving] = useState(false);
 
   React.useEffect(() => {
@@ -74,8 +77,21 @@ export default function HackathonDetailPage() {
     }
   }, [isAuthenticated, user?.imageUrl, membership, hackathonId, syncProfile]);
 
-  const [activeTab, setActiveTab] = React.useState<Tab>("overview");
+  const tabParam = searchParams.get("tab");
+  const parsedTab = (VALID_TABS as string[]).includes(tabParam ?? "") ? (tabParam as Tab) : null;
+  const activeTab: Tab = parsedTab ?? "overview";
   const [copiedJoinLink, setCopiedJoinLink] = useState(false);
+
+  const handleTabChange = (tab: Tab) => {
+    const newParams = new URLSearchParams(searchParams.toString());
+    if (tab === "overview") {
+      newParams.delete("tab");
+    } else {
+      newParams.set("tab", tab);
+    }
+    const qs = newParams.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   const role = membership?.role;
 
@@ -169,6 +185,25 @@ export default function HackathonDetailPage() {
     },
   ];
 
+  const activeTabConfig = tabs.find((t) => t.id === activeTab);
+  if (activeTabConfig && !activeTabConfig.show) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
+          <p className="text-sm text-white uppercase tracking-wide">404 — Page Not Found</p>
+          <p className="mt-2 text-xs text-[#555555]">The &quot;{activeTab.toUpperCase()}&quot; section is not available for your role.</p>
+          <button
+            onClick={() => handleTabChange("overview")}
+            className="mt-4 inline-flex items-center gap-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Back to Overview
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       {/* Header */}
@@ -239,7 +274,7 @@ export default function HackathonDetailPage() {
           .map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={cn(
                 "relative flex items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors whitespace-nowrap border-r border-[#1F1F1F] last:border-r-0",
                 activeTab === tab.id
@@ -352,7 +387,7 @@ export default function HackathonDetailPage() {
                   </div>
                   {pendingSubmissionsCount > 0 && (
                     <button
-                      onClick={() => setActiveTab("judge")}
+                      onClick={() => handleTabChange("judge")}
                       className="mt-6 w-full border border-[#00B4FF] py-2 text-xs font-bold text-[#00B4FF] uppercase tracking-wider transition-colors hover:bg-[#00B4FF] hover:text-black"
                     >
                       [ START JUDGING → ]
