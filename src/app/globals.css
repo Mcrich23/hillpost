@@ -234,6 +234,11 @@ body {
   background-color: var(--t-surface) !important;
 }
 
+[data-theme="light"] .hover\:bg-\[\#111111\]:hover,
+[data-theme="light"] .hover\:bg-\[\#1a1a1a\]:hover {
+  background-color: var(--t-surface-2) !important;
+}
+
 [data-theme="light"] .border-\[\#1F1F1F\] {
   border-color: var(--t-border) !important;
 }
