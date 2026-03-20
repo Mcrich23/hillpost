@@ -172,7 +172,7 @@ export default function HackathonDetailPage() {
 
   const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
     { id: "overview", label: "OVERVIEW", show: true },
-    { id: "submissions", label: "SUBMISSIONS", show: true },
+    { id: "submissions", label: "SUBMISSIONS", show: role !== "competitor" && role !== "judge" },
     { id: "compete", label: "COMPETE", show: role === "competitor" },
     {
       id: "judge",
