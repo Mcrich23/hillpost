@@ -541,7 +541,7 @@ export default function HackathonDetailPage() {
                     ) : null;
 
                     return (
-                    <div key={sponsor._id} className="flex w-72 max-w-full flex-col items-center gap-2 group">
+                    <div key={sponsor._id} className="flex w-72 max-w-full min-w-0 flex-col items-start gap-2 group overflow-hidden">
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
                         <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
                           {imageContent}
@@ -587,7 +587,7 @@ export default function HackathonDetailPage() {
                     ) : null;
 
                     return (
-                      <div key={sponsor._id} className="flex w-48 max-w-full flex-col items-center gap-2 group">
+                      <div key={sponsor._id} className="flex w-48 max-w-full min-w-0 flex-col items-start gap-2 group overflow-hidden">
                         {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
                           <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
                             {imageContent}
@@ -625,7 +625,7 @@ export default function HackathonDetailPage() {
                     ) : null;
 
                     return (
-                      <div key={sponsor._id} className="flex flex-col items-center gap-1.5 group">
+                      <div key={sponsor._id} className="flex flex-col items-start gap-1.5 group">
                         {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
                           <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="block">
                             {imageContent}
