@@ -489,20 +489,24 @@ export default function HackathonDetailPage() {
                           <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-2 left-3 h-14 w-14 rounded-full border-2 border-[#0A0A0A] object-cover" />
                         )}
                       </div>
-                    ) : sponsor.pfpUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
-                    ) : null;
+                    ) : (
+                      <div className="flex w-full items-center justify-center h-36 border border-[#1F1F1F] bg-[#111111]">
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
+                        )}
+                      </div>
+                    );
 
                     return (
                     <div key={sponsor._id} className="flex flex-col items-start gap-3 w-full group">
-                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block" aria-label={`${sponsor.name} website`}>
                           {imageContent}
                         </a>
                       ) : imageContent}
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors" aria-hidden="true" tabIndex={-1}>
                           {sponsor.name}
                           {sponsor.badgeText && (
                             <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
@@ -535,20 +539,24 @@ export default function HackathonDetailPage() {
                           <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-2 left-2 h-12 w-12 rounded-full border-2 border-[#0A0A0A] object-cover" />
                         )}
                       </div>
-                    ) : sponsor.pfpUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
-                    ) : null;
+                    ) : (
+                      <div className="flex w-full items-center justify-center h-28 border border-[#1F1F1F] bg-[#111111]">
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-16 w-16 rounded-full border border-[#1F1F1F] object-cover" />
+                        )}
+                      </div>
+                    );
 
                     return (
-                    <div key={sponsor._id} className="flex w-72 max-w-full flex-col items-center gap-2 group">
-                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
+                    <div key={sponsor._id} className="flex w-72 max-w-full min-w-0 flex-col items-start gap-2 group overflow-hidden">
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block" aria-label={`${sponsor.name} website`}>
                           {imageContent}
                         </a>
                       ) : imageContent}
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors" aria-hidden="true" tabIndex={-1}>
                           {sponsor.name}
                           {sponsor.badgeText && (
                             <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
@@ -581,20 +589,24 @@ export default function HackathonDetailPage() {
                           <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-1 left-2 h-8 w-8 rounded-full border-2 border-[#0A0A0A] object-cover" />
                         )}
                       </div>
-                    ) : sponsor.pfpUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-16 w-16 rounded-full border border-[#1F1F1F] object-cover" />
-                    ) : null;
+                    ) : (
+                      <div className="flex w-full items-center justify-center h-20 border border-[#1F1F1F] bg-[#111111]">
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-12 w-12 rounded-full border border-[#1F1F1F] object-cover" />
+                        )}
+                      </div>
+                    );
 
                     return (
-                      <div key={sponsor._id} className="flex w-48 max-w-full flex-col items-center gap-2 group">
-                        {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
-                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
+                      <div key={sponsor._id} className="flex w-48 max-w-full min-w-0 flex-col items-start gap-2 group overflow-hidden">
+                        {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block" aria-label={`${sponsor.name} website`}>
                             {imageContent}
                           </a>
                         ) : imageContent}
                         {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors" aria-hidden="true" tabIndex={-1}>
                             {sponsor.name}
                             {sponsor.badgeText && (
                               <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
@@ -625,7 +637,7 @@ export default function HackathonDetailPage() {
                     ) : null;
 
                     return (
-                      <div key={sponsor._id} className="flex flex-col items-center gap-1.5 group">
+                      <div key={sponsor._id} className="flex flex-col items-start gap-1.5 group">
                         {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
                           <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="block">
                             {imageContent}
