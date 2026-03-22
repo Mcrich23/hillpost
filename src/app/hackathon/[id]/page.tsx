@@ -501,12 +501,12 @@ export default function HackathonDetailPage() {
                     return (
                     <div key={sponsor._id} className="flex flex-col items-start gap-3 w-full group">
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block">
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block" aria-label={`${sponsor.name} website`}>
                           {imageContent}
                         </a>
                       ) : imageContent}
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-base font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors" aria-hidden="true" tabIndex={-1}>
                           {sponsor.name}
                           {sponsor.badgeText && (
                             <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
@@ -551,12 +551,12 @@ export default function HackathonDetailPage() {
                     return (
                     <div key={sponsor._id} className="flex w-72 max-w-full min-w-0 flex-col items-start gap-2 group overflow-hidden">
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block">
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block" aria-label={`${sponsor.name} website`}>
                           {imageContent}
                         </a>
                       ) : imageContent}
                       {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors" aria-hidden="true" tabIndex={-1}>
                           {sponsor.name}
                           {sponsor.badgeText && (
                             <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
@@ -601,12 +601,12 @@ export default function HackathonDetailPage() {
                     return (
                       <div key={sponsor._id} className="flex w-48 max-w-full min-w-0 flex-col items-start gap-2 group overflow-hidden">
                         {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block">
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block" aria-label={`${sponsor.name} website`}>
                             {imageContent}
                           </a>
                         ) : imageContent}
                         {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
-                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors">
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs font-bold text-white uppercase tracking-wide group-hover:text-[#00B4FF] transition-colors" aria-hidden="true" tabIndex={-1}>
                             {sponsor.name}
                             {sponsor.badgeText && (
                               <span className="tui-badge border-[#00B4FF] text-[#00B4FF]">{sponsor.badgeText}</span>
