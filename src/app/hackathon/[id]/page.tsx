@@ -489,15 +489,19 @@ export default function HackathonDetailPage() {
                           <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-2 left-3 h-14 w-14 rounded-full border-2 border-[#0A0A0A] object-cover" />
                         )}
                       </div>
-                    ) : sponsor.pfpUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
-                    ) : null;
+                    ) : (
+                      <div className="flex w-full items-center justify-center h-36 border border-[#1F1F1F] bg-[#111111]">
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
+                        )}
+                      </div>
+                    );
 
                     return (
                     <div key={sponsor._id} className="flex flex-col items-start gap-3 w-full group">
-                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block">
                           {imageContent}
                         </a>
                       ) : imageContent}
@@ -535,15 +539,19 @@ export default function HackathonDetailPage() {
                           <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-2 left-2 h-12 w-12 rounded-full border-2 border-[#0A0A0A] object-cover" />
                         )}
                       </div>
-                    ) : sponsor.pfpUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-20 w-20 rounded-full border border-[#1F1F1F] object-cover" />
-                    ) : null;
+                    ) : (
+                      <div className="flex w-full items-center justify-center h-28 border border-[#1F1F1F] bg-[#111111]">
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-16 w-16 rounded-full border border-[#1F1F1F] object-cover" />
+                        )}
+                      </div>
+                    );
 
                     return (
                     <div key={sponsor._id} className="flex w-72 max-w-full min-w-0 flex-col items-start gap-2 group overflow-hidden">
-                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
-                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
+                      {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                        <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block">
                           {imageContent}
                         </a>
                       ) : imageContent}
@@ -581,15 +589,19 @@ export default function HackathonDetailPage() {
                           <img src={sponsor.pfpUrl} alt={sponsor.name} className="absolute bottom-1 left-2 h-8 w-8 rounded-full border-2 border-[#0A0A0A] object-cover" />
                         )}
                       </div>
-                    ) : sponsor.pfpUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-16 w-16 rounded-full border border-[#1F1F1F] object-cover" />
-                    ) : null;
+                    ) : (
+                      <div className="flex w-full items-center justify-center h-20 border border-[#1F1F1F] bg-[#111111]">
+                        {sponsor.pfpUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sponsor.pfpUrl} alt={sponsor.name} className="h-12 w-12 rounded-full border border-[#1F1F1F] object-cover" />
+                        )}
+                      </div>
+                    );
 
                     return (
                       <div key={sponsor._id} className="flex w-48 max-w-full min-w-0 flex-col items-start gap-2 group overflow-hidden">
-                        {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) && imageContent ? (
-                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className={sponsor.bannerUrl ? "w-full block" : "block"}>
+                        {sponsor.websiteUrl && isSafeHttpUrl(sponsor.websiteUrl) ? (
+                          <a href={sponsor.websiteUrl} target="_blank" rel="noopener noreferrer" className="w-full block">
                             {imageContent}
                           </a>
                         ) : imageContent}
