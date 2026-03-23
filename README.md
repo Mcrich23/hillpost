@@ -112,54 +112,6 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 4. **Provide feedback** (optional) for each category
 5. **Update scores** anytime as projects improve
 
-## Project Structure
-
-```
-├── convex/              # Convex backend
-│   ├── schema.ts        # Database schema
-│   ├── hackathons.ts    # Hackathon CRUD & join logic
-│   ├── teams.ts         # Team management
-│   ├── categories.ts    # Scoring categories
-│   ├── submissions.ts   # Project submissions (with rate limiting)
-│   ├── scores.ts        # Judge scoring
-│   ├── leaderboard.ts   # Real-time leaderboard computation
-│   ├── members.ts       # Member management
-│   └── auth.config.ts   # Clerk auth config
-├── src/
-│   ├── app/
-│   │   ├── page.tsx           # Landing page
-│   │   ├── layout.tsx         # Root layout with providers
-│   │   ├── providers.tsx      # Convex + Clerk providers
-│   │   ├── dashboard/         # User dashboard
-│   │   ├── hackathon/[id]/    # Hackathon detail + leaderboard
-│   │   ├── sign-in/           # Clerk sign-in
-│   │   └── sign-up/           # Clerk sign-up
-│   ├── components/
-│   │   ├── navbar.tsx                   # Navigation bar
-│   │   ├── create-hackathon-dialog.tsx  # Create hackathon modal
-│   │   ├── join-hackathon-dialog.tsx    # Join hackathon modal
-│   │   ├── organizer-panel.tsx          # Organizer management panel
-│   │   ├── competitor-panel.tsx         # Competitor team & submission panel
-│   │   ├── judge-panel.tsx              # Judge scoring panel
-│   │   └── landing/                     # Landing page sections
-│   ├── lib/
-│   │   └── utils.ts           # Utility functions
-│   └── middleware.ts          # Clerk route protection
-├── .env.example               # Environment variable template
-└── package.json
-```
-
-## Deploy on Vercel
-
-The easiest way to deploy is with [Vercel](https://vercel.com):
-
-1. Push your code to GitHub
-2. Import the project in Vercel
-3. Add the environment variables from `.env.example`
-4. Deploy!
-
-Make sure your Convex and Clerk production environments are configured.
-
 ## License
 
 [MIT](LICENSE)
