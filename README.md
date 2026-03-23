@@ -31,7 +31,7 @@ A **king-of-the-hill** style hackathon judging platform where competitors submit
 
 ```bash
 git clone https://github.com/hillpost/hillpost.git
-cd hacker-of-the-hill
+cd hillpost
 ```
 
 ### 2. Install dependencies
