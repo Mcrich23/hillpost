@@ -58,7 +58,7 @@ export function OpenSourceSection() {
               Check out the source code, see our roadmap, and help us build the future of hackathon platform tools.
             </p>
             <a
-              href="https://github.com/Mcrich23/hillpost"
+              href="https://github.com/Hillpost/hillpost"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex w-full items-center justify-center gap-2 border border-[#1F1F1F] bg-black px-4 py-3 text-xs font-bold text-white uppercase tracking-wider transition-all hover:border-[#00FF41] hover:text-[#00FF41]"

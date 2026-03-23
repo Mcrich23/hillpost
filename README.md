@@ -30,7 +30,7 @@ A **king-of-the-hill** style hackathon judging platform where competitors submit
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Mcrich23/hacker-of-the-hill.git
+git clone https://github.com/hillpost/hillpost.git
 cd hacker-of-the-hill
 ```
 
