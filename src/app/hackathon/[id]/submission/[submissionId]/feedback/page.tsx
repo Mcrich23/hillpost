@@ -5,7 +5,7 @@ import { api } from "../../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MessageSquare, History } from "lucide-react";
+import { ArrowLeft, MessageSquare, History, Download, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +60,37 @@ export default function FeedbackPage() {
     );
   }
 
+  // Feedback is explicitly hidden from competitors by the organizer.
+  if (feedback && "feedbackHidden" in feedback && feedback.feedbackHidden) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <Link
+          href={`/hackathon/${hackathonId}`}
+          className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          BACK TO HACKATHON
+        </Link>
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
+          <EyeOff className="h-8 w-8 text-[#555555] mx-auto mb-3" />
+          <p className="text-sm text-[#555555] uppercase tracking-wider">
+            FEEDBACK HIDDEN
+          </p>
+          <p className="mt-2 text-xs text-[#333333]">
+            The organizer has disabled feedback visibility for competitors.
+          </p>
+          <Link
+            href={`/hackathon/${hackathonId}`}
+            className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            BACK TO HACKATHON
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!submission || !feedback || !membership) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
@@ -80,7 +111,9 @@ export default function FeedbackPage() {
   }
 
   const isOrganizer = membership.role === "organizer";
-  const { iterations, categories, currentSubmissionCount } = feedback;
+  // At this point feedbackHidden has been handled above; cast to the full data shape.
+  const fullFeedback = feedback as Extract<typeof feedback, { iterations: unknown }>;
+  const { iterations, categories, currentSubmissionCount } = fullFeedback;
 
   // Default to the current (most recent) iteration
   const activeIteration =
@@ -91,6 +124,40 @@ export default function FeedbackPage() {
   const judges = currentIterData?.judges ?? [];
 
   const hasMultipleIterations = iterations.length > 1;
+
+  const exportMarkdown = () => {
+    const lines: string[] = [];
+    lines.push(`# Judge Feedback: ${submission.name}`);
+    if (team) lines.push(`**Team:** ${team.name}`);
+    lines.push(`**Current Version:** v${currentSubmissionCount}`);
+    lines.push("");
+
+    for (const iter of [...iterations].sort((a, b) => a.submissionCount - b.submissionCount)) {
+      lines.push(`## Version ${iter.submissionCount}${iter.submissionCount === currentSubmissionCount ? " (current)" : ""}`);
+      lines.push("");
+      for (const judge of iter.judges) {
+        lines.push(`### ${judge.label}`);
+        for (const cs of judge.categoryScores) {
+          const cat = categories.find((c) => c._id === cs.categoryId);
+          if (!cat) continue;
+          lines.push(`**${cat.name}:** ${cs.score != null ? `${cs.score}/${cat.maxScore}` : "Not scored"}`);
+          if (cs.feedback) {
+            lines.push("");
+            lines.push(`> ${cs.feedback.replace(/\n/g, "\n> ")}`);
+          }
+          lines.push("");
+        }
+      }
+    }
+
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `feedback-${submission.name.replace(/\s+/g, "-").toLowerCase()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -105,11 +172,23 @@ export default function FeedbackPage() {
 
       {/* Header */}
       <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
-        <div className="flex items-center gap-3 mb-2">
-          <MessageSquare className="h-4 w-4 text-[#00B4FF]" />
-          <h1 className="text-xl font-bold text-white uppercase tracking-wide">
-            JUDGE FEEDBACK
-          </h1>
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-3">
+            <MessageSquare className="h-4 w-4 text-[#00B4FF]" />
+            <h1 className="text-xl font-bold text-white uppercase tracking-wide">
+              JUDGE FEEDBACK
+            </h1>
+          </div>
+          {isOrganizer && (
+            <button
+              onClick={exportMarkdown}
+              className="flex items-center gap-1.5 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
+              title="Export all feedback as Markdown"
+            >
+              <Download className="h-3.5 w-3.5" />
+              EXPORT .MD
+            </button>
+          )}
         </div>
         <p className="text-xs text-[#555555]">
           {submission.name}
