@@ -308,29 +308,37 @@ export default function HackathonDetailPage() {
                 value: allMembers?.filter((m) => m.role === "competitor").length ?? "—",
                 color: "#00B4FF",
                 icon: Users,
+                onClick: undefined,
               },
               {
                 label: "PROJECTS",
                 value: submissions?.length ?? "—",
                 color: "#00FF41",
                 icon: Layers,
+                onClick: () => handleTabChange("submissions"),
               },
               {
                 label: "CATEGORIES",
                 value: categories?.length ?? "—",
                 color: "#FF6600",
                 icon: Star,
+                onClick: undefined,
               },
               {
                 label: "DAYS LEFT",
                 value: Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))),
                 color: "#555555",
                 icon: Clock,
+                onClick: undefined,
               },
-            ].map(({ label, value, color, icon: Icon }) => (
+            ].map(({ label, value, color, icon: Icon, onClick }) => (
               <div
                 key={label}
-                className="border border-[#1F1F1F] bg-[#0A0A0A] p-4 text-center"
+                onClick={onClick}
+                onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
+                role={onClick ? "button" : undefined}
+                tabIndex={onClick ? 0 : undefined}
+                className={`border border-[#1F1F1F] bg-[#0A0A0A] p-4 text-center${onClick ? " cursor-pointer hover:border-[#00FF41] transition-colors" : ""}`}
               >
                 <div className="mb-1 text-xs text-[#555555] uppercase tracking-widest">
                   ─ {label} ─
