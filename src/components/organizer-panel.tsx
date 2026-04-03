@@ -12,14 +12,14 @@ import { useUser } from "@clerk/nextjs";
 import {
   Copy,
   Check,
-  Plus,
   Pencil,
   Trash2,
   Shield,
   UserX,
-  ChevronUp,
   Link as LinkIcon,
   GripVertical,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { QrCodeButton } from "@/components/qr-code-overlay";
 import { PanelSkeleton, SectionSkeleton } from "@/components/skeleton";
@@ -37,6 +37,7 @@ interface OrganizerPanelProps {
     isActive: boolean;
     submissionFrequencyMinutes: number;
     openGraphImageUrl?: string;
+    feedbackVisible?: boolean;
   };
 }
 
@@ -163,6 +164,16 @@ function HackathonInfoSection({
       toast.success(hackathon.isActive ? "Hackathon deactivated" : "Hackathon activated");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update");
+    }
+  };
+
+  const toggleFeedbackVisible = async () => {
+    const current = hackathon.feedbackVisible !== false;
+    try {
+      await updateHackathon({ hackathonId, feedbackVisible: !current });
+      toast.success(!current ? "Feedback shown to competitors" : "Feedback hidden from competitors");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update feedback visibility");
     }
   };
 
@@ -447,6 +458,38 @@ function HackathonInfoSection({
             </div>
           )}
         </div>
+
+        {/* Feedback visibility toggle */}
+        {(() => {
+          const feedbackVisible = hackathon.feedbackVisible !== false;
+          return (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
+              <div>
+                <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">COMPETITOR FEEDBACK:</span>
+                <p className="text-xs text-[#333333] mt-0.5">
+                  {feedbackVisible
+                    ? "Competitors can view judge feedback"
+                    : "Feedback is hidden from competitors (judges can still submit feedback)"}
+                </p>
+              </div>
+              <button
+                onClick={toggleFeedbackVisible}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
+                  feedbackVisible
+                    ? "border border-[#555555] text-[#555555] hover:border-[#FF6600] hover:text-[#FF6600]"
+                    : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
+                )}
+              >
+                {feedbackVisible ? (
+                  <><EyeOff className="h-3.5 w-3.5" /> [ HIDE FEEDBACK ]</>
+                ) : (
+                  <><Eye className="h-3.5 w-3.5" /> [ SHOW FEEDBACK ]</>
+                )}
+              </button>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
@@ -514,8 +557,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
           onClick={() => setShowAddForm(!showAddForm)}
           className="flex items-center gap-1 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
         >
-          {showAddForm ? <ChevronUp className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-          {showAddForm ? "CANCEL" : "[ + ADD ]"}
+          {showAddForm ? "[ CANCEL ]" : "[ + ADD ]"}
         </button>
       </div>
 
@@ -909,8 +951,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
           onClick={() => setShowAddForm(!showAddForm)}
           className="flex items-center gap-1 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
         >
-          {showAddForm ? <ChevronUp className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-          {showAddForm ? "CANCEL" : "[ + ADD ]"}
+          {showAddForm ? "[ CANCEL ]" : "[ + ADD ]"}
         </button>
       </div>
 
