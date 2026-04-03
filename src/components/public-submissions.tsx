@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { ExternalLink, Pencil, X, History } from "lucide-react";
 import { toast } from "sonner";
 import { cn, safeHref } from "@/lib/utils";
+import Link from "next/link";
 
 interface PublicSubmissionsProps {
   hackathonId: Id<"hackathons">;
@@ -69,9 +70,14 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
             return (
               <div
                 key={sub._id}
-                className="border border-[#1F1F1F] bg-[#0A0A0A] p-4 transition-colors hover:border-[#2a2a2a]"
+                className="relative border border-[#1F1F1F] bg-[#0A0A0A] p-4 transition-colors hover:border-[#00FF41] group"
               >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <Link
+                  href={`/hackathon/${hackathonId}/submission/${sub._id}`}
+                  className="absolute inset-0 z-0"
+                  aria-label={`View ${sub.name}`}
+                />
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <p className="text-sm font-bold text-white uppercase tracking-wide">{sub.name}</p>
