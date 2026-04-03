@@ -12,12 +12,10 @@ import { useUser } from "@clerk/nextjs";
 import {
   Copy,
   Check,
-  Plus,
   Pencil,
   Trash2,
   Shield,
   UserX,
-  ChevronUp,
   Link as LinkIcon,
   GripVertical,
 } from "lucide-react";
@@ -514,8 +512,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
           onClick={() => setShowAddForm(!showAddForm)}
           className="flex items-center gap-1 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
         >
-          {showAddForm ? <ChevronUp className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-          {showAddForm ? "CANCEL" : "[ + ADD ]"}
+          {showAddForm ? "[ CANCEL ]" : "[ + ADD ]"}
         </button>
       </div>
 
@@ -909,8 +906,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
           onClick={() => setShowAddForm(!showAddForm)}
           className="flex items-center gap-1 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
         >
-          {showAddForm ? <ChevronUp className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-          {showAddForm ? "CANCEL" : "[ + ADD ]"}
+          {showAddForm ? "[ CANCEL ]" : "[ + ADD ]"}
         </button>
       </div>
 
