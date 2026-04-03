@@ -173,7 +173,7 @@ export default function HackathonDetailPage() {
 
   const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
     { id: "overview", label: "OVERVIEW", show: true },
-    { id: "submissions", label: "SUBMISSIONS", show: role !== "competitor" && role !== "judge" },
+    { id: "submissions", label: (role === "organizer" || isCreator) ? "PROJECTS" : "SUBMISSIONS", show: role !== "competitor" && role !== "judge" },
     { id: "compete", label: "COMPETE", show: role === "competitor" },
     {
       id: "judge",
@@ -338,7 +338,10 @@ export default function HackathonDetailPage() {
                 onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
                 role={onClick ? "button" : undefined}
                 tabIndex={onClick ? 0 : undefined}
-                className={`border border-[#1F1F1F] bg-[#0A0A0A] p-4 text-center${onClick ? " cursor-pointer hover:border-[#00FF41] transition-colors" : ""}`}
+                className={cn(
+                  "border border-[#1F1F1F] bg-[#0A0A0A] p-4 text-center",
+                  onClick && "cursor-pointer hover:border-[#00FF41] transition-colors"
+                )}
               >
                 <div className="mb-1 text-xs text-[#555555] uppercase tracking-widest">
                   ─ {label} ─
