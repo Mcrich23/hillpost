@@ -6,7 +6,7 @@ import type { Id } from "../../../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, MessageSquare, History, Download, EyeOff, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 function ScoreBar({ score, maxScore }: { score: number; maxScore: number }) {
@@ -32,7 +32,7 @@ export default function FeedbackPage() {
     submissionId,
   });
 
-  // Only fetch the submission (and its team) when feedback exists and is not the hidden sentinel.
+  // Only fetch the submission (and its team) when feedback exists and is not hidden.
   const hasFeedbackData = feedback != null && !("feedbackHidden" in feedback);
   const submission = useQuery(
     api.submissions.get,
@@ -47,6 +47,21 @@ export default function FeedbackPage() {
   );
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+  const exportTriggerRef = useRef<HTMLButtonElement>(null);
+
+  // Close export menu on Escape and restore focus to the trigger.
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setExportMenuOpen(false);
+        exportTriggerRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [exportMenuOpen]);
 
   if (membership === undefined || feedback === undefined) {
     return (
@@ -79,8 +94,8 @@ export default function FeedbackPage() {
   }
 
   // Feedback is explicitly hidden from competitors by the organizer.
-  // Only the hidden sentinel response includes feedbackHidden; the full data shape does not.
-  if ("feedbackHidden" in feedback && feedback.feedbackHidden) {
+  // feedback is non-null here; feedbackHidden is on both union arms (true | undefined).
+  if (feedback.feedbackHidden) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <Link
@@ -166,13 +181,16 @@ export default function FeedbackPage() {
     if (anonymize) lines.push("*Judge identities anonymized.*");
     lines.push("");
 
+    // Precompute category map for O(1) lookups instead of find() inside nested loops.
+    const categoryMap = new Map(categories.map((c) => [c._id, c]));
+
     for (const iter of [...iters].sort((a, b) => a.submissionCount - b.submissionCount)) {
       lines.push(`## Version ${iter.submissionCount}${iter.submissionCount === currentSubmissionCount ? " (current)" : ""}`);
       lines.push("");
       iter.judges.forEach((judge, idx) => {
         lines.push(`### ${anonymize ? `Judge ${idx + 1}` : judge.label}`);
         for (const cs of judge.categoryScores) {
-          const cat = categories.find((c) => c._id === cs.categoryId);
+          const cat = categoryMap.get(cs.categoryId);
           if (!cat) continue;
           lines.push(`**${cat.name}:** ${cs.score != null ? `${cs.score}/${cat.maxScore}` : "Not scored"}`);
           if (cs.feedback) {
@@ -242,9 +260,13 @@ export default function FeedbackPage() {
             </h1>
           </div>
           {isOrganizer && (
-            <div className="relative">
+            <div className="relative" ref={exportMenuRef}>
               <button
+                ref={exportTriggerRef}
                 onClick={() => setExportMenuOpen((o) => !o)}
+                aria-haspopup="menu"
+                aria-expanded={exportMenuOpen}
+                aria-controls="export-md-menu"
                 className="flex items-center gap-1.5 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
                 title="Export feedback as Markdown"
               >
@@ -258,8 +280,14 @@ export default function FeedbackPage() {
                     className="fixed inset-0 z-10"
                     onClick={() => setExportMenuOpen(false)}
                   />
-                  <div className="absolute right-0 top-full mt-1 z-20 border border-[#1F1F1F] bg-[#0A0A0A] min-w-[200px]">
+                  <div
+                    id="export-md-menu"
+                    role="menu"
+                    aria-label="Export options"
+                    className="absolute right-0 top-full mt-1 z-20 border border-[#1F1F1F] bg-[#0A0A0A] min-w-[200px]"
+                  >
                     <button
+                      role="menuitem"
                       onClick={exportCurrentVersion}
                       className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
                     >
@@ -267,6 +295,7 @@ export default function FeedbackPage() {
                     </button>
                     <div className="border-t border-[#1F1F1F]" />
                     <button
+                      role="menuitem"
                       onClick={exportAllVersions}
                       className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
                     >
@@ -274,6 +303,7 @@ export default function FeedbackPage() {
                     </button>
                     <div className="border-t border-[#1F1F1F]" />
                     <button
+                      role="menuitem"
                       onClick={exportAnonymized}
                       className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
                     >
