@@ -446,28 +446,6 @@ export default function HackathonDetailPage() {
             ) : null}
           </div>
 
-          {categories && categories.length > 0 && (
-            <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-6">
-              <div className="mb-4 flex items-center gap-3">
-                <span className="text-xs text-[#555555] uppercase tracking-widest">── JUDGING CRITERIA</span>
-                <div className="h-px flex-1 bg-[#1F1F1F]" />
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {categories.map((cat) => (
-                  <div key={cat._id} className="border border-[#1F1F1F] bg-[#111111] p-4 transition-colors hover:border-[#2a2a2a]">
-                    <div className="flex justify-between items-start mb-2">
-                      <p className="text-sm font-bold text-white uppercase tracking-wide">{cat.name}</p>
-                      <span className="tui-badge border-[#00FF41] text-[#00FF41]">
-                        {cat.maxScore} PTS
-                      </span>
-                    </div>
-                    <p className="text-xs text-[#555555] leading-relaxed">{cat.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Sponsors Section */}
           {sponsors && sponsors.length > 0 && (
             <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-6">
@@ -664,6 +642,29 @@ export default function HackathonDetailPage() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+
+          {categories && categories.length > 0 && (
+            <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="text-xs text-[#555555] uppercase tracking-widest">── JUDGING CRITERIA</span>
+                <div className="h-px flex-1 bg-[#1F1F1F]" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {categories.map((cat) => (
+                  <div key={cat._id} className="border border-[#1F1F1F] bg-[#111111] p-4 transition-colors hover:border-[#2a2a2a]">
+                    <div className="flex justify-between items-start mb-2">
+                      <p className="text-sm font-bold text-white uppercase tracking-wide">{cat.name}</p>
+                      <span className="tui-badge border-[#00FF41] text-[#00FF41]">
+                        {cat.maxScore} PTS
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#555555] leading-relaxed">{cat.description}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
