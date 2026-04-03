@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -6,7 +7,6 @@ import { format } from "date-fns";
 import { ExternalLink, Pencil, X, History } from "lucide-react";
 import { toast } from "sonner";
 import { cn, safeHref } from "@/lib/utils";
-import Link from "next/link";
 
 interface PublicSubmissionsProps {
   hackathonId: Id<"hackathons">;
@@ -14,6 +14,7 @@ interface PublicSubmissionsProps {
 }
 
 export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps) {
+  const router = useRouter();
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const teams = useQuery(api.teams.list, { hackathonId });
   const updateSubmissionOrganizer = useMutation(api.submissions.updateSubmissionOrganizer);
@@ -70,14 +71,19 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
             return (
               <div
                 key={sub._id}
-                className="relative border border-[#1F1F1F] bg-[#0A0A0A] p-4 transition-colors hover:border-[#00FF41] group"
+                onClick={() => router.push(`/hackathon/${hackathonId}/submission/${sub._id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    router.push(`/hackathon/${hackathonId}/submission/${sub._id}`);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`View project: ${sub.name}`}
+                className="border border-[#1F1F1F] bg-[#0A0A0A] p-4 transition-colors hover:border-[#00FF41] cursor-pointer"
               >
-                <Link
-                  href={`/hackathon/${hackathonId}/submission/${sub._id}`}
-                  className="absolute inset-0 z-0"
-                  aria-label={`View ${sub.name}`}
-                />
-                <div className="relative z-10 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <p className="text-sm font-bold text-white uppercase tracking-wide">{sub.name}</p>
@@ -121,7 +127,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                   <div className="flex items-center gap-2 shrink-0">
                     {role === "organizer" && (
                       <button
-                        onClick={() => startEditing(sub)}
+                        onClick={(e) => { e.stopPropagation(); startEditing(sub); }}
                         className="border border-[#1F1F1F] p-1.5 text-[#555555] hover:border-white hover:text-white transition-colors"
                       >
                         <Pencil className="h-4 w-4" />
@@ -132,6 +138,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         href={projectHref}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 border border-[#00FF41] px-3 py-1.5 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors"
                       >
                         <ExternalLink className="h-3 w-3" />
@@ -143,6 +150,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         href={demoHref}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 border border-[#00B4FF] px-3 py-1.5 text-xs font-bold text-[#00B4FF] uppercase tracking-wider hover:bg-[#00B4FF] hover:text-black transition-colors"
                       >
                         <ExternalLink className="h-3 w-3" />
@@ -154,6 +162,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                         href={deployedHref}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 border border-[#AA44FF] px-3 py-1.5 text-xs font-bold text-[#AA44FF] uppercase tracking-wider hover:bg-[#AA44FF] hover:text-black transition-colors"
                       >
                         <ExternalLink className="h-3 w-3" />
