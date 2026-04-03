@@ -13,6 +13,7 @@ export default defineSchema({
     competitorJoinCode: v.string(),
     judgeJoinCode: v.string(),
     openGraphImageUrl: v.optional(v.string()),
+    feedbackVisible: v.optional(v.boolean()),
     createdAt: v.number(),
   })
     .index("by_competitorJoinCode", ["competitorJoinCode"])

@@ -181,6 +181,8 @@ export const getMyScoresForSubmission = query({
  * - Competitors and judges see anonymous labels ("Judge 1", "Judge 2", …)
  *   and judge IDs are NOT sent to the client.
  * - Returns all iterations so competitors can see score history.
+ * - When feedbackVisible is false on the hackathon, competitors receive
+ *   `{ feedbackHidden: true }` (no feedback data is included in the response at all).
  */
 export const getFeedbackForSubmission = query({
   args: { submissionId: v.id("submissions") },
@@ -214,6 +216,15 @@ export const getFeedbackForSubmission = query({
       if (!membership.teamId || membership.teamId !== submission.teamId) {
         return null;
       }
+    }
+
+    // Fetch the hackathon to check feedbackVisible setting.
+    const hackathon = await ctx.db.get(submission.hackathonId);
+    const feedbackVisible = hackathon?.feedbackVisible !== false; // undefined defaults to true
+
+    // Competitors do not receive any feedback data when visibility is disabled.
+    if (!feedbackVisible && !isOrganizer && !isJudge) {
+      return { feedbackHidden: true as const };
     }
 
     // Fetch all scores for this submission (all iterations)
