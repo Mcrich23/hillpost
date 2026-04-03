@@ -24,7 +24,7 @@ export const create = mutation({
   args: {
     hackathonId: v.id("hackathons"),
     name: v.string(),
-    description: v.string(),
+    description: v.optional(v.string()),
     maxScore: v.number(),
   },
   handler: async (ctx, args) => {
@@ -41,7 +41,7 @@ export const create = mutation({
     return await ctx.db.insert("categories", {
       hackathonId: args.hackathonId,
       name: args.name,
-      description: args.description,
+      ...(args.description !== undefined && { description: args.description }),
       maxScore: args.maxScore,
       order: maxOrder + 1,
     });

@@ -298,7 +298,7 @@ interface ScoringFormProps {
   categories: Array<{
     _id: Id<"categories">;
     name: string;
-    description: string;
+    description?: string;
     maxScore: number;
   }>;
 }
@@ -377,7 +377,7 @@ function ScoringForm({ submissionId, categories }: ScoringFormProps) {
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-bold text-white uppercase tracking-widest">{cat.name}</p>
-                  <p className="text-xs text-[#555555]">{cat.description}</p>
+                  {cat.description && <p className="text-xs text-[#555555]">{cat.description}</p>}
                 </div>
                 {existing && (
                   <span className="tui-badge border-[#00FF41] text-[#00FF41]">[SCORED]</span>
