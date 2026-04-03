@@ -32,7 +32,7 @@ export default function FeedbackPage() {
     submissionId,
   });
 
-  // Only fetch the submission (and its team) when feedback exists and is not hidden.
+  // Only fetch the submission (and its team) when feedback exists and is not the hidden sentinel.
   const hasFeedbackData = feedback != null && !("feedbackHidden" in feedback);
   const submission = useQuery(
     api.submissions.get,
@@ -79,8 +79,8 @@ export default function FeedbackPage() {
   }
 
   // Feedback is explicitly hidden from competitors by the organizer.
-  // feedback is non-null here; feedbackHidden is on both union arms (true | undefined).
-  if (feedback.feedbackHidden) {
+  // Only the hidden sentinel response includes feedbackHidden; the full data shape does not.
+  if ("feedbackHidden" in feedback && feedback.feedbackHidden) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <Link
