@@ -598,7 +598,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-bold text-white uppercase tracking-wide">{cat.name}</p>
-                    {cat.description && <p className="text-xs text-[#555555]">{cat.description}</p>}
+                    {cat.description.trim().length > 0 && <p className="text-xs text-[#555555]">{cat.description}</p>}
                     <p className="text-xs text-[#333333] uppercase tracking-wider mt-0.5">Max: {cat.maxScore} pts</p>
                   </div>
                   <div className="flex gap-1">
