@@ -473,7 +473,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     e.preventDefault();
     if (!newName) return;
     try {
-      await createCategory({ hackathonId, name: newName, description: newDescription || undefined, maxScore: newMaxScore });
+      await createCategory({ hackathonId, name: newName, description: newDescription, maxScore: newMaxScore });
       toast.success("Category added");
       setNewName(""); setNewDescription(""); setNewMaxScore(10); setShowAddForm(false);
     } catch (error) {
@@ -500,8 +500,8 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     }
   };
 
-  const startEditing = (cat: { _id: Id<"categories">; name: string; description?: string; maxScore: number }) => {
-    setEditingId(cat._id); setEditName(cat.name); setEditDescription(cat.description ?? ""); setEditMaxScore(cat.maxScore);
+  const startEditing = (cat: { _id: Id<"categories">; name: string; description: string; maxScore: number }) => {
+    setEditingId(cat._id); setEditName(cat.name); setEditDescription(cat.description); setEditMaxScore(cat.maxScore);
   };
 
   return (

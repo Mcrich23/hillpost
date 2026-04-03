@@ -49,7 +49,7 @@ export default defineSchema({
   categories: defineTable({
     hackathonId: v.id("hackathons"),
     name: v.string(),
-    description: v.optional(v.string()),
+    description: v.string(),
     maxScore: v.number(),
     order: v.number(),
   })

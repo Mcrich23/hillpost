@@ -298,7 +298,7 @@ interface ScoringFormProps {
   categories: Array<{
     _id: Id<"categories">;
     name: string;
-    description?: string;
+    description: string;
     maxScore: number;
   }>;
 }
