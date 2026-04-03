@@ -5,7 +5,7 @@ import { api } from "../../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MessageSquare, History, Download, EyeOff } from "lucide-react";
+import { ArrowLeft, MessageSquare, History, Download, EyeOff, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +46,7 @@ export default function FeedbackPage() {
     null
   );
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
 
   if (membership === undefined || feedback === undefined) {
     return (
@@ -154,18 +155,22 @@ export default function FeedbackPage() {
 
   const hasMultipleIterations = iterations.length > 1;
 
-  const exportMarkdown = () => {
+  const buildMarkdownLines = (
+    iters: typeof iterations,
+    anonymize: boolean
+  ): string[] => {
     const lines: string[] = [];
     lines.push(`# Judge Feedback: ${submission.name}`);
     if (team) lines.push(`**Team:** ${team.name}`);
     lines.push(`**Current Version:** v${currentSubmissionCount}`);
+    if (anonymize) lines.push("*Judge identities anonymized.*");
     lines.push("");
 
-    for (const iter of [...iterations].sort((a, b) => a.submissionCount - b.submissionCount)) {
+    for (const iter of [...iters].sort((a, b) => a.submissionCount - b.submissionCount)) {
       lines.push(`## Version ${iter.submissionCount}${iter.submissionCount === currentSubmissionCount ? " (current)" : ""}`);
       lines.push("");
-      for (const judge of iter.judges) {
-        lines.push(`### ${judge.label}`);
+      iter.judges.forEach((judge, idx) => {
+        lines.push(`### ${anonymize ? `Judge ${idx + 1}` : judge.label}`);
         for (const cs of judge.categoryScores) {
           const cat = categories.find((c) => c._id === cs.categoryId);
           if (!cat) continue;
@@ -176,21 +181,44 @@ export default function FeedbackPage() {
           }
           lines.push("");
         }
-      }
+      });
     }
+    return lines;
+  };
 
+  const downloadMarkdown = (lines: string[], filenameSuffix: string) => {
     const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `feedback-${submission.name
+    const safeName = submission.name
       .replace(/[^a-zA-Z0-9_. -]/g, "")
       .replace(/\s+/g, "-")
-      .toLowerCase()}.md`;
+      .toLowerCase();
+    a.download = `feedback-${safeName}${filenameSuffix}.md`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     setTimeout(() => {
       URL.revokeObjectURL(url);
     }, 0);
+  };
+
+  const exportCurrentVersion = () => {
+    const iterData = iterations.filter((it) => it.submissionCount === activeIteration);
+    downloadMarkdown(buildMarkdownLines(iterData, false), `-v${activeIteration}`);
+    setExportMenuOpen(false);
+  };
+
+  const exportAllVersions = () => {
+    downloadMarkdown(buildMarkdownLines(iterations, false), "-all-versions");
+    setExportMenuOpen(false);
+  };
+
+  const exportAnonymized = () => {
+    const iterData = iterations.filter((it) => it.submissionCount === activeIteration);
+    downloadMarkdown(buildMarkdownLines(iterData, true), `-v${activeIteration}-anonymized`);
+    setExportMenuOpen(false);
   };
 
   return (
@@ -214,14 +242,47 @@ export default function FeedbackPage() {
             </h1>
           </div>
           {isOrganizer && (
-            <button
-              onClick={exportMarkdown}
-              className="flex items-center gap-1.5 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
-              title="Export all feedback as Markdown"
-            >
-              <Download className="h-3.5 w-3.5" />
-              EXPORT .MD
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setExportMenuOpen((o) => !o)}
+                className="flex items-center gap-1.5 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
+                title="Export feedback as Markdown"
+              >
+                <Download className="h-3.5 w-3.5" />
+                EXPORT .MD
+                <ChevronDown className="h-3 w-3" />
+              </button>
+              {exportMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setExportMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-1 z-20 border border-[#1F1F1F] bg-[#0A0A0A] min-w-[200px]">
+                    <button
+                      onClick={exportCurrentVersion}
+                      className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                    >
+                      CURRENT VERSION (v{activeIteration})
+                    </button>
+                    <div className="border-t border-[#1F1F1F]" />
+                    <button
+                      onClick={exportAllVersions}
+                      className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                    >
+                      ALL VERSIONS
+                    </button>
+                    <div className="border-t border-[#1F1F1F]" />
+                    <button
+                      onClick={exportAnonymized}
+                      className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                    >
+                      ANONYMIZED (v{activeIteration})
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
         <p className="text-xs text-[#555555]">
