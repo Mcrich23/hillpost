@@ -154,7 +154,7 @@ export default function FeedbackPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `feedback-${submission.name.replace(/\s+/g, "-").toLowerCase()}.md`;
+    a.download = `feedback-${submission.name.replace(/[^a-zA-Z0-9_\-. ]/g, "").replace(/\s+/g, "-").toLowerCase()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };

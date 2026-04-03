@@ -465,7 +465,7 @@ function HackathonInfoSection({
           return (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
               <div>
-                <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">COMPETITOR FEEDBACK:</label>
+                <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">COMPETITOR FEEDBACK:</span>
                 <p className="text-xs text-[#333333] mt-0.5">
                   {feedbackVisible
                     ? "Competitors can view judge feedback"
