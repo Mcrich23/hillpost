@@ -473,7 +473,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
     e.preventDefault();
     if (!newName) return;
     try {
-      await createCategory({ hackathonId, name: newName, ...(newDescription ? { description: newDescription } : {}), maxScore: newMaxScore });
+      await createCategory({ hackathonId, name: newName, description: newDescription || undefined, maxScore: newMaxScore });
       toast.success("Category added");
       setNewName(""); setNewDescription(""); setNewMaxScore(10); setShowAddForm(false);
     } catch (error) {

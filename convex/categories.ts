@@ -41,7 +41,7 @@ export const create = mutation({
     return await ctx.db.insert("categories", {
       hackathonId: args.hackathonId,
       name: args.name,
-      ...(args.description !== undefined && { description: args.description }),
+      ...(args.description ? { description: args.description } : {}),
       maxScore: args.maxScore,
       order: maxOrder + 1,
     });
