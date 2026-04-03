@@ -211,6 +211,7 @@ export const update = mutation({
     submissionFrequencyMinutes: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
     openGraphImageUrl: v.optional(v.union(v.string(), v.null())),
+    feedbackVisible: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
@@ -255,6 +256,7 @@ export const update = mutation({
         openGraphImageUrl:
           sanitizedOpenGraphImageUrl === null ? undefined : sanitizedOpenGraphImageUrl,
       }),
+      ...(args.feedbackVisible !== undefined && { feedbackVisible: args.feedbackVisible }),
     });
     return args.hackathonId;
   },

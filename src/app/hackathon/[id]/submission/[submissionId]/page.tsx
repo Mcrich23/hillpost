@@ -252,6 +252,7 @@ export default function SubmissionDetailPage() {
       {membership && (
         (membership.role === "organizer" ||
           (membership.role === "competitor" &&
+            hackathon?.feedbackVisible !== false &&
             submission &&
             membership.teamId === submission.teamId)) && (
           <Link
