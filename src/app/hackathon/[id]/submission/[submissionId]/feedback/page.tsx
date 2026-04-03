@@ -5,8 +5,8 @@ import { api } from "../../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../../convex/_generated/dataModel";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MessageSquare, History } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, MessageSquare, History, Download, EyeOff, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 function ScoreBar({ score, maxScore }: { score: number; maxScore: number }) {
@@ -32,10 +32,11 @@ export default function FeedbackPage() {
     submissionId,
   });
 
-  // Only fetch the submission (and thus its team) once authorized feedback exists.
+  // Only fetch the submission (and its team) when feedback exists and is not hidden.
+  const hasFeedbackData = feedback != null && !("feedbackHidden" in feedback);
   const submission = useQuery(
     api.submissions.get,
-    feedback ? { submissionId } : "skip"
+    hasFeedbackData ? { submissionId } : "skip"
   );
 
   const teamId = submission?.teamId;
@@ -45,12 +46,24 @@ export default function FeedbackPage() {
     null
   );
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+  const exportTriggerRef = useRef<HTMLButtonElement>(null);
 
-  if (
-    membership === undefined ||
-    feedback === undefined ||
-    (feedback && submission === undefined)
-  ) {
+  // Close export menu on Escape and restore focus to the trigger.
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setExportMenuOpen(false);
+        exportTriggerRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [exportMenuOpen]);
+
+  if (membership === undefined || feedback === undefined) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <p className="text-xs text-[#555555] uppercase tracking-widest">
@@ -60,7 +73,71 @@ export default function FeedbackPage() {
     );
   }
 
-  if (!submission || !feedback || !membership) {
+  // null means the user has no access or there is no feedback yet.
+  if (feedback === null) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
+          <p className="text-sm text-[#555555] uppercase tracking-wider">
+            FEEDBACK NOT AVAILABLE
+          </p>
+          <Link
+            href={`/hackathon/${hackathonId}`}
+            className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            BACK TO HACKATHON
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Feedback is explicitly hidden from competitors by the organizer.
+  // feedback is non-null here; feedbackHidden is on both union arms (true | undefined).
+  if (feedback.feedbackHidden) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <Link
+          href={`/hackathon/${hackathonId}`}
+          className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          BACK TO HACKATHON
+        </Link>
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
+          <EyeOff className="h-8 w-8 text-[#555555] mx-auto mb-3" />
+          <p className="text-sm text-[#555555] uppercase tracking-wider">
+            FEEDBACK HIDDEN
+          </p>
+          <p className="mt-2 text-xs text-[#333333]">
+            The organizer has disabled feedback visibility for competitors.
+          </p>
+          <Link
+            href={`/hackathon/${hackathonId}`}
+            className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            BACK TO HACKATHON
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // feedback is narrowed to the full data shape (not null, not feedbackHidden).
+  // Wait for the submission query to finish loading.
+  if (submission === undefined || !membership) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <p className="text-xs text-[#555555] uppercase tracking-widest">
+          ▓▓▓░░░ LOADING...
+        </p>
+      </div>
+    );
+  }
+
+  if (!submission) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
@@ -80,6 +157,7 @@ export default function FeedbackPage() {
   }
 
   const isOrganizer = membership.role === "organizer";
+  // feedback is narrowed to the full data shape by the null and feedbackHidden guards above.
   const { iterations, categories, currentSubmissionCount } = feedback;
 
   // Default to the current (most recent) iteration
@@ -91,6 +169,80 @@ export default function FeedbackPage() {
   const judges = currentIterData?.judges ?? [];
 
   const hasMultipleIterations = iterations.length > 1;
+
+  const buildMarkdownLines = (
+    iters: typeof iterations,
+    anonymize: boolean
+  ): string[] => {
+    const lines: string[] = [];
+    lines.push(`# Judge Feedback: ${submission.name}`);
+    if (team) lines.push(`**Team:** ${team.name}`);
+    lines.push(`**Current Version:** v${currentSubmissionCount}`);
+    if (anonymize) lines.push("*Judge identities anonymized.*");
+    lines.push("");
+
+    // Precompute category map for O(1) lookups instead of find() inside nested loops.
+    const categoryMap = new Map(categories.map((c) => [c._id, c]));
+
+    for (const iter of [...iters].sort((a, b) => a.submissionCount - b.submissionCount)) {
+      lines.push(`## Version ${iter.submissionCount}${iter.submissionCount === currentSubmissionCount ? " (current)" : ""}`);
+      lines.push("");
+      iter.judges.forEach((judge, idx) => {
+        lines.push(`### ${anonymize ? `Judge ${idx + 1}` : judge.label}`);
+        for (const cs of judge.categoryScores) {
+          const cat = categoryMap.get(cs.categoryId);
+          if (!cat) continue;
+          lines.push(`**${cat.name}:** ${cs.score != null ? `${cs.score}/${cat.maxScore}` : "Not scored"}`);
+          if (cs.feedback) {
+            lines.push("");
+            lines.push(`> ${cs.feedback.replace(/\n/g, "\n> ")}`);
+          }
+          lines.push("");
+        }
+      });
+    }
+    return lines;
+  };
+
+  const downloadMarkdown = (lines: string[], filenameSuffix: string) => {
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safeName = submission.name
+      .replace(/[^a-zA-Z0-9_. -]/g, "")
+      .replace(/\s+/g, "-")
+      .toLowerCase();
+    a.download = `feedback-${safeName}${filenameSuffix}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 0);
+  };
+
+  const exportCurrentVersion = () => {
+    const iterData = iterations.filter((it) => it.submissionCount === activeIteration);
+    downloadMarkdown(buildMarkdownLines(iterData, false), `-v${activeIteration}`);
+    setExportMenuOpen(false);
+  };
+
+  const exportAllVersions = () => {
+    downloadMarkdown(buildMarkdownLines(iterations, false), "-all-versions");
+    setExportMenuOpen(false);
+  };
+
+  const exportAnonymized = () => {
+    const iterData = iterations.filter((it) => it.submissionCount === activeIteration);
+    downloadMarkdown(buildMarkdownLines(iterData, true), `-v${activeIteration}-anonymized`);
+    setExportMenuOpen(false);
+  };
+
+  const exportAllVersionsAnonymized = () => {
+    downloadMarkdown(buildMarkdownLines(iterations, true), "-all-versions-anonymized");
+    setExportMenuOpen(false);
+  };
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -105,11 +257,88 @@ export default function FeedbackPage() {
 
       {/* Header */}
       <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
-        <div className="flex items-center gap-3 mb-2">
-          <MessageSquare className="h-4 w-4 text-[#00B4FF]" />
-          <h1 className="text-xl font-bold text-white uppercase tracking-wide">
-            JUDGE FEEDBACK
-          </h1>
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-3">
+            <MessageSquare className="h-4 w-4 text-[#00B4FF]" />
+            <h1 className="text-xl font-bold text-white uppercase tracking-wide">
+              JUDGE FEEDBACK
+            </h1>
+          </div>
+          <div className="relative" ref={exportMenuRef}>
+              <button
+                ref={exportTriggerRef}
+                onClick={() => setExportMenuOpen((o) => !o)}
+                aria-haspopup="menu"
+                aria-expanded={exportMenuOpen}
+                aria-controls="export-md-menu"
+                className="flex items-center gap-1.5 border border-[#1F1F1F] px-3 py-1.5 text-xs text-[#555555] uppercase tracking-wider hover:border-[#00FF41] hover:text-[#00FF41] transition-colors"
+                title="Export feedback as Markdown"
+              >
+                <Download className="h-3.5 w-3.5" />
+                EXPORT .MD
+                <ChevronDown className="h-3 w-3" />
+              </button>
+              {exportMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setExportMenuOpen(false)}
+                  />
+                  <div
+                    id="export-md-menu"
+                    role="menu"
+                    aria-label="Export options"
+                    className="absolute right-0 top-full mt-1 z-20 border border-[#1F1F1F] bg-[#0A0A0A] min-w-[200px]"
+                  >
+                    {isOrganizer ? (
+                      <>
+                        <button
+                          role="menuitem"
+                          onClick={exportCurrentVersion}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          CURRENT VERSION (v{activeIteration})
+                        </button>
+                        <div className="border-t border-[#1F1F1F]" />
+                        <button
+                          role="menuitem"
+                          onClick={exportAllVersions}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          ALL VERSIONS
+                        </button>
+                        <div className="border-t border-[#1F1F1F]" />
+                        <button
+                          role="menuitem"
+                          onClick={exportAnonymized}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          ANONYMIZED (v{activeIteration})
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          role="menuitem"
+                          onClick={exportAnonymized}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          CURRENT VERSION (v{activeIteration})
+                        </button>
+                        <div className="border-t border-[#1F1F1F]" />
+                        <button
+                          role="menuitem"
+                          onClick={exportAllVersionsAnonymized}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          ALL VERSIONS
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
         </div>
         <p className="text-xs text-[#555555]">
           {submission.name}
