@@ -239,6 +239,11 @@ export default function FeedbackPage() {
     setExportMenuOpen(false);
   };
 
+  const exportAllVersionsAnonymized = () => {
+    downloadMarkdown(buildMarkdownLines(iterations, true), "-all-versions-anonymized");
+    setExportMenuOpen(false);
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Back nav */}
@@ -259,8 +264,7 @@ export default function FeedbackPage() {
               JUDGE FEEDBACK
             </h1>
           </div>
-          {isOrganizer && (
-            <div className="relative" ref={exportMenuRef}>
+          <div className="relative" ref={exportMenuRef}>
               <button
                 ref={exportTriggerRef}
                 onClick={() => setExportMenuOpen((o) => !o)}
@@ -286,34 +290,55 @@ export default function FeedbackPage() {
                     aria-label="Export options"
                     className="absolute right-0 top-full mt-1 z-20 border border-[#1F1F1F] bg-[#0A0A0A] min-w-[200px]"
                   >
-                    <button
-                      role="menuitem"
-                      onClick={exportCurrentVersion}
-                      className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
-                    >
-                      CURRENT VERSION (v{activeIteration})
-                    </button>
-                    <div className="border-t border-[#1F1F1F]" />
-                    <button
-                      role="menuitem"
-                      onClick={exportAllVersions}
-                      className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
-                    >
-                      ALL VERSIONS
-                    </button>
-                    <div className="border-t border-[#1F1F1F]" />
-                    <button
-                      role="menuitem"
-                      onClick={exportAnonymized}
-                      className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
-                    >
-                      ANONYMIZED (v{activeIteration})
-                    </button>
+                    {isOrganizer ? (
+                      <>
+                        <button
+                          role="menuitem"
+                          onClick={exportCurrentVersion}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          CURRENT VERSION (v{activeIteration})
+                        </button>
+                        <div className="border-t border-[#1F1F1F]" />
+                        <button
+                          role="menuitem"
+                          onClick={exportAllVersions}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          ALL VERSIONS
+                        </button>
+                        <div className="border-t border-[#1F1F1F]" />
+                        <button
+                          role="menuitem"
+                          onClick={exportAnonymized}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          ANONYMIZED (v{activeIteration})
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          role="menuitem"
+                          onClick={exportAnonymized}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          CURRENT VERSION (v{activeIteration})
+                        </button>
+                        <div className="border-t border-[#1F1F1F]" />
+                        <button
+                          role="menuitem"
+                          onClick={exportAllVersionsAnonymized}
+                          className="w-full text-left px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white hover:bg-[#111111] transition-colors"
+                        >
+                          ALL VERSIONS
+                        </button>
+                      </>
+                    )}
                   </div>
                 </>
               )}
             </div>
-          )}
         </div>
         <p className="text-xs text-[#555555]">
           {submission.name}
