@@ -32,10 +32,11 @@ export default function FeedbackPage() {
     submissionId,
   });
 
-  // Only fetch the submission (and thus its team) once authorized feedback exists.
+  // Only fetch the submission (and its team) when feedback exists and is not hidden.
+  const hasFeedbackData = feedback != null && !("feedbackHidden" in feedback);
   const submission = useQuery(
     api.submissions.get,
-    feedback ? { submissionId } : "skip"
+    hasFeedbackData ? { submissionId } : "skip"
   );
 
   const teamId = submission?.teamId;
@@ -46,11 +47,7 @@ export default function FeedbackPage() {
   );
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
 
-  if (
-    membership === undefined ||
-    feedback === undefined ||
-    (feedback && submission === undefined)
-  ) {
+  if (membership === undefined || feedback === undefined) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <p className="text-xs text-[#555555] uppercase tracking-widest">
@@ -60,8 +57,29 @@ export default function FeedbackPage() {
     );
   }
 
+  // null means the user has no access or there is no feedback yet.
+  if (feedback === null) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
+          <p className="text-sm text-[#555555] uppercase tracking-wider">
+            FEEDBACK NOT AVAILABLE
+          </p>
+          <Link
+            href={`/hackathon/${hackathonId}`}
+            className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            BACK TO HACKATHON
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   // Feedback is explicitly hidden from competitors by the organizer.
-  if (feedback && "feedbackHidden" in feedback && feedback.feedbackHidden) {
+  // feedback is non-null here; feedbackHidden is on both union arms (true | undefined).
+  if (feedback.feedbackHidden) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <Link
@@ -91,7 +109,19 @@ export default function FeedbackPage() {
     );
   }
 
-  if (!submission || !feedback || !membership) {
+  // feedback is narrowed to the full data shape (not null, not feedbackHidden).
+  // Wait for the submission query to finish loading.
+  if (submission === undefined || !membership) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <p className="text-xs text-[#555555] uppercase tracking-widest">
+          ▓▓▓░░░ LOADING...
+        </p>
+      </div>
+    );
+  }
+
+  if (!submission) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
@@ -111,9 +141,8 @@ export default function FeedbackPage() {
   }
 
   const isOrganizer = membership.role === "organizer";
-  // At this point feedbackHidden has been handled above; cast to the full data shape.
-  const fullFeedback = feedback as Extract<typeof feedback, { iterations: unknown }>;
-  const { iterations, categories, currentSubmissionCount } = fullFeedback;
+  // feedback is narrowed to the full data shape by the null and feedbackHidden guards above.
+  const { iterations, categories, currentSubmissionCount } = feedback;
 
   // Default to the current (most recent) iteration
   const activeIteration =
@@ -159,7 +188,9 @@ export default function FeedbackPage() {
       .replace(/\s+/g, "-")
       .toLowerCase()}.md`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 0);
   };
 
   return (
