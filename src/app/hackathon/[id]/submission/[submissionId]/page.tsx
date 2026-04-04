@@ -80,7 +80,7 @@ export default function SubmissionDetailPage() {
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
-            GO BACK
+            BACK
           </button>
         </div>
       </div>
