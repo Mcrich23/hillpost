@@ -3,8 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../../convex/_generated/dataModel";
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, MessageSquare, History, Download, EyeOff, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
@@ -24,6 +23,7 @@ function ScoreBar({ score, maxScore }: { score: number; maxScore: number }) {
 
 export default function FeedbackPage() {
   const params = useParams();
+  const router = useRouter();
   const hackathonId = params.id as Id<"hackathons">;
   const submissionId = params.submissionId as Id<"submissions">;
 
@@ -63,6 +63,14 @@ export default function FeedbackPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [exportMenuOpen]);
 
+  const goBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(`/hackathon/${hackathonId}`);
+    }
+  };
+
   if (membership === undefined || feedback === undefined) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
@@ -81,13 +89,13 @@ export default function FeedbackPage() {
           <p className="text-sm text-[#555555] uppercase tracking-wider">
             FEEDBACK NOT AVAILABLE
           </p>
-          <Link
-            href={`/hackathon/${hackathonId}`}
+          <button
+            onClick={goBack}
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
-            BACK TO HACKATHON
-          </Link>
+            BACK
+          </button>
         </div>
       </div>
     );
@@ -98,13 +106,13 @@ export default function FeedbackPage() {
   if (feedback.feedbackHidden) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <Link
-          href={`/hackathon/${hackathonId}`}
+        <button
+          onClick={goBack}
           className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
         >
           <ArrowLeft className="h-3 w-3" />
-          BACK TO HACKATHON
-        </Link>
+          BACK
+        </button>
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
           <EyeOff className="h-8 w-8 text-[#555555] mx-auto mb-3" />
           <p className="text-sm text-[#555555] uppercase tracking-wider">
@@ -113,13 +121,13 @@ export default function FeedbackPage() {
           <p className="mt-2 text-xs text-[#333333]">
             The organizer has disabled feedback visibility for competitors.
           </p>
-          <Link
-            href={`/hackathon/${hackathonId}`}
+          <button
+            onClick={goBack}
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
-            BACK TO HACKATHON
-          </Link>
+            BACK
+          </button>
         </div>
       </div>
     );
@@ -144,13 +152,13 @@ export default function FeedbackPage() {
           <p className="text-sm text-[#555555] uppercase tracking-wider">
             FEEDBACK NOT AVAILABLE
           </p>
-          <Link
-            href={`/hackathon/${hackathonId}`}
+          <button
+            onClick={goBack}
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
-            BACK TO HACKATHON
-          </Link>
+            BACK
+          </button>
         </div>
       </div>
     );
@@ -247,13 +255,13 @@ export default function FeedbackPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Back nav */}
-      <Link
-        href={`/hackathon/${hackathonId}`}
+      <button
+        onClick={goBack}
         className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
       >
         <ArrowLeft className="h-3 w-3" />
-        BACK TO HACKATHON
-      </Link>
+        BACK
+      </button>
 
       {/* Header */}
       <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
