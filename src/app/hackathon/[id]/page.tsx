@@ -335,7 +335,7 @@ export default function HackathonDetailPage() {
               <div
                 key={label}
                 onClick={onClick}
-                onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
+                onKeyDown={onClick ? (e) => { if (e.repeat) return; if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
                 role={onClick ? "button" : undefined}
                 tabIndex={onClick ? 0 : undefined}
                 className={cn(

@@ -76,7 +76,13 @@ export default function SubmissionDetailPage() {
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
           <p className="text-sm text-[#555555] uppercase tracking-wider">SUBMISSION NOT FOUND</p>
           <button
-            onClick={() => router.back()}
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push(`/hackathon/${hackathonId}`);
+              }
+            }}
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
