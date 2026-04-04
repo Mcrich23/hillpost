@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "../../../../../../convex/_generated/dataModel";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Pencil, X, History, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 export default function SubmissionDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const hackathonId = params.id as Id<"hackathons">;
   const submissionId = params.submissionId as Id<"submissions">;
 
@@ -74,13 +75,13 @@ export default function SubmissionDetailPage() {
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
           <p className="text-sm text-[#555555] uppercase tracking-wider">SUBMISSION NOT FOUND</p>
-          <Link
-            href={`/hackathon/${hackathonId}/leaderboard`}
+          <button
+            onClick={() => router.back()}
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
-            BACK TO LEADERBOARD
-          </Link>
+            GO BACK
+          </button>
         </div>
       </div>
     );
@@ -93,13 +94,13 @@ export default function SubmissionDetailPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Back nav */}
-      <Link
-        href={`/hackathon/${hackathonId}/leaderboard`}
+      <button
+        onClick={() => router.back()}
         className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
       >
         <ArrowLeft className="h-3 w-3" />
-        BACK TO LEADERBOARD
-      </Link>      
+        BACK
+      </button>
 
       {/* Header */}
       <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
