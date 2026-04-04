@@ -73,6 +73,7 @@ export function PublicSubmissions({ hackathonId, role }: PublicSubmissionsProps)
                 key={sub._id}
                 onClick={() => router.push(`/hackathon/${hackathonId}/submission/${sub._id}`)}
                 onKeyDown={(e) => {
+                  if (e.currentTarget !== e.target) return;
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     router.push(`/hackathon/${hackathonId}/submission/${sub._id}`);

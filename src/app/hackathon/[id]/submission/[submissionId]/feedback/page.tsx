@@ -63,6 +63,14 @@ export default function FeedbackPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [exportMenuOpen]);
 
+  const goBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push(`/hackathon/${hackathonId}`);
+    }
+  };
+
   if (membership === undefined || feedback === undefined) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
@@ -82,7 +90,7 @@ export default function FeedbackPage() {
             FEEDBACK NOT AVAILABLE
           </p>
           <button
-            onClick={() => router.back()}
+            onClick={goBack}
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
@@ -99,7 +107,7 @@ export default function FeedbackPage() {
     return (
       <div className="mx-auto max-w-4xl px-4 py-8">
         <button
-          onClick={() => router.back()}
+          onClick={goBack}
           className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
         >
           <ArrowLeft className="h-3 w-3" />
@@ -114,7 +122,7 @@ export default function FeedbackPage() {
             The organizer has disabled feedback visibility for competitors.
           </p>
           <button
-            onClick={() => router.back()}
+            onClick={goBack}
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
@@ -145,7 +153,7 @@ export default function FeedbackPage() {
             FEEDBACK NOT AVAILABLE
           </p>
           <button
-            onClick={() => router.back()}
+            onClick={goBack}
             className="mt-4 inline-flex items-center gap-1 text-xs text-[#00FF41] hover:text-white transition-colors uppercase tracking-wider"
           >
             <ArrowLeft className="h-3 w-3" />
@@ -248,7 +256,7 @@ export default function FeedbackPage() {
     <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Back nav */}
       <button
-        onClick={() => router.back()}
+        onClick={goBack}
         className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
       >
         <ArrowLeft className="h-3 w-3" />

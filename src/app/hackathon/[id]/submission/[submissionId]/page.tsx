@@ -95,7 +95,13 @@ export default function SubmissionDetailPage() {
     <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Back nav */}
       <button
-        onClick={() => router.back()}
+        onClick={() => {
+          if (window.history.length > 1) {
+            router.back();
+          } else {
+            router.push(`/hackathon/${hackathonId}`);
+          }
+        }}
         className="mb-6 inline-flex items-center gap-1 text-xs text-[#555555] hover:text-white transition-colors uppercase tracking-wider"
       >
         <ArrowLeft className="h-3 w-3" />
