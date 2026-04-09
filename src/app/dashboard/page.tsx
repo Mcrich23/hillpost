@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { CreateHackathonDialog } from "@/components/create-hackathon-dialog";
 import { JoinHackathonDialog } from "@/components/join-hackathon-dialog";
 
@@ -31,6 +31,28 @@ export default function DashboardPage() {
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [mcpToken, setMcpToken] = useState<string | null>(null);
+  const [mcpCopied, setMcpCopied] = useState(false);
+  const [mcpExpanded, setMcpExpanded] = useState(false);
+  const [mcpGenerating, setMcpGenerating] = useState(false);
+  const generateMcpToken = useMutation(api.mcpTokens.generate);
+
+  async function handleGenerateToken() {
+    setMcpGenerating(true);
+    try {
+      const result = await generateMcpToken();
+      setMcpToken(result.token);
+    } finally {
+      setMcpGenerating(false);
+    }
+  }
+
+  function handleCopyToken() {
+    if (!mcpToken) return;
+    navigator.clipboard.writeText(mcpToken);
+    setMcpCopied(true);
+    setTimeout(() => setMcpCopied(false), 2000);
+  }
 
   if (!isLoaded) {
     return (
@@ -60,6 +82,87 @@ export default function DashboardPage() {
         <p className="mt-1 text-xs text-[#555555] uppercase tracking-wider">
           Manage your hackathons and competitions
         </p>
+      </div>
+
+      {/* MCP Announcement Banner */}
+      <div className="mb-8 border border-[#A855F7]/40 bg-[#A855F7]/5">
+        <button
+          onClick={() => setMcpExpanded((v) => !v)}
+          className="w-full flex items-center justify-between px-5 py-3 text-left"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-[#A855F7] text-xs font-bold uppercase tracking-widest">
+              [NEW]
+            </span>
+            <span className="text-xs text-white uppercase tracking-wide font-bold">
+              Announcing our MCP
+            </span>
+            <span className="text-xs text-[#555555] uppercase tracking-wider hidden sm:inline">
+              — Connect Claude directly to your hackathons
+            </span>
+          </div>
+          <span className="text-[#A855F7] text-xs font-bold uppercase tracking-widest shrink-0">
+            {mcpExpanded ? "[ − ]" : "[ + ]"}
+          </span>
+        </button>
+
+        <AnimatePresence>
+          {mcpExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="border-t border-[#A855F7]/20 px-5 py-4 space-y-4">
+                <p className="text-xs text-[#888888] uppercase tracking-wide leading-relaxed">
+                  Use the Hillpost MCP server to let Claude manage your hackathons, score submissions, and submit projects — directly from your AI client.
+                </p>
+
+                <div className="text-xs text-[#555555] font-mono space-y-1">
+                  <div>1. Generate a token below</div>
+                  <div>2. Set <span className="text-[#A855F7]">HILLPOST_TOKEN</span> in your MCP client config</div>
+                  <div>3. Set <span className="text-[#A855F7]">CONVEX_URL</span> to your deployment URL</div>
+                </div>
+
+                {!mcpToken ? (
+                  <button
+                    onClick={handleGenerateToken}
+                    disabled={mcpGenerating}
+                    className="flex items-center gap-3 border border-[#A855F7]/40 bg-[#A855F7]/10 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-[#A855F7] transition-colors hover:border-[#A855F7] hover:bg-[#A855F7]/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span>{mcpGenerating ? "░░ GENERATING..." : "[ GENERATE MCP TOKEN ]"}</span>
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="text-xs text-[#555555] uppercase tracking-widest">
+                      Your token — copy it now, it will not be shown again:
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 border border-[#A855F7]/30 bg-black px-3 py-2 font-mono text-xs text-[#A855F7] truncate">
+                        {mcpToken}
+                      </div>
+                      <button
+                        onClick={handleCopyToken}
+                        className="shrink-0 border border-[#A855F7]/40 px-3 py-2 text-xs font-bold uppercase tracking-widest text-[#A855F7] transition-colors hover:border-[#A855F7] hover:bg-[#A855F7]/10"
+                      >
+                        {mcpCopied ? "[ COPIED ]" : "[ COPY ]"}
+                      </button>
+                    </div>
+                    <button
+                      onClick={handleGenerateToken}
+                      disabled={mcpGenerating}
+                      className="text-xs text-[#555555] uppercase tracking-widest hover:text-[#A855F7] transition-colors disabled:opacity-50"
+                    >
+                      {mcpGenerating ? "generating..." : "regenerate token"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Action buttons */}

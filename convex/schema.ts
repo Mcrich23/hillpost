@@ -96,6 +96,15 @@ export default defineSchema({
     ])
     .index("by_judgeId", ["judgeId"]),
 
+  mcpTokens: defineTable({
+    userId: v.string(),
+    userName: v.string(),
+    token: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_userId", ["userId"]),
+
   sponsors: defineTable({
     hackathonId: v.id("hackathons"),
     name: v.string(),

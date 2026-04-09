@@ -12,6 +12,8 @@ import type * as auth from "../auth.js";
 import type * as categories from "../categories.js";
 import type * as hackathons from "../hackathons.js";
 import type * as leaderboard from "../leaderboard.js";
+import type * as mcpFunctions from "../mcpFunctions.js";
+import type * as mcpTokens from "../mcpTokens.js";
 import type * as members from "../members.js";
 import type * as scores from "../scores.js";
 import type * as sponsors from "../sponsors.js";
@@ -29,6 +31,8 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   hackathons: typeof hackathons;
   leaderboard: typeof leaderboard;
+  mcpFunctions: typeof mcpFunctions;
+  mcpTokens: typeof mcpTokens;
   members: typeof members;
   scores: typeof scores;
   sponsors: typeof sponsors;
