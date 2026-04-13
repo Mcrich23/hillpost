@@ -493,9 +493,9 @@ function HackathonInfoSection({
                 )}
               >
                 {feedbackVisible ? (
-                  <><EyeOff className="h-3.5 w-3.5" /> [ HIDE FEEDBACK ]</>
+                  <><EyeOff className="h-3.5 w-3.5" /> [ HIDE ]</>
                 ) : (
-                  <><Eye className="h-3.5 w-3.5" /> [ SHOW FEEDBACK ]</>
+                  <><Eye className="h-3.5 w-3.5" /> [ SHOW ]</>
                 )}
               </button>
             </div>
@@ -525,9 +525,9 @@ function HackathonInfoSection({
                 )}
               >
                 {scoresVisible ? (
-                  <><EyeOff className="h-3.5 w-3.5" /> [ HIDE SCORES ]</>
+                  <><EyeOff className="h-3.5 w-3.5" /> [ HIDE ]</>
                 ) : (
-                  <><Eye className="h-3.5 w-3.5" /> [ SHOW SCORES ]</>
+                  <><Eye className="h-3.5 w-3.5" /> [ SHOW ]</>
                 )}
               </button>
             </div>
