@@ -186,6 +186,7 @@ function HackathonInfoSection({
   const toggleScoresVisible = async () => {
     const current = hackathon.scoresVisible !== false;
     const nextScoresVisible = !current;
+    const feedbackWasVisible = hackathon.feedbackVisible !== false;
     try {
       await updateHackathon({
         hackathonId,
@@ -195,7 +196,9 @@ function HackathonInfoSection({
       toast.success(
         nextScoresVisible
           ? "Scores shown to competitors"
-          : "Scores hidden from competitors (feedback also hidden)"
+          : feedbackWasVisible
+            ? "Scores hidden from competitors (feedback also hidden)"
+            : "Scores hidden from competitors"
       );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update score visibility");
