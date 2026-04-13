@@ -1,9 +1,31 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { getAuthUserId } from "./auth";
 
 export const get = query({
   args: { hackathonId: v.id("hackathons") },
   handler: async (ctx, args) => {
+    const hackathon = await ctx.db.get(args.hackathonId);
+    if (!hackathon) {
+      return { entries: [], maxPossibleScore: 0, leaderboardHidden: false as const };
+    }
+
+    const scoresVisible = hackathon.scoresVisible !== false;
+    if (!scoresVisible) {
+      const userId = await getAuthUserId(ctx);
+      if (userId) {
+        const membership = await ctx.db
+          .query("hackathonMembers")
+          .withIndex("by_hackathonId_userId", (q) =>
+            q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+          )
+          .first();
+        if (membership?.role === "competitor") {
+          return { entries: [], maxPossibleScore: 0, leaderboardHidden: true as const };
+        }
+      }
+    }
+
     const teams = await ctx.db
       .query("teams")
       .withIndex("by_hackathonId", (q) => q.eq("hackathonId", args.hackathonId))
@@ -133,6 +155,6 @@ export const get = query({
       0
     );
 
-    return { entries: leaderboard, maxPossibleScore };
+    return { entries: leaderboard, maxPossibleScore, leaderboardHidden: false as const };
   },
 });

@@ -170,6 +170,7 @@ export default function HackathonDetailPage() {
   }
 
   const isCreator = user?.id === hackathon.organizerId;
+  const scoresVisibleToCompetitors = hackathon.scoresVisible !== false;
 
   const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
     { id: "overview", label: "OVERVIEW", show: true },
@@ -355,22 +356,24 @@ export default function HackathonDetailPage() {
           )}
 
           <div className="grid gap-4 md:grid-cols-2">
-            <Link
-              href={`/hackathon/${hackathonId}/leaderboard`}
-              className="group flex flex-col justify-center gap-4 border border-[#1F1F1F] bg-[#0A0A0A] p-6 transition-colors hover:border-[#FF6600]"
-            >
-              <div className="flex items-center gap-4">
-                <Trophy className="h-8 w-8 text-[#FF6600]" />
-                <div>
-                  <p className="text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#FF6600] transition-colors">
-                    VIEW LEADERBOARD →
-                  </p>
-                  <p className="text-xs text-[#555555]">
-                    See real-time rankings and scores
-                  </p>
+            {(role === "organizer" || role === "judge" || (role === "competitor" && scoresVisibleToCompetitors)) && (
+              <Link
+                href={`/hackathon/${hackathonId}/leaderboard`}
+                className="group flex flex-col justify-center gap-4 border border-[#1F1F1F] bg-[#0A0A0A] p-6 transition-colors hover:border-[#FF6600]"
+              >
+                <div className="flex items-center gap-4">
+                  <Trophy className="h-8 w-8 text-[#FF6600]" />
+                  <div>
+                    <p className="text-sm font-bold text-white uppercase tracking-wide group-hover:text-[#FF6600] transition-colors">
+                      VIEW LEADERBOARD →
+                    </p>
+                    <p className="text-xs text-[#555555]">
+                      See real-time rankings and scores
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+            )}
 
             {role === "judge" ? (
               membership?.status === "approved" ? (

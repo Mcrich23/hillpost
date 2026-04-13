@@ -14,6 +14,7 @@ interface CompetitorPanelProps {
   hackathon: {
     submissionFrequencyMinutes: number;
     feedbackVisible?: boolean;
+    scoresVisible?: boolean;
   };
 }
 
@@ -344,7 +345,7 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
             )}
           </form>
 
-          {latestSubmission && hackathon.feedbackVisible !== false && (
+          {latestSubmission && hackathon.feedbackVisible !== false && hackathon.scoresVisible !== false && (
             <Link
               href={`/hackathon/${hackathonId}/submission/${latestSubmission._id}/feedback`}
               className="mt-4 flex items-center gap-2 border border-[#00B4FF]/30 bg-[#00B4FF08] px-4 py-3 text-xs font-bold text-[#00B4FF] uppercase tracking-wider hover:border-[#00B4FF] hover:bg-[#00B4FF] hover:text-black transition-colors"

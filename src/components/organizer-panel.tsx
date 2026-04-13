@@ -38,6 +38,7 @@ interface OrganizerPanelProps {
     submissionFrequencyMinutes: number;
     openGraphImageUrl?: string;
     feedbackVisible?: boolean;
+    scoresVisible?: boolean;
   };
 }
 
@@ -174,6 +175,21 @@ function HackathonInfoSection({
       toast.success(!current ? "Feedback shown to competitors" : "Feedback hidden from competitors");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update feedback visibility");
+    }
+  };
+
+  const toggleScoresVisible = async () => {
+    const current = hackathon.scoresVisible !== false;
+    const nextScoresVisible = !current;
+    try {
+      await updateHackathon({ hackathonId, scoresVisible: nextScoresVisible });
+      toast.success(
+        nextScoresVisible
+          ? "Scores shown to competitors"
+          : "Scores hidden from competitors (competitor feedback also hidden)"
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update score visibility");
     }
   };
 
@@ -461,30 +477,67 @@ function HackathonInfoSection({
 
         {/* Feedback visibility toggle */}
         {(() => {
-          const feedbackVisible = hackathon.feedbackVisible !== false;
+          const feedbackPreferenceVisible = hackathon.feedbackVisible !== false;
+          const scoresVisible = hackathon.scoresVisible !== false;
+          const feedbackVisible = scoresVisible && feedbackPreferenceVisible;
+          let feedbackDescription = "Feedback is hidden from competitors (judges can still submit feedback)";
+          if (!scoresVisible) {
+            feedbackDescription = "Feedback is hidden from competitors while score sharing is disabled.";
+          } else if (feedbackVisible) {
+            feedbackDescription = "Competitors can view judge feedback";
+          }
           return (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
               <div>
                 <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">COMPETITOR FEEDBACK:</span>
-                <p className="text-xs text-[#333333] mt-0.5">
-                  {feedbackVisible
-                    ? "Competitors can view judge feedback"
-                    : "Feedback is hidden from competitors (judges can still submit feedback)"}
-                </p>
+                <p className="text-xs text-[#333333] mt-0.5">{feedbackDescription}</p>
               </div>
               <button
                 onClick={toggleFeedbackVisible}
+                disabled={!scoresVisible}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
+                  "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                   feedbackVisible
                     ? "border border-[#555555] text-[#555555] hover:border-[#FF6600] hover:text-[#FF6600]"
                     : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
                 )}
               >
                 {feedbackVisible ? (
-                  <><EyeOff className="h-3.5 w-3.5" /> [ HIDE FEEDBACK ]</>
+                  <><EyeOff className="h-3.5 w-3.5" /> [ HIDE ]</>
                 ) : (
-                  <><Eye className="h-3.5 w-3.5" /> [ SHOW FEEDBACK ]</>
+                  <><Eye className="h-3.5 w-3.5" /> [ SHOW ]</>
+                )}
+              </button>
+            </div>
+          );
+        })()}
+
+        {/* Score/leaderboard visibility toggle */}
+        {(() => {
+          const scoresVisible = hackathon.scoresVisible !== false;
+          return (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
+              <div>
+                <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">COMPETITOR SCORES + LEADERBOARD:</span>
+                <p className="text-xs text-[#333333] mt-0.5">
+                  {scoresVisible
+                    ? "Competitors can view score breakdowns and leaderboard rankings"
+                    : "Scores and leaderboard are hidden from competitors"}
+                </p>
+              </div>
+              <button
+                onClick={toggleScoresVisible}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
+                  scoresVisible
+                    ? "border border-[#555555] text-[#555555] hover:border-[#FF6600] hover:text-[#FF6600]"
+                    : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
+                )}
+              >
+                {scoresVisible ? (
+                  <><EyeOff className="h-3.5 w-3.5" /> [ HIDE ]</>
+                ) : (
+                  <><Eye className="h-3.5 w-3.5" /> [ SHOW ]</>
                 )}
               </button>
             </div>

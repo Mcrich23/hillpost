@@ -103,6 +103,27 @@ export const getForSubmission = query({
   args: { submissionId: v.id("submissions") },
   handler: async (ctx, args) => {
     const submission = await ctx.db.get(args.submissionId);
+    if (!submission) {
+      return { scoresHidden: false as const, entries: [] };
+    }
+
+    const hackathon = await ctx.db.get(submission.hackathonId);
+    const scoresVisible = hackathon?.scoresVisible !== false;
+    if (!scoresVisible) {
+      const userId = await getAuthUserId(ctx);
+      if (userId) {
+        const membership = await ctx.db
+          .query("hackathonMembers")
+          .withIndex("by_hackathonId_userId", (q) =>
+            q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
+          )
+          .first();
+        if (membership?.role === "competitor") {
+          return { scoresHidden: true as const, entries: [] };
+        }
+      }
+    }
+
     const currentIteration = submission?.submissionCount ?? 1;
 
     const allScores = await ctx.db
@@ -137,13 +158,16 @@ export const getForSubmission = query({
       }
     }
 
-    return Array.from(aggregatesByCategory.values()).map(
-      ({ categoryId, totalScore, judgeCount }) => ({
-        categoryId,
-        averageScore: judgeCount > 0 ? totalScore / judgeCount : 0,
-        judgeCount,
-      })
-    );
+    return {
+      scoresHidden: false as const,
+      entries: Array.from(aggregatesByCategory.values()).map(
+        ({ categoryId, totalScore, judgeCount }) => ({
+          categoryId,
+          averageScore: judgeCount > 0 ? totalScore / judgeCount : 0,
+          judgeCount,
+        })
+      ),
+    };
   },
 });
 
@@ -181,7 +205,8 @@ export const getMyScoresForSubmission = query({
  * - Competitors and judges see anonymous labels ("Judge 1", "Judge 2", …)
  *   and judge IDs are NOT sent to the client.
  * - Returns all iterations so competitors can see score history.
- * - When feedbackVisible is false on the hackathon, competitors receive
+ * - When feedbackVisible is false or scoresVisible is false on the hackathon,
+ *   competitors receive
  *   `{ feedbackHidden: true }` (no feedback data is included in the response at all).
  */
 export const getFeedbackForSubmission = query({
@@ -221,9 +246,10 @@ export const getFeedbackForSubmission = query({
     // Fetch the hackathon to check feedbackVisible setting.
     const hackathon = await ctx.db.get(submission.hackathonId);
     const feedbackVisible = hackathon?.feedbackVisible !== false; // undefined defaults to true
+    const scoresVisible = hackathon?.scoresVisible !== false; // undefined defaults to true
 
-    // Competitors do not receive any feedback data when visibility is disabled.
-    if (!feedbackVisible && !isOrganizer && !isJudge) {
+    // Competitors do not receive any feedback data when either feedback or scores are hidden.
+    if ((!feedbackVisible || !scoresVisible) && !isOrganizer && !isJudge) {
       return { feedbackHidden: true as const };
     }
 

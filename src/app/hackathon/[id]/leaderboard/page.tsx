@@ -38,6 +38,30 @@ export default function LeaderboardPage() {
     );
   }
 
+  if (leaderboardData.leaderboardHidden) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-6">
+          {membership && (
+            <Link
+              href={`/hackathon/${hackathonId}`}
+              className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              Back to Hackathon
+            </Link>
+          )}
+        </div>
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
+          <p className="text-sm text-[#555555] uppercase tracking-wider">LEADERBOARD HIDDEN</p>
+          <p className="mt-2 text-xs text-[#333333] uppercase tracking-wide">
+            The organizer has disabled leaderboard visibility for competitors.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const getRankLabel = (rank: number) => {
     if (rank === 1) return "#1";
     if (rank === 2) return "#2";
