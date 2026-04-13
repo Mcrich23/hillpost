@@ -185,14 +185,15 @@ function HackathonInfoSection({
 
   const toggleScoresVisible = async () => {
     const current = hackathon.scoresVisible !== false;
+    const nextScoresVisible = !current;
     try {
       await updateHackathon({
         hackathonId,
-        scoresVisible: !current,
-        ...(!current ? {} : { feedbackVisible: false }),
+        scoresVisible: nextScoresVisible,
+        ...(!nextScoresVisible && { feedbackVisible: false }),
       });
       toast.success(
-        !current
+        nextScoresVisible
           ? "Scores shown to competitors"
           : "Scores hidden from competitors (feedback also hidden)"
       );
@@ -487,17 +488,17 @@ function HackathonInfoSection({
         {(() => {
           const feedbackVisible = hackathon.feedbackVisible !== false;
           const scoresVisible = hackathon.scoresVisible !== false;
+          let feedbackDescription = "Feedback is hidden from competitors (judges can still submit feedback)";
+          if (feedbackVisible) {
+            feedbackDescription = "Competitors can view judge feedback";
+          } else if (!scoresVisible) {
+            feedbackDescription = "Feedback is disabled while score sharing is hidden";
+          }
           return (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
               <div>
                 <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">COMPETITOR FEEDBACK:</span>
-                <p className="text-xs text-[#333333] mt-0.5">
-                  {feedbackVisible
-                    ? "Competitors can view judge feedback"
-                    : scoresVisible
-                      ? "Feedback is hidden from competitors (judges can still submit feedback)"
-                      : "Feedback is disabled while score sharing is hidden"}
-                </p>
+                <p className="text-xs text-[#333333] mt-0.5">{feedbackDescription}</p>
               </div>
               <button
                 onClick={toggleFeedbackVisible}
