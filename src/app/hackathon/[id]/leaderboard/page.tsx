@@ -38,7 +38,7 @@ export default function LeaderboardPage() {
     );
   }
 
-  if (leaderboardData && "leaderboardHidden" in leaderboardData) {
+  if (leaderboardData.leaderboardHidden) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-6">

@@ -7,7 +7,7 @@ export const get = query({
   handler: async (ctx, args) => {
     const hackathon = await ctx.db.get(args.hackathonId);
     if (!hackathon) {
-      return { entries: [], maxPossibleScore: 0 };
+      return { entries: [], maxPossibleScore: 0, leaderboardHidden: false as const };
     }
 
     const scoresVisible = hackathon.scoresVisible !== false;
@@ -21,7 +21,7 @@ export const get = query({
           )
           .first();
         if (membership?.role === "competitor") {
-          return { leaderboardHidden: true as const };
+          return { entries: [], maxPossibleScore: 0, leaderboardHidden: true as const };
         }
       }
     }
@@ -155,6 +155,6 @@ export const get = query({
       0
     );
 
-    return { entries: leaderboard, maxPossibleScore };
+    return { entries: leaderboard, maxPossibleScore, leaderboardHidden: false as const };
   },
 });

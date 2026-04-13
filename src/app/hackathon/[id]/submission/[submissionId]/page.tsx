@@ -96,7 +96,8 @@ export default function SubmissionDetailPage() {
   const projectHref = safeHref(submission.projectUrl);
   const demoHref = safeHref(submission.demoUrl);
   const deployedHref = safeHref(submission.deployedUrl);
-  const scoresHidden = scores && !Array.isArray(scores) && scores.scoresHidden;
+  const scoresHidden = !!scores?.scoresHidden;
+  const scoreEntries = scores?.entries ?? [];
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -225,9 +226,9 @@ export default function SubmissionDetailPage() {
           </p>
         </div>
       )}
-      {categories && Array.isArray(scores) && categories.length > 0 && scores.length > 0 && (() => {
+      {categories && categories.length > 0 && scoreEntries.length > 0 && (() => {
         const categoryAverages = categories.map((cat) => {
-          const catScoreObj = scores.find((s) => s.categoryId === cat._id);
+          const catScoreObj = scoreEntries.find((s) => s.categoryId === cat._id);
           const avg = catScoreObj ? catScoreObj.averageScore : 0;
           return { ...cat, avg };
         });

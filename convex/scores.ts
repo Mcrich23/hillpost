@@ -104,7 +104,7 @@ export const getForSubmission = query({
   handler: async (ctx, args) => {
     const submission = await ctx.db.get(args.submissionId);
     if (!submission) {
-      return [];
+      return { scoresHidden: false as const, entries: [] };
     }
 
     const hackathon = await ctx.db.get(submission.hackathonId);
@@ -119,7 +119,7 @@ export const getForSubmission = query({
           )
           .first();
         if (membership?.role === "competitor") {
-          return { scoresHidden: true as const };
+          return { scoresHidden: true as const, entries: [] };
         }
       }
     }
@@ -158,13 +158,16 @@ export const getForSubmission = query({
       }
     }
 
-    return Array.from(aggregatesByCategory.values()).map(
-      ({ categoryId, totalScore, judgeCount }) => ({
-        categoryId,
-        averageScore: judgeCount > 0 ? totalScore / judgeCount : 0,
-        judgeCount,
-      })
-    );
+    return {
+      scoresHidden: false as const,
+      entries: Array.from(aggregatesByCategory.values()).map(
+        ({ categoryId, totalScore, judgeCount }) => ({
+          categoryId,
+          averageScore: judgeCount > 0 ? totalScore / judgeCount : 0,
+          judgeCount,
+        })
+      ),
+    };
   },
 });
 
