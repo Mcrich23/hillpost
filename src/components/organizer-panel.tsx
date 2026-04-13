@@ -186,7 +186,7 @@ function HackathonInfoSection({
       toast.success(
         nextScoresVisible
           ? "Scores shown to competitors"
-          : "Scores and feedback hidden from competitors"
+          : "Scores hidden from competitors (feedback automatically hidden)"
       );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update score visibility");
