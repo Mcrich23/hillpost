@@ -169,10 +169,10 @@ function HackathonInfoSection({
   };
 
   const toggleFeedbackVisible = async () => {
-    const scoresVisible = hackathon.scoresVisible !== false;
+    const currentScoresVisible = hackathon.scoresVisible !== false;
     const current = hackathon.feedbackVisible !== false;
-    if (!scoresVisible && !current) {
-      toast.error("Enable score sharing before showing competitor feedback");
+    if (!currentScoresVisible && !current) {
+      toast.error("Cannot show feedback while score sharing is disabled. Enable score sharing first.");
       return;
     }
     try {
