@@ -205,7 +205,8 @@ export const getMyScoresForSubmission = query({
  * - Competitors and judges see anonymous labels ("Judge 1", "Judge 2", …)
  *   and judge IDs are NOT sent to the client.
  * - Returns all iterations so competitors can see score history.
- * - When feedbackVisible is false on the hackathon, competitors receive
+ * - When feedbackVisible is false or scoresVisible is false on the hackathon,
+ *   competitors receive
  *   `{ feedbackHidden: true }` (no feedback data is included in the response at all).
  */
 export const getFeedbackForSubmission = query({
