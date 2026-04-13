@@ -477,8 +477,9 @@ function HackathonInfoSection({
 
         {/* Feedback visibility toggle */}
         {(() => {
-          const feedbackVisible = hackathon.feedbackVisible !== false;
+          const feedbackPreferenceVisible = hackathon.feedbackVisible !== false;
           const scoresVisible = hackathon.scoresVisible !== false;
+          const feedbackVisible = scoresVisible && feedbackPreferenceVisible;
           let feedbackDescription = "Feedback is hidden from competitors (judges can still submit feedback)";
           if (!scoresVisible) {
             feedbackDescription = "Feedback is hidden from competitors while score sharing is disabled (preference preserved)";
@@ -493,8 +494,9 @@ function HackathonInfoSection({
               </div>
               <button
                 onClick={toggleFeedbackVisible}
+                disabled={!scoresVisible}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
+                  "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                   feedbackVisible
                     ? "border border-[#555555] text-[#555555] hover:border-[#FF6600] hover:text-[#FF6600]"
                     : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
