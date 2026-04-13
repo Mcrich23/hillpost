@@ -245,9 +245,10 @@ export const getFeedbackForSubmission = query({
     // Fetch the hackathon to check feedbackVisible setting.
     const hackathon = await ctx.db.get(submission.hackathonId);
     const feedbackVisible = hackathon?.feedbackVisible !== false; // undefined defaults to true
+    const scoresVisible = hackathon?.scoresVisible !== false; // undefined defaults to true
 
-    // Competitors do not receive any feedback data when visibility is disabled.
-    if (!feedbackVisible && !isOrganizer && !isJudge) {
+    // Competitors do not receive any feedback data when either feedback or scores are hidden.
+    if ((!feedbackVisible || !scoresVisible) && !isOrganizer && !isJudge) {
       return { feedbackHidden: true as const };
     }
 
