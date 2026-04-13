@@ -169,7 +169,12 @@ function HackathonInfoSection({
   };
 
   const toggleFeedbackVisible = async () => {
+    const scoresVisible = hackathon.scoresVisible !== false;
     const current = hackathon.feedbackVisible !== false;
+    if (!scoresVisible && !current) {
+      toast.error("Enable score sharing before showing competitor feedback");
+      return;
+    }
     try {
       await updateHackathon({ hackathonId, feedbackVisible: !current });
       toast.success(!current ? "Feedback shown to competitors" : "Feedback hidden from competitors");
@@ -181,8 +186,16 @@ function HackathonInfoSection({
   const toggleScoresVisible = async () => {
     const current = hackathon.scoresVisible !== false;
     try {
-      await updateHackathon({ hackathonId, scoresVisible: !current });
-      toast.success(!current ? "Scores shown to competitors" : "Scores hidden from competitors");
+      await updateHackathon({
+        hackathonId,
+        scoresVisible: !current,
+        ...(!current ? {} : { feedbackVisible: false }),
+      });
+      toast.success(
+        !current
+          ? "Scores shown to competitors"
+          : "Scores hidden from competitors (feedback also hidden)"
+      );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update score visibility");
     }
@@ -473,6 +486,7 @@ function HackathonInfoSection({
         {/* Feedback visibility toggle */}
         {(() => {
           const feedbackVisible = hackathon.feedbackVisible !== false;
+          const scoresVisible = hackathon.scoresVisible !== false;
           return (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
               <div>
@@ -480,13 +494,16 @@ function HackathonInfoSection({
                 <p className="text-xs text-[#333333] mt-0.5">
                   {feedbackVisible
                     ? "Competitors can view judge feedback"
-                    : "Feedback is hidden from competitors (judges can still submit feedback)"}
+                    : scoresVisible
+                      ? "Feedback is hidden from competitors (judges can still submit feedback)"
+                      : "Feedback is disabled while score sharing is hidden"}
                 </p>
               </div>
               <button
                 onClick={toggleFeedbackVisible}
+                disabled={!scoresVisible && !feedbackVisible}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
+                  "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-50",
                   feedbackVisible
                     ? "border border-[#555555] text-[#555555] hover:border-[#FF6600] hover:text-[#FF6600]"
                     : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
