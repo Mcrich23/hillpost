@@ -356,21 +356,7 @@ export default function HackathonDetailPage() {
           )}
 
           <div className="grid gap-4 md:grid-cols-2">
-            {role === "competitor" && !competitorScoresVisible ? (
-              <div className="flex flex-col justify-center gap-4 border border-[#1F1F1F] bg-[#0A0A0A] p-6">
-                <div className="flex items-center gap-4">
-                  <Trophy className="h-8 w-8 text-[#555555]" />
-                  <div>
-                    <p className="text-sm font-bold text-[#555555] uppercase tracking-wide">
-                      LEADERBOARD HIDDEN
-                    </p>
-                    <p className="text-xs text-[#333333]">
-                      The organizer has hidden leaderboard and score visibility for competitors.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
+            {role === "competitor" && competitorScoresVisible && (
               <Link
                 href={`/hackathon/${hackathonId}/leaderboard`}
                 className="group flex flex-col justify-center gap-4 border border-[#1F1F1F] bg-[#0A0A0A] p-6 transition-colors hover:border-[#FF6600]"
