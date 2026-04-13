@@ -103,6 +103,27 @@ export const getForSubmission = query({
   args: { submissionId: v.id("submissions") },
   handler: async (ctx, args) => {
     const submission = await ctx.db.get(args.submissionId);
+    if (!submission) {
+      return [];
+    }
+
+    const hackathon = await ctx.db.get(submission.hackathonId);
+    const scoresVisible = hackathon?.scoresVisible !== false;
+    if (!scoresVisible) {
+      const userId = await getAuthUserId(ctx);
+      if (userId) {
+        const membership = await ctx.db
+          .query("hackathonMembers")
+          .withIndex("by_hackathonId_userId", (q) =>
+            q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
+          )
+          .first();
+        if (membership?.role === "competitor") {
+          return { scoresHidden: true as const };
+        }
+      }
+    }
+
     const currentIteration = submission?.submissionCount ?? 1;
 
     const allScores = await ctx.db

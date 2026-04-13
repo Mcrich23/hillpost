@@ -96,6 +96,7 @@ export default function SubmissionDetailPage() {
   const projectHref = safeHref(submission.projectUrl);
   const demoHref = safeHref(submission.demoUrl);
   const deployedHref = safeHref(submission.deployedUrl);
+  const scoresHidden = scores && !Array.isArray(scores) && scores.scoresHidden;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -213,7 +214,18 @@ export default function SubmissionDetailPage() {
       )}
 
       {/* Scoring Breakdown */}
-      {categories && scores && categories.length > 0 && scores.length > 0 && (() => {
+      {scoresHidden && (
+        <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5 mb-4">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-xs text-[#555555] uppercase tracking-widest">── SCORING BREAKDOWN</span>
+            <div className="h-px flex-1 bg-[#1F1F1F]" />
+          </div>
+          <p className="text-xs text-[#333333] uppercase tracking-wide">
+            The organizer has hidden score visibility for competitors.
+          </p>
+        </div>
+      )}
+      {categories && Array.isArray(scores) && categories.length > 0 && scores.length > 0 && (() => {
         const categoryAverages = categories.map((cat) => {
           const catScoreObj = scores.find((s) => s.categoryId === cat._id);
           const avg = catScoreObj ? catScoreObj.averageScore : 0;
