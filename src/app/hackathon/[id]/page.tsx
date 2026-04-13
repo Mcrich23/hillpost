@@ -170,7 +170,7 @@ export default function HackathonDetailPage() {
   }
 
   const isCreator = user?.id === hackathon.organizerId;
-  const competitorScoresVisible = hackathon.scoresVisible !== false;
+  const scoresVisibleToCompetitors = hackathon.scoresVisible !== false;
 
   const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
     { id: "overview", label: "OVERVIEW", show: true },
@@ -356,7 +356,7 @@ export default function HackathonDetailPage() {
           )}
 
           <div className="grid gap-4 md:grid-cols-2">
-            {(role !== "competitor" || competitorScoresVisible) && (
+            {(role !== "competitor" || scoresVisibleToCompetitors) && (
               <Link
                 href={`/hackathon/${hackathonId}/leaderboard`}
                 className="group flex flex-col justify-center gap-4 border border-[#1F1F1F] bg-[#0A0A0A] p-6 transition-colors hover:border-[#FF6600]"
