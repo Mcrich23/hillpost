@@ -482,7 +482,7 @@ function HackathonInfoSection({
           const feedbackVisible = scoresVisible && feedbackPreferenceVisible;
           let feedbackDescription = "Feedback is hidden from competitors (judges can still submit feedback)";
           if (!scoresVisible) {
-            feedbackDescription = "Feedback is hidden from competitors while score sharing is disabled (preference preserved)";
+            feedbackDescription = "Feedback is hidden from competitors while score sharing is disabled.";
           } else if (feedbackVisible) {
             feedbackDescription = "Competitors can view judge feedback";
           }
