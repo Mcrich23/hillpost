@@ -226,7 +226,7 @@ export default function SubmissionDetailPage() {
           </p>
         </div>
       )}
-      {categories && categories.length > 0 && scoreEntries.length > 0 && (() => {
+      {!scoresHidden && categories && categories.length > 0 && scoreEntries.length > 0 && (() => {
         const categoryAverages = categories.map((cat) => {
           const catScoreObj = scoreEntries.find((s) => s.categoryId === cat._id);
           const avg = catScoreObj ? catScoreObj.averageScore : 0;
