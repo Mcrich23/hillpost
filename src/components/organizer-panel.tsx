@@ -186,7 +186,7 @@ function HackathonInfoSection({
       toast.success(
         nextScoresVisible
           ? "Scores shown to competitors"
-          : "Scores hidden from competitors (feedback automatically hidden)"
+          : "Scores hidden from competitors (competitor feedback also hidden)"
       );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update score visibility");
@@ -481,7 +481,7 @@ function HackathonInfoSection({
           const scoresVisible = hackathon.scoresVisible !== false;
           let feedbackDescription = "Feedback is hidden from competitors (judges can still submit feedback)";
           if (!scoresVisible) {
-            feedbackDescription = "Feedback is hidden while score sharing is hidden";
+            feedbackDescription = "Feedback is hidden from competitors while score sharing is disabled (preference preserved)";
           } else if (feedbackVisible) {
             feedbackDescription = "Competitors can view judge feedback";
           }
