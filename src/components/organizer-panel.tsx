@@ -1163,7 +1163,7 @@ function SponsorsSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                       <img
                         src={sponsor.pfpUrl}
                         alt={sponsor.name}
-                        className="h-8 w-8 rounded-full object-cover border border-[#1F1F1F]"
+                        className="h-8 w-8 rounded-full bg-[#FFFFFF] object-cover border border-[#1F1F1F]"
                       />
                     )}
                     <div>
