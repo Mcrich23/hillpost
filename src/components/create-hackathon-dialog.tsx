@@ -30,6 +30,16 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
   const [bannerImageUrl, setBannerImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const resetForm = () => {
+    setName("");
+    setDescription("");
+    setStartDate(today);
+    setEndDate(today);
+    setSubmissionFrequency(60);
+    setIsPublic(false);
+    setBannerImageUrl("");
+  };
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,7 +65,7 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
         userImageUrl: user?.imageUrl,
       });
       toast.success("Hackathon created successfully!");
-      setName(""); setDescription(""); setStartDate(today); setEndDate(today); setSubmissionFrequency(60); setIsPublic(false); setBannerImageUrl("");
+      resetForm();
       onClose();
       router.push(`/hackathon/${hackathonId}`);
     } catch (error) {

@@ -34,7 +34,7 @@ import { isSafeHttpUrl } from "@/lib/url";
 
 const ALL_TABS = ["overview", "submissions", "compete", "judge", "manage"] as const;
 type Tab = (typeof ALL_TABS)[number];
-const ONE_HOUR_MS = 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 const roleColor = (role: string) => {
   switch (role) {
@@ -75,8 +75,20 @@ export default function HackathonDetailPage() {
   const userId = user?.id;
 
   React.useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), ONE_HOUR_MS);
-    return () => clearInterval(interval);
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const current = new Date();
+    const nextMidnight = new Date(current);
+    nextMidnight.setHours(24, 0, 0, 0);
+
+    const timeout = setTimeout(() => {
+      setNow(Date.now());
+      interval = setInterval(() => setNow(Date.now()), ONE_DAY_MS);
+    }, nextMidnight.getTime() - current.getTime());
+
+    return () => {
+      clearTimeout(timeout);
+      if (interval) clearInterval(interval);
+    };
   }, []);
 
   React.useEffect(() => {
