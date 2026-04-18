@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useMutation, useConvexAuth } from "convex/react";
+
 import { api } from "../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import { X, Lock, Globe } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface CreateHackathonDialogProps {
   isOpen: boolean;
@@ -162,18 +164,47 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
           </div>
 
           <div className="border-t border-[#1F1F1F] pt-4 space-y-3">
-            <label className="flex items-center justify-between gap-3 text-xs font-bold text-[#555555] uppercase tracking-widest">
-              <span>PUBLIC EVENT MODE</span>
-              <input
-                type="checkbox"
-                checked={isPublic}
-                onChange={(e) => setIsPublic(e.target.checked)}
-                className="h-4 w-4 accent-[#00FF41]"
-              />
+            <label className="block text-xs font-bold text-[#555555] uppercase tracking-widest">
+              EVENT VISIBILITY:
             </label>
-            <p className="text-xs text-[#333333]">
-              Public events show a discoverable showcase page with dates, judges, and judging criteria.
-            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setIsPublic(false)}
+                className={cn(
+                  "flex flex-col items-start gap-2 border p-3 text-left transition-colors",
+                  !isPublic
+                    ? "border-[#FF6600] bg-[#FF6600]/5 text-[#FF6600]"
+                    : "border-[#1F1F1F] text-[#555555] hover:border-[#555555]"
+                )}
+              >
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest">
+                  <Lock className="h-3.5 w-3.5" />
+                  PRIVATE
+                </div>
+                <p className="text-[10px] leading-tight text-current opacity-70">
+                  Invite-only via join code. Not listed publicly.
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPublic(true)}
+                className={cn(
+                  "flex flex-col items-start gap-2 border p-3 text-left transition-colors",
+                  isPublic
+                    ? "border-[#00FF41] bg-[#00FF41]/5 text-[#00FF41]"
+                    : "border-[#1F1F1F] text-[#555555] hover:border-[#555555]"
+                )}
+              >
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest">
+                  <Globe className="h-3.5 w-3.5" />
+                  PUBLIC
+                </div>
+                <p className="text-[10px] leading-tight text-current opacity-70">
+                  Listed on discover page with open registration.
+                </p>
+              </button>
+            </div>
             <div>
               <label className="mb-1.5 block text-xs font-bold text-[#555555] uppercase tracking-widest">
                 BANNER IMAGE URL (OPTIONAL):

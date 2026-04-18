@@ -20,6 +20,8 @@ import {
   GripVertical,
   Eye,
   EyeOff,
+  Globe,
+  Lock,
 } from "lucide-react";
 import { QrCodeButton } from "@/components/qr-code-overlay";
 import { PanelSkeleton, SectionSkeleton } from "@/components/skeleton";
@@ -556,26 +558,57 @@ function HackathonInfoSection({
         })()}
 
         {/* Public listing toggle */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
-          <div>
+        <div className="border-t border-[#1F1F1F] pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
             <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">PUBLIC VISIBILITY:</span>
-            <p className="text-xs text-[#333333] mt-0.5">
-              {hackathon.isPublic
-                ? "Anyone can view this hackathon showcase and use the public competitor join link"
-                : "Only invited users with a join code can discover this hackathon"}
-            </p>
+            <span
+              className={cn(
+                "tui-badge",
+                hackathon.isPublic
+                  ? "border-[#00FF41] text-[#00FF41]"
+                  : "border-[#FF6600] text-[#FF6600]"
+              )}
+            >
+              {hackathon.isPublic ? (
+                <><Globe className="inline h-3 w-3 mr-1" />PUBLIC</>
+              ) : (
+                <><Lock className="inline h-3 w-3 mr-1" />PRIVATE</>
+              )}
+            </span>
           </div>
-          <button
-            onClick={togglePublicVisibility}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
-              hackathon.isPublic
-                ? "border border-[#555555] text-[#555555] hover:border-[#FF6600] hover:text-[#FF6600]"
-                : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
-            )}
-          >
-            {hackathon.isPublic ? "[ MAKE PRIVATE ]" : "[ MAKE PUBLIC ]"}
-          </button>
+          <p className="text-xs text-[#333333] mb-3">
+            {hackathon.isPublic
+              ? "Anyone can view this hackathon on the discover page and register as a competitor without a join code."
+              : "Only users with a competitor or judge join code can discover and join this hackathon."}
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={togglePublicVisibility}
+              disabled={!hackathon.isPublic}
+              className={cn(
+                "flex items-center justify-center gap-1.5 border py-2 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-default",
+                !hackathon.isPublic
+                  ? "border-[#FF6600] bg-[#FF6600]/10 text-[#FF6600]"
+                  : "border-[#1F1F1F] text-[#555555] hover:border-[#FF6600] hover:text-[#FF6600]"
+              )}
+            >
+              <Lock className="h-3.5 w-3.5" />
+              PRIVATE
+            </button>
+            <button
+              onClick={togglePublicVisibility}
+              disabled={hackathon.isPublic === true}
+              className={cn(
+                "flex items-center justify-center gap-1.5 border py-2 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-default",
+                hackathon.isPublic
+                  ? "border-[#00FF41] bg-[#00FF41]/10 text-[#00FF41]"
+                  : "border-[#1F1F1F] text-[#555555] hover:border-[#00FF41] hover:text-[#00FF41]"
+              )}
+            >
+              <Globe className="h-3.5 w-3.5" />
+              PUBLIC
+            </button>
+          </div>
         </div>
       </div>
     </div>
