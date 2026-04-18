@@ -1,6 +1,13 @@
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { requireAuthUserId, getAuthUserId } from "./auth";
+
+type PublicJudgeSummary = {
+  _id: Id<"hackathonMembers">;
+  userName: string;
+  userImageUrl?: string;
+};
 
 export const getMyMembership = query({
   args: {
@@ -85,7 +92,11 @@ export const listPublicJudges = query({
 
     return judges
       .filter((judge) => judge.status === "approved")
-      .map(({ _id, userName, userImageUrl }) => ({ _id, userName, userImageUrl }));
+      .map<PublicJudgeSummary>(({ _id, userName, userImageUrl }) => ({
+        _id,
+        userName,
+        userImageUrl,
+      }));
   },
 });
 
