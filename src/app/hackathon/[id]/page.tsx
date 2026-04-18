@@ -64,11 +64,13 @@ export default function HackathonDetailPage() {
   const mediumSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "medium") ?? [];
   const smallSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "small") ?? [];
   const leaveHackathon = useMutation(api.members.leaveHackathon);
+  const joinPublicHackathon = useMutation(api.hackathons.joinPublic);
   const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isJoiningPublic, setIsJoiningPublic] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const userId = user?.id;
 
@@ -156,6 +158,29 @@ export default function HackathonDetailPage() {
         console.error("Failed to leave hackathon:", error);
         setIsLeaving(false);
       }
+    }
+  };
+
+  const handlePublicJoin = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in first");
+      return;
+    }
+
+    setIsJoiningPublic(true);
+    try {
+      const result = await joinPublicHackathon({ hackathonId, userImageUrl: user?.imageUrl });
+      if (result.alreadyMember) {
+        toast.info("You're already a member — redirecting...");
+      } else {
+        toast.success("Successfully joined the hackathon!");
+      }
+      router.push(`/hackathon/${result.hackathonId}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to join hackathon";
+      toast.error(message);
+    } finally {
+      setIsJoiningPublic(false);
     }
   };
 
@@ -298,17 +323,18 @@ export default function HackathonDetailPage() {
             />
           )}
           <p className="text-xs text-[#555555] leading-relaxed">{hackathon.description}</p>
-          {!role && hackathon.competitorJoinCode && (
+          {!role && (
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <Link
-                href={`/join/${hackathon.competitorJoinCode}`}
-                className="inline-flex items-center gap-2 border border-[#00FF41] px-4 py-2 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors"
+              <button
+                onClick={handlePublicJoin}
+                disabled={isJoiningPublic}
+                className="inline-flex items-center gap-2 border border-[#00FF41] px-4 py-2 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors disabled:opacity-60"
               >
                 <UserPlus className="h-3.5 w-3.5" />
-                JOIN AS COMPETITOR
-              </Link>
+                {isJoiningPublic ? "JOINING..." : "JOIN AS COMPETITOR"}
+              </button>
               <span className="text-[11px] text-[#333333] uppercase tracking-wider">
-                Public join link enabled by organizer
+                Public competitor registration enabled by organizer
               </span>
             </div>
           )}

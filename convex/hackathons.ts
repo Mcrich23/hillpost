@@ -157,10 +157,6 @@ export const get = query({
       }
     }
 
-    if (hackathon.isPublic) {
-      competitorJoinCode = hackathon.competitorJoinCode;
-    }
-
     // Return a consistent shape; hidden codes are undefined
     const rest = stripJoinCodes(hackathon);
     return { ...rest, competitorJoinCode, judgeJoinCode };
@@ -348,6 +344,44 @@ export const join = mutation({
     });
 
     return { hackathonId: hackathon._id, alreadyMember: false };
+  },
+});
+
+export const joinPublic = mutation({
+  args: {
+    hackathonId: v.id("hackathons"),
+    userImageUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUserId(ctx);
+    const userName = await getAuthUserName(ctx);
+
+    const hackathon = await ctx.db.get(args.hackathonId);
+    if (!hackathon || hackathon.isPublic !== true) {
+      throw new Error("Hackathon is not publicly joinable");
+    }
+
+    const existing = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+      )
+      .first();
+    if (existing) {
+      return { hackathonId: args.hackathonId, alreadyMember: true };
+    }
+
+    await ctx.db.insert("hackathonMembers", {
+      hackathonId: args.hackathonId,
+      userId,
+      userName,
+      userImageUrl: args.userImageUrl,
+      role: "competitor",
+      status: "approved",
+      joinedAt: Date.now(),
+    });
+
+    return { hackathonId: args.hackathonId, alreadyMember: false };
   },
 });
 
