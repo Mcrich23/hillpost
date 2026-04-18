@@ -91,6 +91,7 @@ function HackathonInfoSection({
   const [copiedJudge, setCopiedJudge] = useState(false);
   const [copiedCompetitorLink, setCopiedCompetitorLink] = useState(false);
   const [copiedJudgeLink, setCopiedJudgeLink] = useState(false);
+  const [copiedPublicLink, setCopiedPublicLink] = useState(false);
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(hackathon.name);
@@ -157,6 +158,18 @@ function HackathonInfoSection({
       setCopiedJudgeLink(true);
       toast.success("Judge join link copied!");
       setTimeout(() => setCopiedJudgeLink(false), 2000);
+    } catch {
+      toast.error("Failed to copy link. Please try again.");
+    }
+  };
+
+  const copyPublicLink = async () => {
+    try {
+      const link = `${window.location.origin}/hackathon/${hackathonId}`;
+      await navigator.clipboard.writeText(link);
+      setCopiedPublicLink(true);
+      toast.success("Public link copied!");
+      setTimeout(() => setCopiedPublicLink(false), 2000);
     } catch {
       toast.error("Failed to copy link. Please try again.");
     }
@@ -609,6 +622,25 @@ function HackathonInfoSection({
               PUBLIC
             </button>
           </div>
+          {hackathon.isPublic && (
+            <div className="mt-3">
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">PUBLIC LINK:</label>
+              <div className="mt-1.5 flex items-center gap-2">
+                <code className="flex-1 truncate border border-[#1F1F1F] bg-black px-3 py-1.5 text-xs text-[#00FF41] tracking-wider">
+                  {typeof window !== "undefined" ? `${window.location.origin}/hackathon/${hackathonId}` : `…/hackathon/${hackathonId}`}
+                </code>
+                <button
+                  onClick={copyPublicLink}
+                  className="shrink-0 border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors"
+                  title="Copy public link"
+                  aria-label="Copy public link"
+                >
+                  {copiedPublicLink ? <Check className="h-4 w-4 text-[#00FF41]" /> : <Copy className="h-4 w-4" />}
+                </button>
+              </div>
+              <p className="mt-1 text-[10px] text-[#333333] uppercase">Share this link so anyone can view the event and register as a competitor.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

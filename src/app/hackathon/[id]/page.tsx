@@ -318,38 +318,21 @@ export default function HackathonDetailPage() {
         </div>
       </div>
 
-      {isPublicHackathon && (
-        <div className="mb-6 border border-[#1F1F1F] bg-[#0A0A0A] p-4 sm:p-6">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span className="tui-badge border-[#00FF41] text-[#00FF41]">PUBLIC EVENT</span>
-            <span className="tui-badge border-[#555555] text-[#555555]">
-              LISTED: {format(new Date(hackathon.startDate), "MMM d, yyyy")} — {format(new Date(hackathon.endDate), "MMM d, yyyy")}
-            </span>
+      {isPublicHackathon && !role && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-[#00FF41]/20 bg-[#00FF41]/5 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4 text-[#00FF41]" />
+            <span className="text-xs font-bold text-[#00FF41] uppercase tracking-wider">PUBLIC EVENT</span>
+            <span className="text-xs text-[#555555]">— open registration</span>
           </div>
-          {hackathon.openGraphImageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={hackathon.openGraphImageUrl}
-              alt={`${hackathon.name} banner`}
-              className="mb-4 h-44 w-full border border-[#1F1F1F] object-cover"
-            />
-          )}
-          <p className="text-xs text-[#555555] leading-relaxed">{hackathon.description}</p>
-          {!role && (
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button
-                onClick={handlePublicJoin}
-                disabled={isJoiningPublic}
-                className="inline-flex items-center gap-2 border border-[#00FF41] px-4 py-2 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors disabled:opacity-60"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                {isJoiningPublic ? "JOINING..." : "JOIN AS COMPETITOR"}
-              </button>
-              <span className="text-[11px] text-[#333333] uppercase tracking-wider">
-                Public competitor registration enabled by organizer
-              </span>
-            </div>
-          )}
+          <button
+            onClick={handlePublicJoin}
+            disabled={isJoiningPublic}
+            className="inline-flex items-center gap-2 border border-[#00FF41] px-4 py-1.5 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors disabled:opacity-60"
+          >
+            <UserPlus className="h-3.5 w-3.5" />
+            {isJoiningPublic ? "JOINING..." : "JOIN AS COMPETITOR"}
+          </button>
         </div>
       )}
 
