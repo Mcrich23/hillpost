@@ -68,6 +68,27 @@ export const listMembers = query({
   },
 });
 
+export const listPublicJudges = query({
+  args: { hackathonId: v.id("hackathons") },
+  handler: async (ctx, args) => {
+    const hackathon = await ctx.db.get(args.hackathonId);
+    if (!hackathon || hackathon.isPublic !== true) {
+      return [];
+    }
+
+    const judges = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_role", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("role", "judge")
+      )
+      .collect();
+
+    return judges
+      .filter((judge) => judge.status === "approved")
+      .map(({ _id, userName, userImageUrl }) => ({ _id, userName, userImageUrl }));
+  },
+});
+
 export const updateRole = mutation({
   args: {
     memberId: v.id("hackathonMembers"),

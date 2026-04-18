@@ -37,6 +37,7 @@ interface OrganizerPanelProps {
     isActive: boolean;
     submissionFrequencyMinutes: number;
     openGraphImageUrl?: string;
+    isPublic?: boolean;
     feedbackVisible?: boolean;
     scoresVisible?: boolean;
   };
@@ -190,6 +191,16 @@ function HackathonInfoSection({
       );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update score visibility");
+    }
+  };
+
+  const togglePublicVisibility = async () => {
+    const current = hackathon.isPublic === true;
+    try {
+      await updateHackathon({ hackathonId, isPublic: !current });
+      toast.success(!current ? "Hackathon is now public" : "Hackathon is now invite-only");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update public visibility");
     }
   };
 
@@ -543,6 +554,29 @@ function HackathonInfoSection({
             </div>
           );
         })()}
+
+        {/* Public listing toggle */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
+          <div>
+            <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">PUBLIC EVENT PAGE:</span>
+            <p className="text-xs text-[#333333] mt-0.5">
+              {hackathon.isPublic
+                ? "Anyone can view this hackathon showcase and use the public competitor join link"
+                : "Only invited users with a join code can discover this hackathon"}
+            </p>
+          </div>
+          <button
+            onClick={togglePublicVisibility}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors",
+              hackathon.isPublic
+                ? "border border-[#555555] text-[#555555] hover:border-[#FF6600] hover:text-[#FF6600]"
+                : "border border-[#00FF41] text-[#00FF41] hover:bg-[#00FF41] hover:text-black"
+            )}
+          >
+            {hackathon.isPublic ? "[ MAKE PRIVATE ]" : "[ MAKE PUBLIC ]"}
+          </button>
+        </div>
       </div>
     </div>
   );

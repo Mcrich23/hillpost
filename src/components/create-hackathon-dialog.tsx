@@ -26,6 +26,8 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [submissionFrequency, setSubmissionFrequency] = useState(60);
+  const [isPublic, setIsPublic] = useState(false);
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -48,10 +50,12 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
         startDate: new Date(startDate).getTime(),
         endDate: new Date(endDate).getTime(),
         submissionFrequencyMinutes: submissionFrequency,
+        openGraphImageUrl: bannerImageUrl.trim() || undefined,
+        isPublic,
         userImageUrl: user?.imageUrl,
       });
       toast.success("Hackathon created successfully!");
-      setName(""); setDescription(""); setStartDate(today); setEndDate(today); setSubmissionFrequency(60);
+      setName(""); setDescription(""); setStartDate(today); setEndDate(today); setSubmissionFrequency(60); setIsPublic(false); setBannerImageUrl("");
       onClose();
       router.push(`/hackathon/${hackathonId}`);
     } catch (error) {
@@ -145,6 +149,33 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
             <p className="mt-1 text-xs text-[#333333]">
               Minimum time between submissions per team
             </p>
+          </div>
+
+          <div className="border-t border-[#1F1F1F] pt-4 space-y-3">
+            <label className="flex items-center justify-between gap-3 text-xs font-bold text-[#555555] uppercase tracking-widest">
+              <span>PUBLIC EVENT MODE</span>
+              <input
+                type="checkbox"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+                className="h-4 w-4 accent-[#00FF41]"
+              />
+            </label>
+            <p className="text-xs text-[#333333]">
+              Public events show a discoverable showcase page with dates, judges, and judging criteria.
+            </p>
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-[#555555] uppercase tracking-widest">
+                BANNER IMAGE URL (OPTIONAL):
+              </label>
+              <input
+                type="url"
+                value={bannerImageUrl}
+                onChange={(e) => setBannerImageUrl(e.target.value)}
+                placeholder="https://..."
+                className="tui-input"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-2 border-t border-[#1F1F1F]">

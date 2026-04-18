@@ -30,6 +30,8 @@ export const create = mutation({
     startDate: v.number(),
     endDate: v.number(),
     submissionFrequencyMinutes: v.optional(v.number()),
+    openGraphImageUrl: v.optional(v.string()),
+    isPublic: v.optional(v.boolean()),
     userImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -75,6 +77,15 @@ export const create = mutation({
     competitorJoinCode = await ensureUniqueCompetitor(competitorJoinCode);
     judgeJoinCode = await ensureUniqueJudge(judgeJoinCode);
 
+    const sanitizedOpenGraphImageUrl =
+      args.openGraphImageUrl === undefined
+        ? undefined
+        : sanitizeUrl(args.openGraphImageUrl);
+
+    if (sanitizedOpenGraphImageUrl === null) {
+      throw new Error("Invalid openGraphImageUrl");
+    }
+
     const now = Date.now();
     const hackathonId = await ctx.db.insert("hackathons", {
       name: args.name,
@@ -86,6 +97,10 @@ export const create = mutation({
       isActive: true,
       competitorJoinCode,
       judgeJoinCode,
+      ...(sanitizedOpenGraphImageUrl !== undefined && {
+        openGraphImageUrl: sanitizedOpenGraphImageUrl,
+      }),
+      isPublic: args.isPublic ?? false,
       createdAt: now,
     });
 
@@ -129,6 +144,10 @@ export const get = query({
       } else if (membership?.role === "competitor") {
         competitorJoinCode = hackathon.competitorJoinCode;
       }
+    }
+
+    if (hackathon.isPublic) {
+      competitorJoinCode = hackathon.competitorJoinCode;
     }
 
     // Return a consistent shape; hidden codes are undefined
@@ -211,6 +230,7 @@ export const update = mutation({
     submissionFrequencyMinutes: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
     openGraphImageUrl: v.optional(v.union(v.string(), v.null())),
+    isPublic: v.optional(v.boolean()),
     feedbackVisible: v.optional(v.boolean()),
     scoresVisible: v.optional(v.boolean()),
   },
@@ -257,6 +277,7 @@ export const update = mutation({
         openGraphImageUrl:
           sanitizedOpenGraphImageUrl === null ? undefined : sanitizedOpenGraphImageUrl,
       }),
+      ...(args.isPublic !== undefined && { isPublic: args.isPublic }),
       ...(args.feedbackVisible !== undefined && { feedbackVisible: args.feedbackVisible }),
       ...(args.scoresVisible !== undefined && { scoresVisible: args.scoresVisible }),
     });
@@ -338,5 +359,15 @@ export const getByJoinCode = query({
     // Strip both join codes — this query is used pre-join for display only
     const { competitorJoinCode: _c, judgeJoinCode: _j, ...rest } = hackathon;
     return { ...rest, role };
+  },
+});
+
+export const listPublic = query({
+  args: {},
+  handler: async (ctx) => {
+    const hackathons = await ctx.db.query("hackathons").collect();
+    return hackathons
+      .filter((hackathon) => hackathon.isPublic === true)
+      .map(({ competitorJoinCode: _c, judgeJoinCode: _j, ...rest }) => rest);
   },
 });

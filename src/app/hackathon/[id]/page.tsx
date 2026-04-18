@@ -25,6 +25,7 @@ import {
   Link as LinkIcon,
   LogOut,
   ExternalLink,
+  UserPlus,
 } from "lucide-react";
 import { OrganizerPanel } from "@/components/organizer-panel";
 import { CompetitorPanel } from "@/components/competitor-panel";
@@ -54,6 +55,7 @@ export default function HackathonDetailPage() {
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
   const role = membership?.role;
+  const publicJudges = useQuery(api.members.listPublicJudges, { hackathonId });
 
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, role === "organizer" ? { hackathonId } : "skip");
@@ -69,6 +71,7 @@ export default function HackathonDetailPage() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [isLeaving, setIsLeaving] = useState(false);
+  const [now] = useState(() => Date.now());
 
   React.useEffect(() => {
     if (isAuthenticated && membership && user?.imageUrl) {
@@ -170,7 +173,9 @@ export default function HackathonDetailPage() {
   }
 
   const isCreator = user?.id === hackathon.organizerId;
+  const isPublicHackathon = hackathon.isPublic === true;
   const scoresVisibleToCompetitors = hackathon.scoresVisible !== false;
+  const daysLeft = Math.max(0, Math.ceil((hackathon.endDate - now) / (1000 * 60 * 60 * 24)));
 
   const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
     { id: "overview", label: "OVERVIEW", show: true },
@@ -267,10 +272,44 @@ export default function HackathonDetailPage() {
             </span>
           )}
           <span className="tui-badge border-[#555555] text-[#555555]">
-            {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24)))} {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))) === 1 ? "DAY" : "DAYS"} LEFT
+            {daysLeft} {daysLeft === 1 ? "DAY" : "DAYS"} LEFT
           </span>
         </div>
       </div>
+
+      {isPublicHackathon && (
+        <div className="mb-6 border border-[#1F1F1F] bg-[#0A0A0A] p-4 sm:p-6">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="tui-badge border-[#00FF41] text-[#00FF41]">PUBLIC EVENT</span>
+            <span className="tui-badge border-[#555555] text-[#555555]">
+              LISTED: {format(new Date(hackathon.startDate), "MMM d, yyyy")} — {format(new Date(hackathon.endDate), "MMM d, yyyy")}
+            </span>
+          </div>
+          {hackathon.openGraphImageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={hackathon.openGraphImageUrl}
+              alt={`${hackathon.name} banner`}
+              className="mb-4 h-44 w-full border border-[#1F1F1F] object-cover"
+            />
+          )}
+          <p className="text-xs text-[#555555] leading-relaxed">{hackathon.description}</p>
+          {!role && hackathon.competitorJoinCode && (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <Link
+                href={`/join/${hackathon.competitorJoinCode}`}
+                className="inline-flex items-center gap-2 border border-[#00FF41] px-4 py-2 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                JOIN AS COMPETITOR
+              </Link>
+              <span className="text-[11px] text-[#333333] uppercase tracking-wider">
+                Public join link enabled by organizer
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* TUI Tabs */}
       <div className="mb-6 flex gap-0 overflow-x-auto border border-[#1F1F1F]">
@@ -327,7 +366,7 @@ export default function HackathonDetailPage() {
               },
               {
                 label: "DAYS LEFT",
-                value: Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))),
+                value: daysLeft,
                 color: "#555555",
                 icon: Clock,
                 onClick: undefined,
@@ -676,6 +715,30 @@ export default function HackathonDetailPage() {
                       </span>
                     </div>
                     <p className="text-xs text-[#555555] leading-relaxed">{cat.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {isPublicHackathon && publicJudges && publicJudges.length > 0 && (
+            <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="text-xs text-[#555555] uppercase tracking-widest">── JUDGES</span>
+                <div className="h-px flex-1 bg-[#1F1F1F]" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {publicJudges.map((judge) => (
+                  <div key={judge._id} className="flex items-center gap-3 border border-[#1F1F1F] bg-[#111111] p-3">
+                    {judge.userImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={judge.userImageUrl} alt={judge.userName} className="h-9 w-9 border border-[#1F1F1F] object-cover" />
+                    ) : (
+                      <div className="flex h-9 w-9 items-center justify-center border border-[#1F1F1F] text-[#555555] text-xs">
+                        J
+                      </div>
+                    )}
+                    <span className="text-sm font-bold text-white uppercase tracking-wide">{judge.userName}</span>
                   </div>
                 ))}
               </div>

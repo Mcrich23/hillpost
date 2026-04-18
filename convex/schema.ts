@@ -13,6 +13,7 @@ export default defineSchema({
     competitorJoinCode: v.string(),
     judgeJoinCode: v.string(),
     openGraphImageUrl: v.optional(v.string()),
+    isPublic: v.optional(v.boolean()),
     feedbackVisible: v.optional(v.boolean()),
     scoresVisible: v.optional(v.boolean()),
     createdAt: v.number(),
