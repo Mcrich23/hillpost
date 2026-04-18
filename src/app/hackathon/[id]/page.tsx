@@ -64,7 +64,7 @@ export default function HackathonDetailPage() {
   const mediumSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "medium") ?? [];
   const smallSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "small") ?? [];
   const leaveHackathon = useMutation(api.members.leaveHackathon);
-  const joinPublicHackathon = useMutation(api.hackathons.joinPublic);
+  const joinPublic = useMutation(api.hackathons.joinPublic);
   const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -169,7 +169,7 @@ export default function HackathonDetailPage() {
 
     setIsJoiningPublic(true);
     try {
-      const result = await joinPublicHackathon({ hackathonId, userImageUrl: user?.imageUrl });
+      const result = await joinPublic({ hackathonId, userImageUrl: user?.imageUrl });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting...");
       } else {
