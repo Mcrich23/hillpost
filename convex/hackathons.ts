@@ -26,10 +26,12 @@ function sanitizeUrl(url: string): string | null {
 function stripJoinCodes<T extends { competitorJoinCode: string; judgeJoinCode: string }>(
   hackathon: T
 ): Omit<T, "competitorJoinCode" | "judgeJoinCode"> {
-  const { competitorJoinCode, judgeJoinCode, ...sanitized } = hackathon;
-  void competitorJoinCode;
-  void judgeJoinCode;
-  return sanitized;
+  const sanitized = Object.fromEntries(
+    Object.entries(hackathon).filter(
+      ([key]) => key !== "competitorJoinCode" && key !== "judgeJoinCode"
+    )
+  );
+  return sanitized as Omit<T, "competitorJoinCode" | "judgeJoinCode">;
 }
 
 export const create = mutation({
