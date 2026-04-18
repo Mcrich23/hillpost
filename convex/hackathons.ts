@@ -23,6 +23,15 @@ function sanitizeUrl(url: string): string | null {
   }
 }
 
+function stripJoinCodes<T extends { competitorJoinCode: string; judgeJoinCode: string }>(
+  hackathon: T
+): Omit<T, "competitorJoinCode" | "judgeJoinCode"> {
+  const sanitized = { ...hackathon };
+  delete sanitized.competitorJoinCode;
+  delete sanitized.judgeJoinCode;
+  return sanitized;
+}
+
 export const create = mutation({
   args: {
     name: v.string(),
@@ -151,7 +160,7 @@ export const get = query({
     }
 
     // Return a consistent shape; hidden codes are undefined
-    const { competitorJoinCode: _c, judgeJoinCode: _j, ...rest } = hackathon;
+    const rest = stripJoinCodes(hackathon);
     return { ...rest, competitorJoinCode, judgeJoinCode };
   },
 });
@@ -161,7 +170,7 @@ export const list = query({
   handler: async (ctx) => {
     const hackathons = await ctx.db.query("hackathons").collect();
     // Strip all join codes from the public list
-    return hackathons.map(({ competitorJoinCode: _c, judgeJoinCode: _j, ...rest }) => rest);
+    return hackathons.map((hackathon) => stripJoinCodes(hackathon));
   },
 });
 
@@ -357,7 +366,7 @@ export const getByJoinCode = query({
     }
     if (!hackathon) return null;
     // Strip both join codes — this query is used pre-join for display only
-    const { competitorJoinCode: _c, judgeJoinCode: _j, ...rest } = hackathon;
+    const rest = stripJoinCodes(hackathon);
     return { ...rest, role };
   },
 });
@@ -369,7 +378,6 @@ export const listPublic = query({
       .query("hackathons")
       .withIndex("by_isPublic", (q) => q.eq("isPublic", true))
       .collect();
-    return hackathons
-      .map(({ competitorJoinCode: _c, judgeJoinCode: _j, ...rest }) => rest);
+    return hackathons.map((hackathon) => stripJoinCodes(hackathon));
   },
 });
