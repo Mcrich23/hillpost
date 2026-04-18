@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Calendar, ArrowRight } from "lucide-react";

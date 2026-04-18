@@ -365,7 +365,7 @@ function HackathonInfoSection({
           ) : (
             <div className="mt-1 flex items-center gap-3">
               <span className="text-xs text-[#555555] flex-1 truncate">
-                {(hackathon as any).openGraphImageUrl || "—"}
+                {hackathon.openGraphImageUrl || "—"}
               </span>
               <button onClick={() => setIsEditingOgImage(true)} className="p-1.5 text-[#555555] hover:text-white transition-colors">
                 <Pencil className="h-3.5 w-3.5" />

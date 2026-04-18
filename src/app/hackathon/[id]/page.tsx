@@ -18,9 +18,6 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
-  Layers,
-  Users,
-  Star,
   Check,
   Link as LinkIcon,
   LogOut,
@@ -72,6 +69,7 @@ export default function HackathonDetailPage() {
   const pathname = usePathname();
   const [isLeaving, setIsLeaving] = useState(false);
   const [now] = useState(() => Date.now());
+  const userId = user?.id;
 
   React.useEffect(() => {
     if (isAuthenticated && membership && user?.imageUrl) {
@@ -115,12 +113,12 @@ export default function HackathonDetailPage() {
   const pendingSubmissionsCount = React.useMemo(() => {
     if (role !== "judge" && role !== "organizer") return 0;
     if (membership?.status === "pending" || membership?.status === "rejected") return 0;
-    if (!submissions || !user?.id) return 0;
+    if (!submissions || !userId) return 0;
     return submissions.filter((sub) => {
-      const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
+      const hasJudged = sub.judgedBy?.includes(userId) ?? false;
       return !hasJudged;
     }).length;
-  }, [role, membership?.status, submissions, user?.id]);
+  }, [role, membership?.status, submissions, userId]);
 
   const pendingApprovalsCount = React.useMemo(() => {
     if (role !== "organizer" || !allMembers) return 0;
@@ -347,31 +345,27 @@ export default function HackathonDetailPage() {
                 label: "BUILDERS",
                 value: allMembers?.filter((m) => m.role === "competitor").length ?? "—",
                 color: "#00B4FF",
-                icon: Users,
                 onClick: undefined,
               },
               {
                 label: "PROJECTS",
                 value: submissions?.length ?? "—",
                 color: "#00FF41",
-                icon: Layers,
                 onClick: () => handleTabChange("submissions"),
               },
               {
                 label: "CATEGORIES",
                 value: categories?.length ?? "—",
                 color: "#FF6600",
-                icon: Star,
                 onClick: undefined,
               },
               {
                 label: "DAYS LEFT",
                 value: daysLeft,
                 color: "#555555",
-                icon: Clock,
                 onClick: undefined,
               },
-            ].map(({ label, value, color, icon: Icon, onClick }) => (
+            ].map(({ label, value, color, onClick }) => (
               <div
                 key={label}
                 onClick={onClick}
