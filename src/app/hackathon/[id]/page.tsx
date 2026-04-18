@@ -72,7 +72,7 @@ export default function HackathonDetailPage() {
   const userId = user?.id;
 
   React.useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 24 * 60 * 60 * 1000);
+    const interval = setInterval(() => setNow(Date.now()), 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
