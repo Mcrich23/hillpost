@@ -20,6 +20,7 @@ export default defineSchema({
   })
     .index("by_competitorJoinCode", ["competitorJoinCode"])
     .index("by_judgeJoinCode", ["judgeJoinCode"])
+    .index("by_isPublic", ["isPublic"])
     .index("by_organizerId", ["organizerId"]),
 
   hackathonMembers: defineTable({

@@ -68,8 +68,13 @@ export default function HackathonDetailPage() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [isLeaving, setIsLeaving] = useState(false);
-  const [now] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const userId = user?.id;
+
+  React.useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   React.useEffect(() => {
     if (isAuthenticated && membership && user?.imageUrl) {

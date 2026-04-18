@@ -558,7 +558,7 @@ function HackathonInfoSection({
         {/* Public listing toggle */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-[#1F1F1F] pt-4">
           <div>
-            <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">PUBLIC EVENT PAGE:</span>
+            <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">PUBLIC VISIBILITY:</span>
             <p className="text-xs text-[#333333] mt-0.5">
               {hackathon.isPublic
                 ? "Anyone can view this hackathon showcase and use the public competitor join link"

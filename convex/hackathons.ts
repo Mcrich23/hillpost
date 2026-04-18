@@ -365,9 +365,11 @@ export const getByJoinCode = query({
 export const listPublic = query({
   args: {},
   handler: async (ctx) => {
-    const hackathons = await ctx.db.query("hackathons").collect();
+    const hackathons = await ctx.db
+      .query("hackathons")
+      .withIndex("by_isPublic", (q) => q.eq("isPublic", true))
+      .collect();
     return hackathons
-      .filter((hackathon) => hackathon.isPublic === true)
       .map(({ competitorJoinCode: _c, judgeJoinCode: _j, ...rest }) => rest);
   },
 });
