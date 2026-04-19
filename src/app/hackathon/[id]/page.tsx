@@ -100,6 +100,13 @@ export default function HackathonDetailPage() {
     }
   }, [isAuthenticated, user?.imageUrl, membership, hackathonId, syncProfile]);
 
+  // Redirect unauthenticated users away from private hackathons.
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated && hackathon !== undefined && hackathon !== null && !hackathon.isPublic) {
+      router.replace("/sign-in");
+    }
+  }, [isLoading, isAuthenticated, hackathon, router]);
+
   const tabParam = searchParams.get("tab");
   const parsedTab = (ALL_TABS as readonly string[]).includes(tabParam ?? "") ? (tabParam as Tab) : null;
   const activeTab: Tab = parsedTab ?? "overview";
