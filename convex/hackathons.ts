@@ -408,10 +408,13 @@ export const getByJoinCode = query({
 export const listPublic = query({
   args: {},
   handler: async (ctx) => {
+    const now = Date.now();
     const hackathons = await ctx.db
       .query("hackathons")
       .withIndex("by_isPublic", (q) => q.eq("isPublic", true))
       .collect();
-    return hackathons.map((hackathon) => stripJoinCodes(hackathon));
+    return hackathons
+      .filter((h) => h.endDate >= now)
+      .map((hackathon) => stripJoinCodes(hackathon));
   },
 });

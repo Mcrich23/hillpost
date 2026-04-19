@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 
 function getEventStatus(startDate: number, endDate: number, now: number) {
   if (now < startDate) return "upcoming" as const;
-  if (now > endDate) return "ended" as const;
   return "active" as const;
 }
 
@@ -39,7 +38,7 @@ export default function DiscoverPage() {
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
           <Globe className="mx-auto mb-3 h-8 w-8 text-[#333333]" />
           <p className="text-sm font-bold text-[#555555] uppercase tracking-wide">NO PUBLIC EVENTS LISTED</p>
-          <p className="mt-1 text-xs text-[#333333]">Check back later or ask an organizer to make their event public.</p>
+          <p className="mt-1 text-xs text-[#333333]">There are no active or upcoming public events right now. Check back later.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -69,8 +68,7 @@ export default function DiscoverPage() {
                       className={cn(
                         "tui-badge",
                         status === "active" && "border-[#00FF41] text-[#00FF41]",
-                        status === "upcoming" && "border-[#00B4FF] text-[#00B4FF]",
-                        status === "ended" && "border-[#555555] text-[#555555]"
+                        status === "upcoming" && "border-[#00B4FF] text-[#00B4FF]"
                       )}
                     >
                       {status === "active" && (
