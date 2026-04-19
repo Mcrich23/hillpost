@@ -72,16 +72,16 @@ function getEventStatus(
 function getCountdownLabel(startDate: number, endDate: number, status: EventStatus, now: number): string {
   if (status === "upcoming") {
     const days = differenceInDays(startDate, now);
-    if (days > 1) return `Starts in ${days} days`;
+    if (days >= 1) return `Starts in ${days} day${days === 1 ? "" : "s"}`;
     const hours = differenceInHours(startDate, now);
-    if (hours > 1) return `Starts in ${hours} hours`;
+    if (hours >= 1) return `Starts in ${hours} hour${hours === 1 ? "" : "s"}`;
     return "Starting soon";
   }
   if (status === "live") {
     const days = differenceInDays(endDate, now);
-    if (days > 1) return `${days} days left`;
+    if (days >= 1) return `${days} day${days === 1 ? "" : "s"} left`;
     const hours = differenceInHours(endDate, now);
-    if (hours > 1) return `${hours} hours left`;
+    if (hours >= 1) return `${hours} hour${hours === 1 ? "" : "s"} left`;
     return "Ending soon";
   }
   return "Event ended";
