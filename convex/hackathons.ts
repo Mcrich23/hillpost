@@ -136,6 +136,31 @@ export const get = query({
 
     const userId = await getAuthUserId(ctx);
 
+    // For private hackathons, only members may see any data
+    if (!hackathon.isPublic) {
+      if (!userId) return null;
+      const membership = await ctx.db
+        .query("hackathonMembers")
+        .withIndex("by_hackathonId_userId", (q) =>
+          q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+        )
+        .first();
+      if (!membership) return null;
+
+      // Resolve join codes from the already-fetched membership
+      const rest = stripJoinCodes(hackathon);
+      return {
+        ...rest,
+        competitorJoinCode:
+          membership.role === "organizer" || membership.role === "competitor"
+            ? hackathon.competitorJoinCode
+            : undefined,
+        judgeJoinCode:
+          membership.role === "organizer" ? hackathon.judgeJoinCode : undefined,
+      };
+    }
+
+    // Public hackathon — expose join codes to authenticated members only
     let competitorJoinCode: string | undefined;
     let judgeJoinCode: string | undefined;
 
@@ -165,14 +190,19 @@ export const list = query({
   args: {},
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
-    const hackathons = await ctx.db.query("hackathons").collect();
     if (!userId) {
       // Unauthenticated callers only see active/upcoming public hackathons
+      // Use the index to avoid fetching private hackathons entirely
       const now = Date.now();
-      return hackathons
-        .filter((h) => h.isPublic === true && h.isActive !== false && h.endDate >= now)
+      const publicHackathons = await ctx.db
+        .query("hackathons")
+        .withIndex("by_isPublic", (q) => q.eq("isPublic", true))
+        .collect();
+      return publicHackathons
+        .filter((h) => h.isActive !== false && h.endDate >= now)
         .map((hackathon) => stripJoinCodes(hackathon));
     }
+    const hackathons = await ctx.db.query("hackathons").collect();
     // Strip all join codes from the authenticated list
     return hackathons.map((hackathon) => stripJoinCodes(hackathon));
   },
