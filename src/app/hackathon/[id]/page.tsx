@@ -29,6 +29,7 @@ import { CompetitorPanel } from "@/components/competitor-panel";
 import { JudgePanel } from "@/components/judge-panel";
 import { PublicSubmissions } from "@/components/public-submissions";
 import { QrCodeButton } from "@/components/qr-code-overlay";
+import { PublicHackathonLanding } from "@/components/public-hackathon-landing";
 
 import { isSafeHttpUrl } from "@/lib/url";
 
@@ -217,6 +218,19 @@ export default function HackathonDetailPage() {
           </Link>
         </div>
       </div>
+    );
+  }
+
+  // Unauthenticated visitors of a public hackathon get a purpose-built landing page.
+  if (!isAuthenticated && hackathon.isPublic === true) {
+    return (
+      <PublicHackathonLanding
+        hackathon={hackathon}
+        hackathonId={hackathonId}
+        categories={categories}
+        sponsors={sponsors}
+        publicJudges={publicJudges}
+      />
     );
   }
 
