@@ -149,27 +149,6 @@ export function PublicHackathonLanding({
   return (
     <div className="min-h-screen bg-black text-white">
 
-      {/* ── Global slim navbar ─────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-[#1F1F1F] bg-black/90 px-4 py-3 backdrop-blur-sm sm:px-8">
-        <Link href="/" className="text-xs font-bold text-[#555555] uppercase tracking-[0.2em] hover:text-white transition-colors">
-          HILLPOST
-        </Link>
-        <div className="flex items-center gap-3">
-          {isOpen && (
-            <SignInButton mode="redirect" forceRedirectUrl={`/hackathon/${hackathonId}`}>
-              <button className="hidden sm:inline-flex items-center gap-1.5 border border-[#00FF41] px-4 py-1.5 text-[11px] font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-all">
-                Register Free
-              </button>
-            </SignInButton>
-          )}
-          <SignInButton mode="redirect" forceRedirectUrl={`/hackathon/${hackathonId}`}>
-            <button className="text-[11px] text-[#555555] uppercase tracking-wider hover:text-white transition-colors">
-              Sign In
-            </button>
-          </SignInButton>
-        </div>
-      </nav>
-
       {/* ── Hero ───────────────────────────────────────────────────────── */}
       {hackathon.openGraphImageUrl ? (
         /* Banner image hero */
