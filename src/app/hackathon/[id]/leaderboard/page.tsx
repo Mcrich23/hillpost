@@ -42,15 +42,13 @@ export default function LeaderboardPage() {
     return (
       <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-6">
-          {membership && (
-            <Link
-              href={`/hackathon/${hackathonId}`}
-              className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
-            >
-              <ArrowLeft className="h-3 w-3" />
-              Back to Hackathon
-            </Link>
-          )}
+          <Link
+            href={`/hackathon/${hackathonId}`}
+            className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Back to Hackathon
+          </Link>
         </div>
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
           <p className="text-sm text-[#555555] uppercase tracking-wider">LEADERBOARD HIDDEN</p>
@@ -87,15 +85,13 @@ export default function LeaderboardPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="mb-6">
-        {membership && (
-          <Link
-            href={`/hackathon/${hackathonId}`}
-            className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            Back to Hackathon
-          </Link>
-        )}
+        <Link
+          href={`/hackathon/${hackathonId}`}
+          className="mb-4 inline-flex items-center gap-1 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
+        >
+          <ArrowLeft className="h-3 w-3" />
+          Back to Hackathon
+        </Link>
 
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
