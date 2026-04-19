@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { requireAuthUserId } from "./auth";
+import { requireAuthUserId, getAuthUserId } from "./auth";
 
 async function verifyOrganizer(
   ctx: MutationCtx,
@@ -51,6 +51,19 @@ export const create = mutation({
 export const list = query({
   args: { hackathonId: v.id("hackathons") },
   handler: async (ctx, args) => {
+    const hackathon = await ctx.db.get(args.hackathonId);
+    if (!hackathon) return [];
+    if (!hackathon.isPublic) {
+      const userId = await getAuthUserId(ctx);
+      if (!userId) return [];
+      const membership = await ctx.db
+        .query("hackathonMembers")
+        .withIndex("by_hackathonId_userId", (q) =>
+          q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+        )
+        .first();
+      if (!membership) return [];
+    }
     const categories = await ctx.db
       .query("categories")
       .withIndex("by_hackathonId", (q) => q.eq("hackathonId", args.hackathonId))
