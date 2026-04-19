@@ -303,31 +303,33 @@ export function PublicHackathonLanding({
                     {categories.length === 1 ? "category" : "categories"}
                   </p>
                 )}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {categories.map((cat) => {
                     const pct = totalPoints > 0 ? Math.round((cat.maxScore / totalPoints) * 100) : 0;
                     return (
-                      <div key={cat._id}>
-                        <div className="mb-1.5 flex items-baseline justify-between gap-4">
+                      <div key={cat._id} className="border border-[#1F1F1F] bg-[#0A0A0A] p-4">
+                        <div className="mb-3 flex items-center justify-between gap-4">
                           <p className="text-sm font-bold text-white uppercase tracking-wide">
                             {cat.name}
                           </p>
-                          <span className="shrink-0 text-xs font-bold tabular-nums text-[#00FF41]">
+                          <span className="shrink-0 rounded-sm border border-[#00FF41]/30 bg-[#00FF4108] px-2 py-0.5 text-xs font-bold tabular-nums text-[#00FF41]">
                             {cat.maxScore} pts
                           </span>
                         </div>
                         {/* Progress bar */}
                         {totalPoints > 0 && (
-                          <div className="mb-2 h-1 w-full bg-[#111111]">
+                          <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-[#111111]">
                             <div
-                              className="h-full bg-[#00FF41] opacity-40 transition-all duration-700"
+                              className="h-full rounded-full bg-[#00FF41] transition-all duration-700"
                               style={{ width: `${pct}%` }}
                             />
                           </div>
                         )}
-                        <p className="text-xs text-[#555555] leading-relaxed">
-                          {cat.description}
-                        </p>
+                        {cat.description && (
+                          <p className="text-xs text-[#666666] leading-relaxed">
+                            {cat.description}
+                          </p>
+                        )}
                       </div>
                     );
                   })}

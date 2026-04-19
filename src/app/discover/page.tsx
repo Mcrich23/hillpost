@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import { Calendar, ArrowRight, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function getEventStatus(startDate: number, endDate: number, now: number) {
+function getEventStatus(startDate: number, now: number) {
   if (now < startDate) return "upcoming" as const;
   return "active" as const;
 }
@@ -43,7 +43,7 @@ export default function DiscoverPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {publicHackathons.map((hackathon) => {
-            const status = getEventStatus(hackathon.startDate, hackathon.endDate, now);
+            const status = getEventStatus(hackathon.startDate, now);
             return (
               <Link
                 key={hackathon._id}

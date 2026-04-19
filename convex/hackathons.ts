@@ -164,8 +164,16 @@ export const get = query({
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
     const hackathons = await ctx.db.query("hackathons").collect();
-    // Strip all join codes from the public list
+    if (!userId) {
+      // Unauthenticated callers only see active/upcoming public hackathons
+      const now = Date.now();
+      return hackathons
+        .filter((h) => h.isPublic === true && h.isActive !== false && h.endDate >= now)
+        .map((hackathon) => stripJoinCodes(hackathon));
+    }
+    // Strip all join codes from the authenticated list
     return hackathons.map((hackathon) => stripJoinCodes(hackathon));
   },
 });
@@ -355,7 +363,12 @@ export const joinPublic = mutation({
     const userName = await getAuthUserName(ctx);
 
     const hackathon = await ctx.db.get(args.hackathonId);
-    if (!hackathon || hackathon.isPublic !== true) {
+    if (
+      !hackathon ||
+      hackathon.isPublic !== true ||
+      hackathon.isActive !== true ||
+      Date.now() >= hackathon.endDate
+    ) {
       throw new Error("Hackathon is not publicly joinable");
     }
 
@@ -414,7 +427,7 @@ export const listPublic = query({
       .withIndex("by_isPublic", (q) => q.eq("isPublic", true))
       .collect();
     return hackathons
-      .filter((h) => h.endDate >= now)
+      .filter((h) => h.isActive !== false && h.endDate >= now)
       .map((hackathon) => stripJoinCodes(hackathon));
   },
 });

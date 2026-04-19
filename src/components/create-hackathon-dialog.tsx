@@ -9,6 +9,7 @@ import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { X, Lock, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isSafeHttpUrl } from "@/lib/url";
 
 interface CreateHackathonDialogProps {
   isOpen: boolean;
@@ -54,6 +55,11 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
       toast.error("Please sign in first");
       return;
     }
+    const trimmedBanner = bannerImageUrl.trim();
+    if (trimmedBanner && !isSafeHttpUrl(trimmedBanner)) {
+      toast.error("Banner image URL must be a valid http(s) URL");
+      return;
+    }
     setIsSubmitting(true);
     try {
       const hackathonId = await createHackathon({
@@ -62,7 +68,7 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
         startDate: new Date(startDate).getTime(),
         endDate: new Date(endDate).getTime(),
         submissionFrequencyMinutes: submissionFrequency,
-        openGraphImageUrl: bannerImageUrl.trim() || undefined,
+        openGraphImageUrl: trimmedBanner || undefined,
         isPublic,
         userImageUrl: user?.imageUrl,
       });
