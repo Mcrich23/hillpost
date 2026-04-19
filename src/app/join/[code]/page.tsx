@@ -133,7 +133,6 @@ export default function JoinByLinkPage() {
           <h1 className="text-xl font-bold text-white uppercase tracking-wide">
             {hackathon.name}
           </h1>
-          <p className="mt-1 text-xs text-[#555555]">{hackathon.description}</p>
         </div>
 
         <div className="mb-6 space-y-3 border-t border-[#1F1F1F] pt-4">

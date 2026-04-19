@@ -291,7 +291,6 @@ export default function HackathonDetailPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-white uppercase tracking-wide">{hackathon.name}</h1>
-            <p className="mt-1 text-xs text-[#555555]">{hackathon.description}</p>
           </div>
           <div className="flex flex-row items-center gap-2 sm:flex-col sm:items-end">
             {hackathon.isActive ? (
