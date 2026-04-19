@@ -92,7 +92,7 @@ export const create = mutation({
         : sanitizeUrl(args.openGraphImageUrl);
 
     if (sanitizedOpenGraphImageUrl === null) {
-      throw new Error("Invalid openGraphImageUrl");
+      throw new Error("Banner image URL must be a valid http(s) URL");
     }
 
     const now = Date.now();
