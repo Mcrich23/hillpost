@@ -10,9 +10,22 @@ export const get = query({
       return { entries: [], maxPossibleScore: 0, leaderboardHidden: false as const };
     }
 
+    const userId = await getAuthUserId(ctx);
+
+    // Gate private hackathons: unauthenticated callers and non-members get nothing
+    if (!hackathon.isPublic) {
+      if (!userId) return { entries: [], maxPossibleScore: 0, leaderboardHidden: false as const };
+      const membership = await ctx.db
+        .query("hackathonMembers")
+        .withIndex("by_hackathonId_userId", (q) =>
+          q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+        )
+        .first();
+      if (!membership) return { entries: [], maxPossibleScore: 0, leaderboardHidden: false as const };
+    }
+
     const scoresVisible = hackathon.scoresVisible !== false;
     if (!scoresVisible) {
-      const userId = await getAuthUserId(ctx);
       if (userId) {
         const membership = await ctx.db
           .query("hackathonMembers")

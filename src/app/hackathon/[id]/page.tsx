@@ -101,12 +101,8 @@ export default function HackathonDetailPage() {
     }
   }, [isAuthenticated, user?.imageUrl, membership, hackathonId, syncProfile]);
 
-  // Redirect unauthenticated users away from private hackathons.
-  React.useEffect(() => {
-    if (!isLoading && !isAuthenticated && hackathon !== undefined && hackathon !== null && !hackathon.isPublic) {
-      router.replace("/sign-in");
-    }
-  }, [isLoading, isAuthenticated, hackathon, router]);
+  // No useEffect redirect — private hackathons return null from the backend for
+  // unauthenticated callers (hackathons.get), so the render gate below handles it.
 
   const tabParam = searchParams.get("tab");
   const parsedTab = (ALL_TABS as readonly string[]).includes(tabParam ?? "") ? (tabParam as Tab) : null;
@@ -205,6 +201,23 @@ export default function HackathonDetailPage() {
   };
 
   if (!hackathon) {
+    if (!isAuthenticated) {
+      const redirectUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+      return (
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 text-center">
+          <h1 className="text-2xl font-semibold">Sign in to view this hackathon</h1>
+          <p className="text-sm text-muted-foreground">
+            This hackathon is private. Sign in to access it.
+          </p>
+          <Link
+            href={`/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          >
+            Sign in
+          </Link>
+        </div>
+      );
+    }
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
