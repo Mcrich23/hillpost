@@ -1,7 +1,26 @@
 import { v } from "convex/values";
 import { mutation, query, QueryCtx } from "./_generated/server";
 import { requireAuthUserId, getAuthUserId } from "./auth";
-import type { Doc } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
+
+/**
+ * Returns true if the caller may access the given hackathon's data.
+ * Public hackathons are always accessible. Private hackathons require an authenticated member.
+ */
+async function canAccessHackathon(ctx: QueryCtx, hackathonId: Id<"hackathons">): Promise<boolean> {
+  const hackathon = await ctx.db.get(hackathonId);
+  if (!hackathon) return false;
+  if (hackathon.isPublic) return true;
+  const userId = await getAuthUserId(ctx);
+  if (!userId) return false;
+  const membership = await ctx.db
+    .query("hackathonMembers")
+    .withIndex("by_hackathonId_userId", (q) =>
+      q.eq("hackathonId", hackathonId).eq("userId", userId)
+    )
+    .first();
+  return membership !== null;
+}
 
 async function anonymizeSubmission(ctx: QueryCtx, submission: Doc<"submissions">) {
   const userId = await getAuthUserId(ctx);
@@ -233,19 +252,7 @@ export const list = query({
     teamId: v.optional(v.id("teams")),
   },
   handler: async (ctx, args) => {
-    const hackathon = await ctx.db.get(args.hackathonId);
-    if (!hackathon) return [];
-    if (!hackathon.isPublic) {
-      const userId = await getAuthUserId(ctx);
-      if (!userId) return [];
-      const membership = await ctx.db
-        .query("hackathonMembers")
-        .withIndex("by_hackathonId_userId", (q) =>
-          q.eq("hackathonId", args.hackathonId).eq("userId", userId)
-        )
-        .first();
-      if (!membership) return [];
-    }
+    if (!(await canAccessHackathon(ctx, args.hackathonId))) return [];
     let submissions: Doc<"submissions">[] = [];
     if (args.teamId) {
       submissions = await ctx.db
@@ -273,19 +280,7 @@ export const listForTeam = query({
   handler: async (ctx, args) => {
     const team = await ctx.db.get(args.teamId);
     if (!team) return [];
-    const hackathon = await ctx.db.get(team.hackathonId);
-    if (!hackathon) return [];
-    if (!hackathon.isPublic) {
-      const userId = await getAuthUserId(ctx);
-      if (!userId) return [];
-      const membership = await ctx.db
-        .query("hackathonMembers")
-        .withIndex("by_hackathonId_userId", (q) =>
-          q.eq("hackathonId", team.hackathonId).eq("userId", userId)
-        )
-        .first();
-      if (!membership) return [];
-    }
+    if (!(await canAccessHackathon(ctx, team.hackathonId))) return [];
     const submissions = await ctx.db
       .query("submissions")
       .withIndex("by_teamId", (q) => q.eq("teamId", args.teamId))
@@ -300,19 +295,7 @@ export const get = query({
   handler: async (ctx, args) => {
     const submission = await ctx.db.get(args.submissionId);
     if (!submission) return null;
-    const hackathon = await ctx.db.get(submission.hackathonId);
-    if (!hackathon) return null;
-    if (!hackathon.isPublic) {
-      const userId = await getAuthUserId(ctx);
-      if (!userId) return null;
-      const membership = await ctx.db
-        .query("hackathonMembers")
-        .withIndex("by_hackathonId_userId", (q) =>
-          q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
-        )
-        .first();
-      if (!membership) return null;
-    }
+    if (!(await canAccessHackathon(ctx, submission.hackathonId))) return null;
     return await anonymizeSubmission(ctx, submission);
   },
 });
@@ -323,19 +306,7 @@ export const getLatestForTeam = query({
     teamId: v.id("teams"),
   },
   handler: async (ctx, args) => {
-    const hackathon = await ctx.db.get(args.hackathonId);
-    if (!hackathon) return null;
-    if (!hackathon.isPublic) {
-      const userId = await getAuthUserId(ctx);
-      if (!userId) return null;
-      const membership = await ctx.db
-        .query("hackathonMembers")
-        .withIndex("by_hackathonId_userId", (q) =>
-          q.eq("hackathonId", args.hackathonId).eq("userId", userId)
-        )
-        .first();
-      if (!membership) return null;
-    }
+    if (!(await canAccessHackathon(ctx, args.hackathonId))) return null;
     const submission = await ctx.db
       .query("submissions")
       .withIndex("by_hackathonId_teamId", (q) =>

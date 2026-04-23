@@ -1,6 +1,19 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 import { getAuthUserId } from "./auth";
+import type { QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+
+/** Returns the caller's membership for the given hackathon, or null if unauthenticated / not a member. */
+async function getCallerMembership(ctx: QueryCtx, hackathonId: Id<"hackathons">, userId: string | null) {
+  if (!userId) return null;
+  return ctx.db
+    .query("hackathonMembers")
+    .withIndex("by_hackathonId_userId", (q) =>
+      q.eq("hackathonId", hackathonId).eq("userId", userId)
+    )
+    .first();
+}
 
 export const get = query({
   args: { hackathonId: v.id("hackathons") },
@@ -10,32 +23,28 @@ export const get = query({
       return { entries: [], maxPossibleScore: 0, leaderboardHidden: false as const };
     }
 
-    const userId = await getAuthUserId(ctx);
+    // Fetch userId and membership once; reuse for both access-gate and scores-visibility checks
+    let userId: string | null = null;
+    let membership: Awaited<ReturnType<typeof getCallerMembership>> = null;
 
-    // Gate private hackathons: unauthenticated callers and non-members get nothing
     if (!hackathon.isPublic) {
+      // Private hackathon: must be authenticated and a member
+      userId = await getAuthUserId(ctx);
       if (!userId) return { entries: [], maxPossibleScore: 0, leaderboardHidden: false as const };
-      const membership = await ctx.db
-        .query("hackathonMembers")
-        .withIndex("by_hackathonId_userId", (q) =>
-          q.eq("hackathonId", args.hackathonId).eq("userId", userId)
-        )
-        .first();
+      membership = await getCallerMembership(ctx, args.hackathonId, userId);
       if (!membership) return { entries: [], maxPossibleScore: 0, leaderboardHidden: false as const };
+    } else {
+      // Public hackathon: still fetch userId/membership for scores-visibility check below
+      userId = await getAuthUserId(ctx);
+      if (userId) {
+        membership = await getCallerMembership(ctx, args.hackathonId, userId);
+      }
     }
 
     const scoresVisible = hackathon.scoresVisible !== false;
     if (!scoresVisible) {
-      if (userId) {
-        const membership = await ctx.db
-          .query("hackathonMembers")
-          .withIndex("by_hackathonId_userId", (q) =>
-            q.eq("hackathonId", args.hackathonId).eq("userId", userId)
-          )
-          .first();
-        if (membership?.role === "competitor") {
-          return { entries: [], maxPossibleScore: 0, leaderboardHidden: true as const };
-        }
+      if (membership?.role === "competitor") {
+        return { entries: [], maxPossibleScore: 0, leaderboardHidden: true as const };
       }
     }
 
