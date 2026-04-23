@@ -36,6 +36,7 @@ interface OrganizerPanelProps {
     judgeJoinCode: string | undefined;
     startDate: number;
     endDate: number;
+    submissionsStartDate?: number;
     isActive: boolean;
     submissionFrequencyMinutes: number;
     openGraphImageUrl?: string;
@@ -108,6 +109,11 @@ function HackathonInfoSection({
   );
   const [newEndDate, setNewEndDate] = useState(
     format(new Date(hackathon.endDate), "yyyy-MM-dd")
+  );
+  const [newSubmissionsStartDate, setNewSubmissionsStartDate] = useState(
+    hackathon.submissionsStartDate
+      ? format(new Date(hackathon.submissionsStartDate), "yyyy-MM-dd")
+      : ""
   );
 
   const [isEditingCooldown, setIsEditingCooldown] = useState(false);
@@ -286,8 +292,16 @@ function HackathonInfoSection({
     const start = new Date(newStartDate).getTime();
     const end = new Date(newEndDate).getTime();
     if (end <= start) { toast.error("End date must be after start date"); return; }
+    const submissionsStart = newSubmissionsStartDate
+      ? new Date(newSubmissionsStartDate).getTime()
+      : null;
     try {
-      await updateHackathon({ hackathonId, startDate: start, endDate: end });
+      await updateHackathon({
+        hackathonId,
+        startDate: start,
+        endDate: end,
+        submissionsStartDate: submissionsStart,
+      });
       toast.success("Dates updated");
       setIsEditingDates(false);
     } catch (error) {
@@ -403,6 +417,10 @@ function HackathonInfoSection({
                 <label className="text-xs text-[#333333] uppercase">End</label>
                 <input type="date" value={newEndDate} onChange={(e) => setNewEndDate(e.target.value)} className="tui-input w-auto" />
               </div>
+              <div className="space-y-1">
+                <label className="text-xs text-[#333333] uppercase">Submissions Open <span className="text-[#333333] normal-case">(optional)</span></label>
+                <input type="date" value={newSubmissionsStartDate} onChange={(e) => setNewSubmissionsStartDate(e.target.value)} className="tui-input w-auto" />
+              </div>
               <div className="flex gap-2">
                 <button onClick={saveDates} className="px-3 py-1.5 text-xs font-bold text-black bg-[#00FF41] uppercase tracking-wider hover:bg-white transition-colors">SAVE</button>
                 <button onClick={() => setIsEditingDates(false)} className="px-3 py-1.5 text-xs text-[#555555] border border-[#1F1F1F] uppercase tracking-wider hover:border-white hover:text-white transition-colors">CANCEL</button>
@@ -410,14 +428,22 @@ function HackathonInfoSection({
             </div>
           ) : (
             <div className="mt-1 flex items-center gap-3">
-              <span className="text-xs text-white">
-                {format(new Date(hackathon.startDate), "MMM d, yyyy")} — {format(new Date(hackathon.endDate), "MMM d, yyyy")}
-              </span>
-              <button onClick={() => { setNewStartDate(format(new Date(hackathon.startDate), "yyyy-MM-dd")); setNewEndDate(format(new Date(hackathon.endDate), "yyyy-MM-dd")); setIsEditingDates(true); }} className="p-1.5 text-[#555555] hover:text-white transition-colors">
+              <div className="text-xs text-white space-y-0.5">
+                <div>
+                  {format(new Date(hackathon.startDate), "MMM d, yyyy")} — {format(new Date(hackathon.endDate), "MMM d, yyyy")}
+                </div>
+                {hackathon.submissionsStartDate && hackathon.submissionsStartDate !== hackathon.startDate && (
+                  <div className="text-[#555555]">
+                    Submissions open: {format(new Date(hackathon.submissionsStartDate), "MMM d, yyyy")}
+                  </div>
+                )}
+              </div>
+              <button onClick={() => { setNewStartDate(format(new Date(hackathon.startDate), "yyyy-MM-dd")); setNewEndDate(format(new Date(hackathon.endDate), "yyyy-MM-dd")); setNewSubmissionsStartDate(hackathon.submissionsStartDate ? format(new Date(hackathon.submissionsStartDate), "yyyy-MM-dd") : ""); setIsEditingDates(true); }} className="p-1.5 text-[#555555] hover:text-white transition-colors">
                 <Pencil className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
+          <p className="mt-1 text-[10px] text-[#333333] uppercase">Set &quot;Submissions Open&quot; to allow the event to start before submissions are accepted (e.g. day 2 of a multi-day hackathon).</p>
         </div>
 
         {/* Join Codes */}

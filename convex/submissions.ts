@@ -124,6 +124,16 @@ export const create = mutation({
       throw new Error("Hackathon not found");
     }
 
+    const submissionsOpenAt = hackathon.submissionsStartDate ?? hackathon.startDate;
+    if (Date.now() < submissionsOpenAt) {
+      const opensDate = new Date(submissionsOpenAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      throw new Error(`Submissions are not open yet. They open on ${opensDate}.`);
+    }
+
     const existingSubmission = await ctx.db
       .query("submissions")
       .withIndex("by_hackathonId_teamId", (q) =>

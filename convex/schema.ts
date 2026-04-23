@@ -16,6 +16,7 @@ export default defineSchema({
     isPublic: v.optional(v.boolean()),
     feedbackVisible: v.optional(v.boolean()),
     scoresVisible: v.optional(v.boolean()),
+    submissionsStartDate: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index("by_competitorJoinCode", ["competitorJoinCode"])

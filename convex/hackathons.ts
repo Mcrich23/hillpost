@@ -38,6 +38,7 @@ export const create = mutation({
     description: v.string(),
     startDate: v.number(),
     endDate: v.number(),
+    submissionsStartDate: v.optional(v.number()),
     submissionFrequencyMinutes: v.optional(v.number()),
     openGraphImageUrl: v.optional(v.string()),
     isPublic: v.optional(v.boolean()),
@@ -102,6 +103,7 @@ export const create = mutation({
       organizerId: userId,
       startDate: args.startDate,
       endDate: args.endDate,
+      submissionsStartDate: args.submissionsStartDate,
       submissionFrequencyMinutes: args.submissionFrequencyMinutes ?? 60,
       isActive: true,
       competitorJoinCode,
@@ -270,6 +272,7 @@ export const update = mutation({
     description: v.optional(v.string()),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
+    submissionsStartDate: v.optional(v.union(v.number(), v.null())),
     submissionFrequencyMinutes: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
     openGraphImageUrl: v.optional(v.union(v.string(), v.null())),
@@ -312,6 +315,10 @@ export const update = mutation({
       ...(args.description !== undefined && { description: args.description }),
       ...(args.startDate !== undefined && { startDate: args.startDate }),
       ...(args.endDate !== undefined && { endDate: args.endDate }),
+      ...(args.submissionsStartDate !== undefined && {
+        submissionsStartDate:
+          args.submissionsStartDate === null ? undefined : args.submissionsStartDate,
+      }),
       ...(args.submissionFrequencyMinutes !== undefined && {
         submissionFrequencyMinutes: args.submissionFrequencyMinutes,
       }),

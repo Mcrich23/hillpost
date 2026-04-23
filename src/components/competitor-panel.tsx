@@ -15,6 +15,8 @@ interface CompetitorPanelProps {
     submissionFrequencyMinutes: number;
     feedbackVisible?: boolean;
     scoresVisible?: boolean;
+    submissionsStartDate?: number;
+    startDate: number;
   };
 }
 
@@ -266,6 +268,33 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
 
   if (myTeam === undefined || (myTeam !== null && latestSubmission === undefined)) {
     return <SectionSkeleton title="PROJECT DETAILS" />;
+  }
+
+  const submissionsOpenAt = hackathon.submissionsStartDate ?? hackathon.startDate;
+  const submissionsOpen = Date.now() >= submissionsOpenAt;
+
+  if (!submissionsOpen) {
+    const opensDate = new Date(submissionsOpenAt).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+    return (
+      <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-xs text-[#555555] uppercase tracking-widest">── SUBMIT PROJECT</span>
+          <div className="h-px flex-1 bg-[#1F1F1F]" />
+        </div>
+        <div className="border border-[#FF6600]/20 bg-[#FF660008] px-4 py-3">
+          <p className="text-xs font-bold text-[#FF6600] uppercase tracking-widest">
+            SUBMISSIONS OPEN ON {opensDate.toUpperCase()}
+          </p>
+          <p className="mt-1 text-xs text-[#555555]">
+            You can join a team now, but project submissions will not be accepted until then.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
