@@ -25,7 +25,7 @@ export const get = query({
 
     // Fetch userId and membership once; reuse for both access-gate and scores-visibility checks
     let userId: string | null = null;
-    let membership: Awaited<ReturnType<typeof getCallerMembership>> = null;
+    let membership: { role: string } | null = null;
 
     if (!hackathon.isPublic) {
       // Private hackathon: must be authenticated and a member
