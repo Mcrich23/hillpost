@@ -123,8 +123,8 @@ export const getForSubmission = query({
         )
         .first();
       if (!membership) return { scoresHidden: false as const, entries: [] };
-    } else if (userId) {
-      // Public hackathon: fetch membership to check scores visibility below
+    } else if (userId && hackathon.scoresVisible === false) {
+      // Public hackathon with scores hidden: fetch membership only to gate competitors
       membership = await ctx.db
         .query("hackathonMembers")
         .withIndex("by_hackathonId_userId", (q) =>
