@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { useMutation, useConvexAuth } from "convex/react";
+
 import { api } from "../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { X } from "lucide-react";
+import { X, Lock, Globe } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { isSafeHttpUrl } from "@/lib/url";
 
 interface CreateHackathonDialogProps {
   isOpen: boolean;
@@ -26,7 +29,19 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [submissionFrequency, setSubmissionFrequency] = useState(60);
+  const [isPublic, setIsPublic] = useState(false);
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const resetForm = () => {
+    setName("");
+    setDescription("");
+    setStartDate(today);
+    setEndDate(today);
+    setSubmissionFrequency(60);
+    setIsPublic(false);
+    setBannerImageUrl("");
+  };
 
   if (!isOpen) return null;
 
@@ -40,6 +55,11 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
       toast.error("Please sign in first");
       return;
     }
+    const trimmedBanner = bannerImageUrl.trim();
+    if (trimmedBanner && !isSafeHttpUrl(trimmedBanner)) {
+      toast.error("Banner image URL must be a valid http(s) URL");
+      return;
+    }
     setIsSubmitting(true);
     try {
       const hackathonId = await createHackathon({
@@ -48,10 +68,12 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
         startDate: new Date(startDate).getTime(),
         endDate: new Date(endDate).getTime(),
         submissionFrequencyMinutes: submissionFrequency,
+        openGraphImageUrl: trimmedBanner || undefined,
+        isPublic,
         userImageUrl: user?.imageUrl,
       });
       toast.success("Hackathon created successfully!");
-      setName(""); setDescription(""); setStartDate(today); setEndDate(today); setSubmissionFrequency(60);
+      resetForm();
       onClose();
       router.push(`/hackathon/${hackathonId}`);
     } catch (error) {
@@ -145,6 +167,62 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
             <p className="mt-1 text-xs text-[#333333]">
               Minimum time between submissions per team
             </p>
+          </div>
+
+          <div className="border-t border-[#1F1F1F] pt-4 space-y-3">
+            <label className="block text-xs font-bold text-[#555555] uppercase tracking-widest">
+              EVENT VISIBILITY:
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setIsPublic(false)}
+                className={cn(
+                  "flex flex-col items-start gap-2 border p-3 text-left transition-colors",
+                  !isPublic
+                    ? "border-[#FF6600] bg-[#FF6600]/5 text-[#FF6600]"
+                    : "border-[#1F1F1F] text-[#555555] hover:border-[#555555]"
+                )}
+              >
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest">
+                  <Lock className="h-3.5 w-3.5" />
+                  PRIVATE
+                </div>
+                <p className="text-[10px] leading-tight text-current opacity-70">
+                  Invite-only via join code. Not listed publicly.
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPublic(true)}
+                className={cn(
+                  "flex flex-col items-start gap-2 border p-3 text-left transition-colors",
+                  isPublic
+                    ? "border-[#00FF41] bg-[#00FF41]/5 text-[#00FF41]"
+                    : "border-[#1F1F1F] text-[#555555] hover:border-[#555555]"
+                )}
+              >
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest">
+                  <Globe className="h-3.5 w-3.5" />
+                  PUBLIC
+                </div>
+                <p className="text-[10px] leading-tight text-current opacity-70">
+                  Listed on discover page with open registration.
+                </p>
+              </button>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-[#555555] uppercase tracking-widest">
+                BANNER IMAGE URL (OPTIONAL):
+              </label>
+              <input
+                type="url"
+                value={bannerImageUrl}
+                onChange={(e) => setBannerImageUrl(e.target.value)}
+                placeholder="https://..."
+                className="tui-input"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-2 border-t border-[#1F1F1F]">

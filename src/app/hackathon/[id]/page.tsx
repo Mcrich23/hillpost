@@ -18,24 +18,24 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
-  Layers,
-  Users,
-  Star,
   Check,
   Link as LinkIcon,
   LogOut,
   ExternalLink,
+  UserPlus,
 } from "lucide-react";
 import { OrganizerPanel } from "@/components/organizer-panel";
 import { CompetitorPanel } from "@/components/competitor-panel";
 import { JudgePanel } from "@/components/judge-panel";
 import { PublicSubmissions } from "@/components/public-submissions";
 import { QrCodeButton } from "@/components/qr-code-overlay";
+import { PublicHackathonLanding } from "@/components/public-hackathon-landing";
 
 import { isSafeHttpUrl } from "@/lib/url";
 
 const ALL_TABS = ["overview", "submissions", "compete", "judge", "manage"] as const;
 type Tab = (typeof ALL_TABS)[number];
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 const roleColor = (role: string) => {
   switch (role) {
@@ -54,6 +54,7 @@ export default function HackathonDetailPage() {
   const hackathon = useQuery(api.hackathons.get, { hackathonId });
   const membership = useQuery(api.members.getMyMembership, { hackathonId });
   const role = membership?.role;
+  const publicJudges = useQuery(api.members.listPublicJudges, { hackathonId });
 
   const submissions = useQuery(api.submissions.list, { hackathonId });
   const allMembers = useQuery(api.members.listMembers, role === "organizer" ? { hackathonId } : "skip");
@@ -64,11 +65,32 @@ export default function HackathonDetailPage() {
   const mediumSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "medium") ?? [];
   const smallSponsors = sponsors?.filter((s) => (s.displayStyle ?? "medium") === "small") ?? [];
   const leaveHackathon = useMutation(api.members.leaveHackathon);
+  const joinPublic = useMutation(api.hackathons.joinPublic);
   const syncProfile = useMutation(api.members.syncUserProfile);
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const [isLeaving, setIsLeaving] = useState(false);
+  const [isJoiningPublic, setIsJoiningPublic] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+  const userId = user?.id;
+
+  React.useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const current = new Date();
+    const nextMidnight = new Date(current);
+    nextMidnight.setHours(24, 0, 0, 0);
+
+    const timeout = setTimeout(() => {
+      setNow(Date.now());
+      interval = setInterval(() => setNow(Date.now()), ONE_DAY_MS);
+    }, nextMidnight.getTime() - current.getTime());
+
+    return () => {
+      clearTimeout(timeout);
+      if (interval) clearInterval(interval);
+    };
+  }, []);
 
   React.useEffect(() => {
     if (isAuthenticated && membership && user?.imageUrl) {
@@ -78,6 +100,9 @@ export default function HackathonDetailPage() {
       }).catch(console.error);
     }
   }, [isAuthenticated, user?.imageUrl, membership, hackathonId, syncProfile]);
+
+  // No useEffect redirect — private hackathons return null from the backend for
+  // unauthenticated callers (hackathons.get), so the render gate below handles it.
 
   const tabParam = searchParams.get("tab");
   const parsedTab = (ALL_TABS as readonly string[]).includes(tabParam ?? "") ? (tabParam as Tab) : null;
@@ -112,12 +137,12 @@ export default function HackathonDetailPage() {
   const pendingSubmissionsCount = React.useMemo(() => {
     if (role !== "judge" && role !== "organizer") return 0;
     if (membership?.status === "pending" || membership?.status === "rejected") return 0;
-    if (!submissions || !user?.id) return 0;
+    if (!submissions || !userId) return 0;
     return submissions.filter((sub) => {
-      const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
+      const hasJudged = sub.judgedBy?.includes(userId) ?? false;
       return !hasJudged;
     }).length;
-  }, [role, membership?.status, submissions, user?.id]);
+  }, [role, membership?.status, submissions, userId]);
 
   const pendingApprovalsCount = React.useMemo(() => {
     if (role !== "organizer" || !allMembers) return 0;
@@ -152,7 +177,47 @@ export default function HackathonDetailPage() {
     }
   };
 
+  const handlePublicJoin = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in first");
+      return;
+    }
+
+    setIsJoiningPublic(true);
+    try {
+      const result = await joinPublic({ hackathonId, userImageUrl: user?.imageUrl });
+      if (result.alreadyMember) {
+        toast.info("You're already a member — redirecting...");
+      } else {
+        toast.success("Successfully joined the hackathon!");
+      }
+      router.push(`/hackathon/${result.hackathonId}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to join hackathon";
+      toast.error(message);
+    } finally {
+      setIsJoiningPublic(false);
+    }
+  };
+
   if (!hackathon) {
+    if (!isAuthenticated) {
+      const redirectUrl = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+      return (
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 text-center">
+          <h1 className="text-2xl font-semibold">Sign in to view this hackathon</h1>
+          <p className="text-sm text-muted-foreground">
+            This hackathon is private. Sign in to access it.
+          </p>
+          <Link
+            href={`/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`}
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          >
+            Sign in
+          </Link>
+        </div>
+      );
+    }
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-8 text-center">
@@ -169,8 +234,23 @@ export default function HackathonDetailPage() {
     );
   }
 
+  // Unauthenticated visitors of a public hackathon get a purpose-built landing page.
+  if (!isAuthenticated && hackathon.isPublic === true) {
+    return (
+      <PublicHackathonLanding
+        hackathon={hackathon}
+        hackathonId={hackathonId}
+        categories={categories}
+        sponsors={sponsors}
+        publicJudges={publicJudges}
+      />
+    );
+  }
+
   const isCreator = user?.id === hackathon.organizerId;
+  const isPublicHackathon = hackathon.isPublic === true;
   const scoresVisibleToCompetitors = hackathon.scoresVisible !== false;
+  const daysLeft = Math.max(0, Math.ceil((hackathon.endDate - now) / (1000 * 60 * 60 * 24)));
 
   const tabs: { id: Tab; label: string; show: boolean; badge?: number }[] = [
     { id: "overview", label: "OVERVIEW", show: true },
@@ -224,7 +304,6 @@ export default function HackathonDetailPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-white uppercase tracking-wide">{hackathon.name}</h1>
-            <p className="mt-1 text-xs text-[#555555]">{hackathon.description}</p>
           </div>
           <div className="flex flex-row items-center gap-2 sm:flex-col sm:items-end">
             {hackathon.isActive ? (
@@ -267,10 +346,28 @@ export default function HackathonDetailPage() {
             </span>
           )}
           <span className="tui-badge border-[#555555] text-[#555555]">
-            {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24)))} {Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))) === 1 ? "DAY" : "DAYS"} LEFT
+            {daysLeft} {daysLeft === 1 ? "DAY" : "DAYS"} LEFT
           </span>
         </div>
       </div>
+
+      {isPublicHackathon && !role && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-[#00FF41]/20 bg-[#00FF41]/5 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <UserPlus className="h-4 w-4 text-[#00FF41]" />
+            <span className="text-xs font-bold text-[#00FF41] uppercase tracking-wider">PUBLIC EVENT</span>
+            <span className="text-xs text-[#555555]">— open registration</span>
+          </div>
+          <button
+            onClick={handlePublicJoin}
+            disabled={isJoiningPublic}
+            className="inline-flex items-center gap-2 border border-[#00FF41] px-4 py-1.5 text-xs font-bold text-[#00FF41] uppercase tracking-wider hover:bg-[#00FF41] hover:text-black transition-colors disabled:opacity-60"
+          >
+            <UserPlus className="h-3.5 w-3.5" />
+            {isJoiningPublic ? "JOINING..." : "JOIN AS COMPETITOR"}
+          </button>
+        </div>
+      )}
 
       {/* TUI Tabs */}
       <div className="mb-6 flex gap-0 overflow-x-auto border border-[#1F1F1F]">
@@ -308,31 +405,27 @@ export default function HackathonDetailPage() {
                 label: "BUILDERS",
                 value: allMembers?.filter((m) => m.role === "competitor").length ?? "—",
                 color: "#00B4FF",
-                icon: Users,
                 onClick: undefined,
               },
               {
                 label: "PROJECTS",
                 value: submissions?.length ?? "—",
                 color: "#00FF41",
-                icon: Layers,
                 onClick: () => handleTabChange("submissions"),
               },
               {
                 label: "CATEGORIES",
                 value: categories?.length ?? "—",
                 color: "#FF6600",
-                icon: Star,
                 onClick: undefined,
               },
               {
                 label: "DAYS LEFT",
-                value: Math.max(0, Math.ceil((hackathon.endDate - Date.now()) / (1000 * 60 * 60 * 24))),
+                value: daysLeft,
                 color: "#555555",
-                icon: Clock,
                 onClick: undefined,
               },
-            ].map(({ label, value, color, icon: Icon, onClick }) => (
+            ].map(({ label, value, color, onClick }) => (
               <div
                 key={label}
                 onClick={onClick}
@@ -676,6 +769,30 @@ export default function HackathonDetailPage() {
                       </span>
                     </div>
                     <p className="text-xs text-[#555555] leading-relaxed">{cat.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {isPublicHackathon && publicJudges && publicJudges.length > 0 && (
+            <div className="border border-[#1F1F1F] bg-[#0A0A0A] p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="text-xs text-[#555555] uppercase tracking-widest">── JUDGES</span>
+                <div className="h-px flex-1 bg-[#1F1F1F]" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {publicJudges.map((judge) => (
+                  <div key={judge._id} className="flex items-center gap-3 border border-[#1F1F1F] bg-[#111111] p-3">
+                    {judge.userImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={judge.userImageUrl} alt={judge.userName} className="h-9 w-9 border border-[#1F1F1F] object-cover" />
+                    ) : (
+                      <div className="flex h-9 w-9 items-center justify-center border border-[#1F1F1F] text-[#555555] text-xs">
+                        J
+                      </div>
+                    )}
+                    <span className="text-sm font-bold text-white uppercase tracking-wide">{judge.userName}</span>
                   </div>
                 ))}
               </div>

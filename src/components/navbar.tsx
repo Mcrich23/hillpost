@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { SignInButton, SignUpButton, UserButton, useAuth, useUser } from "@clerk/nextjs";
-import { Terminal, LayoutDashboard, Menu, X } from "lucide-react";
+import { Terminal, LayoutDashboard, Menu, X, Compass } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -27,6 +27,13 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-1 md:flex">
+          <Link
+            href="/discover"
+            className="flex items-center gap-2 px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors border border-transparent hover:border-[#1F1F1F]"
+          >
+            <Compass className="h-3.5 w-3.5" />
+            ~/discover
+          </Link>
           {isAuthenticated && (
             <Link
               href="/dashboard"
@@ -92,6 +99,14 @@ export function Navbar() {
         )}
       >
         <div className="space-y-1 px-4 py-3 bg-black">
+          <Link
+            href="/discover"
+            className="flex items-center gap-2 px-3 py-2 text-xs text-[#555555] uppercase tracking-wider hover:text-white transition-colors"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <Compass className="h-3.5 w-3.5" />
+            ~/discover
+          </Link>
           {isAuthenticated && (
             <Link
               href="/dashboard"

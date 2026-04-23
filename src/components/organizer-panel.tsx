@@ -20,6 +20,8 @@ import {
   GripVertical,
   Eye,
   EyeOff,
+  Globe,
+  Lock,
 } from "lucide-react";
 import { QrCodeButton } from "@/components/qr-code-overlay";
 import { PanelSkeleton, SectionSkeleton } from "@/components/skeleton";
@@ -37,6 +39,7 @@ interface OrganizerPanelProps {
     isActive: boolean;
     submissionFrequencyMinutes: number;
     openGraphImageUrl?: string;
+    isPublic?: boolean;
     feedbackVisible?: boolean;
     scoresVisible?: boolean;
   };
@@ -88,6 +91,7 @@ function HackathonInfoSection({
   const [copiedJudge, setCopiedJudge] = useState(false);
   const [copiedCompetitorLink, setCopiedCompetitorLink] = useState(false);
   const [copiedJudgeLink, setCopiedJudgeLink] = useState(false);
+  const [copiedPublicLink, setCopiedPublicLink] = useState(false);
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState(hackathon.name);
@@ -159,6 +163,18 @@ function HackathonInfoSection({
     }
   };
 
+  const copyPublicLink = async () => {
+    try {
+      const link = `${window.location.origin}/hackathon/${hackathonId}`;
+      await navigator.clipboard.writeText(link);
+      setCopiedPublicLink(true);
+      toast.success("Public link copied!");
+      setTimeout(() => setCopiedPublicLink(false), 2000);
+    } catch {
+      toast.error("Failed to copy link. Please try again.");
+    }
+  };
+
   const toggleActive = async () => {
     try {
       await updateHackathon({ hackathonId, isActive: !hackathon.isActive });
@@ -190,6 +206,16 @@ function HackathonInfoSection({
       );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update score visibility");
+    }
+  };
+
+  const togglePublicVisibility = async () => {
+    const current = hackathon.isPublic === true;
+    try {
+      await updateHackathon({ hackathonId, isPublic: !current });
+      toast.success(!current ? "Hackathon is now public" : "Hackathon is now invite-only");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update public visibility");
     }
   };
 
@@ -354,7 +380,7 @@ function HackathonInfoSection({
           ) : (
             <div className="mt-1 flex items-center gap-3">
               <span className="text-xs text-[#555555] flex-1 truncate">
-                {(hackathon as any).openGraphImageUrl || "—"}
+                {hackathon.openGraphImageUrl || "—"}
               </span>
               <button onClick={() => setIsEditingOgImage(true)} className="p-1.5 text-[#555555] hover:text-white transition-colors">
                 <Pencil className="h-3.5 w-3.5" />
@@ -543,6 +569,79 @@ function HackathonInfoSection({
             </div>
           );
         })()}
+
+        {/* Public listing toggle */}
+        <div className="border-t border-[#1F1F1F] pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <span className="text-xs font-bold text-[#555555] uppercase tracking-widest">PUBLIC VISIBILITY:</span>
+            <span
+              className={cn(
+                "tui-badge",
+                hackathon.isPublic
+                  ? "border-[#00FF41] text-[#00FF41]"
+                  : "border-[#FF6600] text-[#FF6600]"
+              )}
+            >
+              {hackathon.isPublic ? (
+                <><Globe className="inline h-3 w-3 mr-1" />PUBLIC</>
+              ) : (
+                <><Lock className="inline h-3 w-3 mr-1" />PRIVATE</>
+              )}
+            </span>
+          </div>
+          <p className="text-xs text-[#333333] mb-3">
+            {hackathon.isPublic
+              ? "Anyone can view this hackathon on the discover page and register as a competitor without a join code."
+              : "Only users with a competitor or judge join code can discover and join this hackathon."}
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={togglePublicVisibility}
+              disabled={!hackathon.isPublic}
+              className={cn(
+                "flex items-center justify-center gap-1.5 border py-2 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-default",
+                !hackathon.isPublic
+                  ? "border-[#FF6600] bg-[#FF6600]/10 text-[#FF6600]"
+                  : "border-[#1F1F1F] text-[#555555] hover:border-[#FF6600] hover:text-[#FF6600]"
+              )}
+            >
+              <Lock className="h-3.5 w-3.5" />
+              PRIVATE
+            </button>
+            <button
+              onClick={togglePublicVisibility}
+              disabled={hackathon.isPublic === true}
+              className={cn(
+                "flex items-center justify-center gap-1.5 border py-2 text-xs font-bold uppercase tracking-wider transition-colors disabled:cursor-default",
+                hackathon.isPublic
+                  ? "border-[#00FF41] bg-[#00FF41]/10 text-[#00FF41]"
+                  : "border-[#1F1F1F] text-[#555555] hover:border-[#00FF41] hover:text-[#00FF41]"
+              )}
+            >
+              <Globe className="h-3.5 w-3.5" />
+              PUBLIC
+            </button>
+          </div>
+          {hackathon.isPublic && (
+            <div className="mt-3">
+              <label className="text-xs font-bold text-[#555555] uppercase tracking-widest">PUBLIC LINK:</label>
+              <div className="mt-1.5 flex items-center gap-2">
+                <code className="flex-1 truncate border border-[#1F1F1F] bg-black px-3 py-1.5 text-xs text-[#00FF41] tracking-wider">
+                  {typeof window !== "undefined" ? `${window.location.origin}/hackathon/${hackathonId}` : `…/hackathon/${hackathonId}`}
+                </code>
+                <button
+                  onClick={copyPublicLink}
+                  className="shrink-0 border border-[#1F1F1F] p-2 text-[#555555] hover:border-white hover:text-white transition-colors"
+                  title="Copy public link"
+                  aria-label="Copy public link"
+                >
+                  {copiedPublicLink ? <Check className="h-4 w-4 text-[#00FF41]" /> : <Copy className="h-4 w-4" />}
+                </button>
+              </div>
+              <p className="mt-1 text-[10px] text-[#333333] uppercase">Share this link so anyone can view the event and register as a competitor.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

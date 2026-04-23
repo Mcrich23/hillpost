@@ -108,20 +108,34 @@ export const getForSubmission = query({
     }
 
     const hackathon = await ctx.db.get(submission.hackathonId);
-    const scoresVisible = hackathon?.scoresVisible !== false;
-    if (!scoresVisible) {
-      const userId = await getAuthUserId(ctx);
-      if (userId) {
-        const membership = await ctx.db
-          .query("hackathonMembers")
-          .withIndex("by_hackathonId_userId", (q) =>
-            q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
-          )
-          .first();
-        if (membership?.role === "competitor") {
-          return { scoresHidden: true as const, entries: [] };
-        }
-      }
+    if (!hackathon) return { scoresHidden: false as const, entries: [] };
+
+    const userId = await getAuthUserId(ctx);
+
+    // For private hackathons, require authentication and membership
+    let membership: { role: string } | null = null;
+    if (!hackathon.isPublic) {
+      if (!userId) return { scoresHidden: false as const, entries: [] };
+      membership = await ctx.db
+        .query("hackathonMembers")
+        .withIndex("by_hackathonId_userId", (q) =>
+          q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
+        )
+        .first();
+      if (!membership) return { scoresHidden: false as const, entries: [] };
+    } else if (userId && hackathon.scoresVisible === false) {
+      // Public hackathon with scores hidden: fetch membership only to gate competitors
+      membership = await ctx.db
+        .query("hackathonMembers")
+        .withIndex("by_hackathonId_userId", (q) =>
+          q.eq("hackathonId", submission.hackathonId).eq("userId", userId)
+        )
+        .first();
+    }
+
+    const scoresVisible = hackathon.scoresVisible !== false;
+    if (!scoresVisible && membership?.role === "competitor") {
+      return { scoresHidden: true as const, entries: [] };
     }
 
     const currentIteration = submission?.submissionCount ?? 1;

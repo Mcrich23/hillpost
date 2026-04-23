@@ -13,12 +13,14 @@ export default defineSchema({
     competitorJoinCode: v.string(),
     judgeJoinCode: v.string(),
     openGraphImageUrl: v.optional(v.string()),
+    isPublic: v.optional(v.boolean()),
     feedbackVisible: v.optional(v.boolean()),
     scoresVisible: v.optional(v.boolean()),
     createdAt: v.number(),
   })
     .index("by_competitorJoinCode", ["competitorJoinCode"])
     .index("by_judgeJoinCode", ["judgeJoinCode"])
+    .index("by_isPublic", ["isPublic"])
     .index("by_organizerId", ["organizerId"]),
 
   hackathonMembers: defineTable({

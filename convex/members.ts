@@ -1,6 +1,14 @@
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { requireAuthUserId, getAuthUserId } from "./auth";
+
+// Sanitized judge profile fields that are safe to expose on public hackathon pages.
+type PublicJudgeSummary = {
+  _id: Id<"hackathonMembers">;
+  userName: string;
+  userImageUrl?: string;
+};
 
 export const getMyMembership = query({
   args: {
@@ -65,6 +73,31 @@ export const listMembers = query({
         q.eq("hackathonId", args.hackathonId)
       )
       .collect();
+  },
+});
+
+export const listPublicJudges = query({
+  args: { hackathonId: v.id("hackathons") },
+  handler: async (ctx, args) => {
+    const hackathon = await ctx.db.get(args.hackathonId);
+    if (!hackathon || hackathon.isPublic !== true) {
+      return [];
+    }
+
+    const judges = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_role", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("role", "judge")
+      )
+      .collect();
+
+    return judges
+      .filter((judge) => judge.status === "approved")
+      .map<PublicJudgeSummary>(({ _id, userName, userImageUrl }) => ({
+        _id,
+        userName,
+        userImageUrl,
+      }));
   },
 });
 

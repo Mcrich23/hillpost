@@ -23,6 +23,15 @@ function sanitizeUrl(url: string): string | null {
   }
 }
 
+function stripJoinCodes<T extends { competitorJoinCode: string; judgeJoinCode: string }>(
+  hackathon: T
+): Omit<T, "competitorJoinCode" | "judgeJoinCode"> {
+  const sanitized: Partial<T> = { ...hackathon };
+  delete sanitized.competitorJoinCode;
+  delete sanitized.judgeJoinCode;
+  return sanitized as Omit<T, "competitorJoinCode" | "judgeJoinCode">;
+}
+
 export const create = mutation({
   args: {
     name: v.string(),
@@ -30,6 +39,8 @@ export const create = mutation({
     startDate: v.number(),
     endDate: v.number(),
     submissionFrequencyMinutes: v.optional(v.number()),
+    openGraphImageUrl: v.optional(v.string()),
+    isPublic: v.optional(v.boolean()),
     userImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -75,6 +86,15 @@ export const create = mutation({
     competitorJoinCode = await ensureUniqueCompetitor(competitorJoinCode);
     judgeJoinCode = await ensureUniqueJudge(judgeJoinCode);
 
+    const sanitizedOpenGraphImageUrl =
+      args.openGraphImageUrl === undefined
+        ? undefined
+        : sanitizeUrl(args.openGraphImageUrl);
+
+    if (sanitizedOpenGraphImageUrl === null) {
+      throw new Error("Banner image URL must be a valid http(s) URL");
+    }
+
     const now = Date.now();
     const hackathonId = await ctx.db.insert("hackathons", {
       name: args.name,
@@ -86,6 +106,10 @@ export const create = mutation({
       isActive: true,
       competitorJoinCode,
       judgeJoinCode,
+      ...(sanitizedOpenGraphImageUrl !== undefined && {
+        openGraphImageUrl: sanitizedOpenGraphImageUrl,
+      }),
+      isPublic: args.isPublic ?? false,
       createdAt: now,
     });
 
@@ -112,6 +136,31 @@ export const get = query({
 
     const userId = await getAuthUserId(ctx);
 
+    // For private hackathons, only members may see any data
+    if (!hackathon.isPublic) {
+      if (!userId) return null;
+      const membership = await ctx.db
+        .query("hackathonMembers")
+        .withIndex("by_hackathonId_userId", (q) =>
+          q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+        )
+        .first();
+      if (!membership) return null;
+
+      // Resolve join codes from the already-fetched membership
+      const rest = stripJoinCodes(hackathon);
+      return {
+        ...rest,
+        competitorJoinCode:
+          membership.role === "organizer" || membership.role === "competitor"
+            ? hackathon.competitorJoinCode
+            : undefined,
+        judgeJoinCode:
+          membership.role === "organizer" ? hackathon.judgeJoinCode : undefined,
+      };
+    }
+
+    // Public hackathon — expose join codes to authenticated members only
     let competitorJoinCode: string | undefined;
     let judgeJoinCode: string | undefined;
 
@@ -132,7 +181,7 @@ export const get = query({
     }
 
     // Return a consistent shape; hidden codes are undefined
-    const { competitorJoinCode: _c, judgeJoinCode: _j, ...rest } = hackathon;
+    const rest = stripJoinCodes(hackathon);
     return { ...rest, competitorJoinCode, judgeJoinCode };
   },
 });
@@ -140,9 +189,22 @@ export const get = query({
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      // Unauthenticated callers only see active/upcoming public hackathons
+      // Use the index to avoid fetching private hackathons entirely
+      const now = Date.now();
+      const publicHackathons = await ctx.db
+        .query("hackathons")
+        .withIndex("by_isPublic", (q) => q.eq("isPublic", true))
+        .collect();
+      return publicHackathons
+        .filter((h) => h.isActive !== false && h.endDate >= now)
+        .map((hackathon) => stripJoinCodes(hackathon));
+    }
     const hackathons = await ctx.db.query("hackathons").collect();
-    // Strip all join codes from the public list
-    return hackathons.map(({ competitorJoinCode: _c, judgeJoinCode: _j, ...rest }) => rest);
+    // Strip all join codes from the authenticated list
+    return hackathons.map((hackathon) => stripJoinCodes(hackathon));
   },
 });
 
@@ -211,6 +273,7 @@ export const update = mutation({
     submissionFrequencyMinutes: v.optional(v.number()),
     isActive: v.optional(v.boolean()),
     openGraphImageUrl: v.optional(v.union(v.string(), v.null())),
+    isPublic: v.optional(v.boolean()),
     feedbackVisible: v.optional(v.boolean()),
     scoresVisible: v.optional(v.boolean()),
   },
@@ -257,6 +320,7 @@ export const update = mutation({
         openGraphImageUrl:
           sanitizedOpenGraphImageUrl === null ? undefined : sanitizedOpenGraphImageUrl,
       }),
+      ...(args.isPublic !== undefined && { isPublic: args.isPublic }),
       ...(args.feedbackVisible !== undefined && { feedbackVisible: args.feedbackVisible }),
       ...(args.scoresVisible !== undefined && { scoresVisible: args.scoresVisible }),
     });
@@ -319,6 +383,49 @@ export const join = mutation({
   },
 });
 
+export const joinPublic = mutation({
+  args: {
+    hackathonId: v.id("hackathons"),
+    userImageUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await requireAuthUserId(ctx);
+    const userName = await getAuthUserName(ctx);
+
+    const hackathon = await ctx.db.get(args.hackathonId);
+    if (
+      !hackathon ||
+      hackathon.isPublic !== true ||
+      hackathon.isActive !== true ||
+      Date.now() >= hackathon.endDate
+    ) {
+      throw new Error("Hackathon is not publicly joinable");
+    }
+
+    const existing = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+      )
+      .first();
+    if (existing) {
+      return { hackathonId: args.hackathonId, alreadyMember: true };
+    }
+
+    await ctx.db.insert("hackathonMembers", {
+      hackathonId: args.hackathonId,
+      userId,
+      userName,
+      userImageUrl: args.userImageUrl,
+      role: "competitor",
+      status: "approved",
+      joinedAt: Date.now(),
+    });
+
+    return { hackathonId: args.hackathonId, alreadyMember: false };
+  },
+});
+
 export const getByJoinCode = query({
   args: { joinCode: v.string() },
   handler: async (ctx, args) => {
@@ -336,7 +443,21 @@ export const getByJoinCode = query({
     }
     if (!hackathon) return null;
     // Strip both join codes — this query is used pre-join for display only
-    const { competitorJoinCode: _c, judgeJoinCode: _j, ...rest } = hackathon;
+    const rest = stripJoinCodes(hackathon);
     return { ...rest, role };
+  },
+});
+
+export const listPublic = query({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const hackathons = await ctx.db
+      .query("hackathons")
+      .withIndex("by_isPublic", (q) => q.eq("isPublic", true))
+      .collect();
+    return hackathons
+      .filter((h) => h.isActive !== false && h.endDate >= now)
+      .map((hackathon) => stripJoinCodes(hackathon));
   },
 });
