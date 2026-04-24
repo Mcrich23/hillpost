@@ -1,7 +1,74 @@
 import { v } from "convex/values";
 import { mutation, query, QueryCtx } from "./_generated/server";
+import type { DatabaseReader } from "./_generated/server";
 import { requireAuthUserId, getAuthUserId } from "./auth";
 import type { Doc, Id } from "./_generated/dataModel";
+
+/**
+ * Computes the overall leaderboard score for a set of scores, matching the
+ * leaderboard formula: sum of per-category averages.
+ */
+function computeOverallScore(
+  scores: Array<{ categoryId: Id<"categories">; score: number }>,
+  categories: Array<{ _id: Id<"categories"> }>
+): number {
+  let overallScore = 0;
+  for (const category of categories) {
+    const catScores = scores.filter((s) => s.categoryId === category._id);
+    if (catScores.length > 0) {
+      overallScore += catScores.reduce((sum, s) => sum + s.score, 0) / catScores.length;
+    }
+  }
+  return overallScore;
+}
+
+/**
+ * Returns true if another team currently has a strictly higher overall score than
+ * the given team's submission — i.e. the team has been "dethroned".
+ * A team is only considered dethroneable if they have been judged (score > 0).
+ */
+async function checkDethroned(
+  db: DatabaseReader,
+  hackathonId: Id<"hackathons">,
+  teamId: Id<"teams">,
+  submissionId: Id<"submissions">,
+  currentIteration: number
+): Promise<boolean> {
+  const categories = await db
+    .query("categories")
+    .withIndex("by_hackathonId", (q) => q.eq("hackathonId", hackathonId))
+    .collect();
+  if (categories.length === 0) return false;
+
+  const myScores = await db
+    .query("scores")
+    .withIndex("by_submissionId", (q) => q.eq("submissionId", submissionId))
+    .filter((q) => q.eq(q.field("submissionCount"), currentIteration))
+    .collect();
+
+  if (myScores.length === 0) return false; // Never been judged — not the king
+  const myOverallScore = computeOverallScore(myScores, categories);
+  if (myOverallScore === 0) return false;
+
+  const allSubmissions = await db
+    .query("submissions")
+    .withIndex("by_hackathonId", (q) => q.eq("hackathonId", hackathonId))
+    .collect();
+
+  for (const other of allSubmissions) {
+    if (other.teamId === teamId) continue;
+    const otherScores = await db
+      .query("scores")
+      .withIndex("by_submissionId", (q) => q.eq("submissionId", other._id))
+      .filter((q) => q.eq(q.field("submissionCount"), other.submissionCount))
+      .collect();
+    if (otherScores.length === 0) continue;
+    const otherOverallScore = computeOverallScore(otherScores, categories);
+    if (otherOverallScore > myOverallScore) return true;
+  }
+
+  return false;
+}
 
 /**
  * Returns true if the caller may access the given hackathon's data.
@@ -145,13 +212,23 @@ export const create = mutation({
       const cooldownMs = hackathon.submissionFrequencyMinutes * 60 * 1000;
       const timeSinceLastSubmission = Date.now() - existingSubmission.submittedAt;
       if (timeSinceLastSubmission < cooldownMs) {
-        const remainingMinutes = Math.max(
-          1,
-          Math.ceil((cooldownMs - timeSinceLastSubmission) / 60000)
+        const dethroned = await checkDethroned(
+          ctx.db,
+          args.hackathonId,
+          args.teamId,
+          existingSubmission._id,
+          existingSubmission.submissionCount
         );
-        throw new Error(
-          `Rate limited. Please wait ${remainingMinutes} more minute(s) before submitting again.`
-        );
+        if (!dethroned) {
+          const remainingMinutes = Math.max(
+            1,
+            Math.ceil((cooldownMs - timeSinceLastSubmission) / 60000)
+          );
+          throw new Error(
+            `Rate limited. Please wait ${remainingMinutes} more minute(s) before submitting again.`
+          );
+        }
+        // Dethroned teams bypass the cooldown to reclaim the crown
       }
 
       // Calculate baseline score
@@ -365,5 +442,46 @@ export const updateSubmissionOrganizer = mutation({
       demoUrl: sanitizeUrl(args.demoUrl, "Video URL", false),
       deployedUrl: sanitizeUrl(args.deployedUrl, "Deployment URL", false),
     });
+  },
+});
+
+/**
+ * Returns whether the caller's team has been dethroned (another team now has a
+ * strictly higher leaderboard score). Only returns true when the team has been
+ * judged at least once (i.e. they were a legitimate king-of-the-hill candidate).
+ */
+export const getDethronedStatus = query({
+  args: { hackathonId: v.id("hackathons") },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return { isDethroned: false };
+
+    const membership = await ctx.db
+      .query("hackathonMembers")
+      .withIndex("by_hackathonId_userId", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("userId", userId)
+      )
+      .first();
+
+    if (!membership || membership.role !== "competitor" || !membership.teamId) {
+      return { isDethroned: false };
+    }
+
+    const submission = await ctx.db
+      .query("submissions")
+      .withIndex("by_hackathonId_teamId", (q) =>
+        q.eq("hackathonId", args.hackathonId).eq("teamId", membership.teamId!)
+      )
+      .first();
+    if (!submission) return { isDethroned: false };
+
+    const isDethroned = await checkDethroned(
+      ctx.db,
+      args.hackathonId,
+      membership.teamId,
+      submission._id,
+      submission.submissionCount
+    );
+    return { isDethroned };
   },
 });

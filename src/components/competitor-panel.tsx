@@ -260,6 +260,12 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
     }
   };
 
+  const dethroneStatus = useQuery(
+    api.submissions.getDethronedStatus,
+    latestSubmission ? { hackathonId } : "skip"
+  );
+  const isDethroned = dethroneStatus?.isDethroned ?? false;
+
   const isOnCooldown = cooldownRemaining > 0;
   const totalSeconds = Math.ceil(cooldownRemaining / 1000);
   const cooldownMinutes = Math.floor(totalSeconds / 60);
@@ -407,7 +413,14 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
                   className="tui-input"
                 />
               </div>
-              {isOnCooldown && (
+              {isOnCooldown && isDethroned && (
+                <div className="mb-4 border border-[#FF6600] bg-[#FF660010] px-3 py-2">
+                  <p className="text-xs text-[#FF6600] uppercase tracking-widest font-bold">
+                    👑 DETHRONED — YOU CAN RESUBMIT NOW TO RECLAIM THE CROWN
+                  </p>
+                </div>
+              )}
+              {isOnCooldown && !isDethroned && (
                 <div className="mb-4 border border-[#FF6600]/20 bg-[#FF660008] px-3 py-2">
                   <p className="text-xs text-[#FF6600] uppercase tracking-widest font-bold">
                     NEXT SUBMISSION IN: {cooldownStr}
@@ -416,7 +429,7 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
               )}
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || isOnCooldown}
+                disabled={isSubmitting || (isOnCooldown && !isDethroned)}
                 className="border border-[#00B4FF] px-6 py-2 text-xs font-bold text-[#00B4FF] uppercase tracking-wider hover:bg-[#00B4FF] hover:text-black transition-colors disabled:opacity-50"
               >
                 {isSubmitting ? "RESUBMITTING..." : "[ RESUBMIT FOR JUDGING ]"}
