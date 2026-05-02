@@ -62,6 +62,14 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
       toast.error("Banner image URL must be a valid http(s) URL");
       return;
     }
+    if (submissionsStartDate) {
+      const subStart = new Date(submissionsStartDate).getTime();
+      const end = new Date(endDate).getTime();
+      if (subStart > end) {
+        toast.error("Submissions cannot open after the hackathon ends");
+        return;
+      }
+    }
     setIsSubmitting(true);
     try {
       const hackathonId = await createHackathon({

@@ -294,9 +294,18 @@ function HackathonInfoSection({
     if (end <= start) { toast.error("End date must be after start date"); return; }
     const submissionsStart = newSubmissionsStartDate
       ? new Date(newSubmissionsStartDate).getTime()
-      : start;
+      : undefined;
+    if (submissionsStart !== undefined && submissionsStart > end) {
+      toast.error("Submissions cannot open after hackathon ends");
+      return;
+    }
     try {
-      await updateHackathon({ hackathonId, startDate: start, submissionsStartDate: submissionsStart, endDate: end });
+      await updateHackathon({
+        hackathonId,
+        startDate: start,
+        submissionsStartDate: submissionsStart ?? start,
+        endDate: end,
+      });
       toast.success("Dates updated");
       setIsEditingDates(false);
     } catch (error) {

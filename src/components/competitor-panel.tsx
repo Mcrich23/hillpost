@@ -186,9 +186,13 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(interval);
-  }, []);
+    if (!hackathon.submissionsStartDate) return;
+    const remaining = hackathon.submissionsStartDate - Date.now();
+    if (remaining <= 0) return;
+    // Fire once when submissions open so the UI transitions automatically
+    const timeout = setTimeout(() => setNow(Date.now()), remaining);
+    return () => clearTimeout(timeout);
+  }, [hackathon.submissionsStartDate]);
 
   useEffect(() => {
     if (latestSubmission) {
