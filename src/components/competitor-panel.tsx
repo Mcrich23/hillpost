@@ -183,14 +183,14 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
-  const [now, setNow] = useState(() => Date.now());
+  const [checkTime, setCheckTime] = useState(() => Date.now());
 
   useEffect(() => {
     if (!hackathon.submissionsStartDate) return;
     const remaining = hackathon.submissionsStartDate - Date.now();
     if (remaining <= 0) return;
     // Fire once when submissions open so the UI transitions automatically
-    const timeout = setTimeout(() => setNow(Date.now()), remaining);
+    const timeout = setTimeout(() => setCheckTime(Date.now()), remaining);
     return () => clearTimeout(timeout);
   }, [hackathon.submissionsStartDate]);
 
@@ -277,7 +277,7 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
   const cooldownStr = cooldownMinutes > 0 ? `${String(cooldownMinutes).padStart(2, "0")}:${String(cooldownSeconds).padStart(2, "0")}` : `00:${String(cooldownSeconds).padStart(2, "0")}`;
 
   const submissionsOpenAt = hackathon.submissionsStartDate ?? null;
-  const submissionsNotOpenYet = submissionsOpenAt !== null && now < submissionsOpenAt;
+  const submissionsNotOpenYet = submissionsOpenAt !== null && checkTime < submissionsOpenAt;
   if (myTeam === undefined || (myTeam !== null && latestSubmission === undefined)) {
     return <SectionSkeleton title="PROJECT DETAILS" />;
   }
@@ -295,9 +295,9 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
         <p className="text-xs text-[#555555] uppercase tracking-wider">
           JOIN A TEAM BEFORE SUBMITTING A PROJECT.
         </p>
-      ) : submissionsNotOpenYet ? (
+      ) : submissionsNotOpenYet && submissionsOpenAt ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">
-          SUBMISSIONS OPEN ON {format(new Date(submissionsOpenAt!), "MMM d, yyyy")}.
+          SUBMISSIONS OPEN ON {format(new Date(submissionsOpenAt), "MMM d, yyyy")}.
         </p>
       ) : (
         <>
