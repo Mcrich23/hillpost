@@ -27,6 +27,7 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState(today);
+  const [submissionsStartDate, setSubmissionsStartDate] = useState("");
   const [endDate, setEndDate] = useState(today);
   const [submissionFrequency, setSubmissionFrequency] = useState(60);
   const [isPublic, setIsPublic] = useState(false);
@@ -37,6 +38,7 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
     setName("");
     setDescription("");
     setStartDate(today);
+    setSubmissionsStartDate("");
     setEndDate(today);
     setSubmissionFrequency(60);
     setIsPublic(false);
@@ -66,6 +68,7 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
         name,
         description,
         startDate: new Date(startDate).getTime(),
+        submissionsStartDate: submissionsStartDate ? new Date(submissionsStartDate).getTime() : undefined,
         endDate: new Date(endDate).getTime(),
         submissionFrequencyMinutes: submissionFrequency,
         openGraphImageUrl: trimmedBanner || undefined,
@@ -151,6 +154,21 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
                 required
               />
             </div>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-bold text-[#555555] uppercase tracking-widest">
+              SUBMISSIONS OPEN DATE:
+            </label>
+            <input
+              type="date"
+              value={submissionsStartDate}
+              onChange={(e) => setSubmissionsStartDate(e.target.value)}
+              className="tui-input"
+            />
+            <p className="mt-1 text-xs text-[#333333]">
+              When competitors can start submitting. Defaults to the start date if left blank.
+            </p>
           </div>
 
           <div>
