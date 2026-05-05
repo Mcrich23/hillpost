@@ -6,6 +6,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { useParams, useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
+import { getClerkDisplayName } from "@/lib/clerk-user";
 import { format } from "date-fns";
 import React, { useState } from "react";
 import Link from "next/link";
@@ -185,7 +186,11 @@ export default function HackathonDetailPage() {
 
     setIsJoiningPublic(true);
     try {
-      const result = await joinPublic({ hackathonId, userImageUrl: user?.imageUrl });
+      const result = await joinPublic({
+        hackathonId,
+        userName: getClerkDisplayName(user),
+        userImageUrl: user?.imageUrl,
+      });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting...");
       } else {

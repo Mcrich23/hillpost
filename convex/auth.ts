@@ -35,5 +35,14 @@ export async function getAuthUserName(
 ): Promise<string> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return "Unknown";
-  return identity.name ?? "Unknown";
+
+  const fullName = identity.name?.trim();
+  if (fullName) return fullName;
+
+  const nameParts = [identity.givenName, identity.familyName]
+    .map((part) => part?.trim())
+    .filter(Boolean);
+  if (nameParts.length > 0) return nameParts.join(" ");
+
+  return identity.nickname?.trim() || identity.preferredUsername?.trim() || "Unknown";
 }

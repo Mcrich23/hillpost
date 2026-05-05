@@ -2,6 +2,11 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAuthUserId, getAuthUserId, getAuthUserName } from "./auth";
 
+function sanitizeDisplayName(name: string | undefined): string | undefined {
+  const trimmed = name?.trim();
+  return trimmed || undefined;
+}
+
 function generateJoinCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let code = "";
@@ -41,11 +46,12 @@ export const create = mutation({
     submissionFrequencyMinutes: v.optional(v.number()),
     openGraphImageUrl: v.optional(v.string()),
     isPublic: v.optional(v.boolean()),
+    userName: v.optional(v.string()),
     userImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
-    const userName = await getAuthUserName(ctx);
+    const userName = sanitizeDisplayName(args.userName) ?? await getAuthUserName(ctx);
 
     let competitorJoinCode = generateJoinCode();
     let judgeJoinCode = generateJoinCode();
@@ -331,11 +337,12 @@ export const update = mutation({
 export const join = mutation({
   args: {
     joinCode: v.string(),
+    userName: v.optional(v.string()),
     userImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
-    const userName = await getAuthUserName(ctx);
+    const userName = sanitizeDisplayName(args.userName) ?? await getAuthUserName(ctx);
 
     let hackathon = await ctx.db
       .query("hackathons")
@@ -386,11 +393,12 @@ export const join = mutation({
 export const joinPublic = mutation({
   args: {
     hackathonId: v.id("hackathons"),
+    userName: v.optional(v.string()),
     userImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
-    const userName = await getAuthUserName(ctx);
+    const userName = sanitizeDisplayName(args.userName) ?? await getAuthUserName(ctx);
 
     const hackathon = await ctx.db.get(args.hackathonId);
     if (

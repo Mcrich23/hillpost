@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar, ArrowLeft, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { getClerkDisplayName } from "@/lib/clerk-user";
 
 export default function JoinByLinkPage() {
   const params = useParams();
@@ -73,7 +74,11 @@ export default function JoinByLinkPage() {
     }
     setIsJoining(true);
     try {
-      const result = await joinHackathon({ joinCode, userImageUrl: user?.imageUrl });
+      const result = await joinHackathon({
+        joinCode,
+        userName: getClerkDisplayName(user),
+        userImageUrl: user?.imageUrl,
+      });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting...");
       } else {

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { X, Lock, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isSafeHttpUrl } from "@/lib/url";
+import { getClerkDisplayName } from "@/lib/clerk-user";
 
 interface CreateHackathonDialogProps {
   isOpen: boolean;
@@ -70,6 +71,7 @@ export function CreateHackathonDialog({ isOpen, onClose }: CreateHackathonDialog
         submissionFrequencyMinutes: submissionFrequency,
         openGraphImageUrl: trimmedBanner || undefined,
         isPublic,
+        userName: getClerkDisplayName(user),
         userImageUrl: user?.imageUrl,
       });
       toast.success("Hackathon created successfully!");

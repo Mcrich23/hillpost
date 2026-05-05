@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { getClerkDisplayName } from "@/lib/clerk-user";
 
 interface JoinHackathonDialogProps {
   isOpen: boolean;
@@ -36,7 +37,11 @@ export function JoinHackathonDialog({ isOpen, onClose }: JoinHackathonDialogProp
     }
     setIsSubmitting(true);
     try {
-      const result = await joinHackathon({ joinCode: joinCode.trim(), userImageUrl: user?.imageUrl });
+      const result = await joinHackathon({
+        joinCode: joinCode.trim(),
+        userName: getClerkDisplayName(user),
+        userImageUrl: user?.imageUrl,
+      });
       if (result.alreadyMember) {
         toast.info("You're already a member — redirecting to hackathon.");
       } else {
