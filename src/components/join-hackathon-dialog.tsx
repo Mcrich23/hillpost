@@ -77,7 +77,7 @@ export function JoinHackathonDialog({ isOpen, onClose }: JoinHackathonDialogProp
               <input
                 type="text"
                 value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.slice(0, 6).toUpperCase())}
+                onChange={(e) => setJoinCode(e.target.value.slice(0, 6))}
                 placeholder="XXXXXX"
                 maxLength={6}
                 className="tui-input pl-8 text-center text-lg tracking-widest text-[#00FF41] font-bold placeholder-[#333333]"
