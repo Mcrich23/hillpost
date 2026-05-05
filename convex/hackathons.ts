@@ -398,7 +398,7 @@ export const joinPublic = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await requireAuthUserId(ctx);
-    const userName = sanitizeDisplayName(args.userName) ?? await getAuthUserName(ctx);
+    const userName = sanitizeDisplayName(await getAuthUserName(ctx));
 
     const hackathon = await ctx.db.get(args.hackathonId);
     if (
