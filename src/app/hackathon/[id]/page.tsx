@@ -341,6 +341,12 @@ export default function HackathonDetailPage() {
             {format(new Date(hackathon.startDate), "MMM d, yyyy")} —{" "}
             {format(new Date(hackathon.endDate), "MMM d, yyyy")}
           </span>
+          {hackathon.submissionsStartDate && hackathon.submissionsStartDate !== hackathon.startDate && (
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              Submissions open {format(new Date(hackathon.submissionsStartDate), "MMM d, yyyy")}
+            </span>
+          )}
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {hackathon.submissionFrequencyMinutes}min cooldown

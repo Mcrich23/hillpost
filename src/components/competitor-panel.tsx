@@ -7,12 +7,14 @@ import type { Id } from "../../convex/_generated/dataModel";
 import { toast } from "sonner";
 import { ExternalLink, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { format } from "date-fns";
 import { SectionSkeleton } from "@/components/skeleton";
 
 interface CompetitorPanelProps {
   hackathonId: Id<"hackathons">;
   hackathon: {
     submissionFrequencyMinutes: number;
+    submissionsStartDate?: number;
     feedbackVisible?: boolean;
     scoresVisible?: boolean;
   };
@@ -181,6 +183,16 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [checkTime, setCheckTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!hackathon.submissionsStartDate) return;
+    const remaining = hackathon.submissionsStartDate - Date.now();
+    if (remaining <= 0) return;
+    // Fire once when submissions open so the UI transitions automatically
+    const timeout = setTimeout(() => setCheckTime(Date.now()), remaining);
+    return () => clearTimeout(timeout);
+  }, [hackathon.submissionsStartDate]);
 
   useEffect(() => {
     if (latestSubmission) {
@@ -264,6 +276,8 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
   const cooldownSeconds = totalSeconds % 60;
   const cooldownStr = cooldownMinutes > 0 ? `${String(cooldownMinutes).padStart(2, "0")}:${String(cooldownSeconds).padStart(2, "0")}` : `00:${String(cooldownSeconds).padStart(2, "0")}`;
 
+  const submissionsOpenAt = hackathon.submissionsStartDate ?? null;
+  const submissionsNotOpenYet = submissionsOpenAt !== null && checkTime < submissionsOpenAt;
   if (myTeam === undefined || (myTeam !== null && latestSubmission === undefined)) {
     return <SectionSkeleton title="PROJECT DETAILS" />;
   }
@@ -280,6 +294,10 @@ function SubmitSection({ hackathonId, hackathon }: CompetitorPanelProps) {
       {!myTeam ? (
         <p className="text-xs text-[#555555] uppercase tracking-wider">
           JOIN A TEAM BEFORE SUBMITTING A PROJECT.
+        </p>
+      ) : submissionsNotOpenYet && submissionsOpenAt ? (
+        <p className="text-xs text-[#555555] uppercase tracking-wider">
+          SUBMISSIONS OPEN ON {format(new Date(submissionsOpenAt), "MMM d, yyyy")}.
         </p>
       ) : (
         <>

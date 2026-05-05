@@ -35,6 +35,7 @@ interface OrganizerPanelProps {
     competitorJoinCode: string | undefined;
     judgeJoinCode: string | undefined;
     startDate: number;
+    submissionsStartDate?: number;
     endDate: number;
     isActive: boolean;
     submissionFrequencyMinutes: number;
@@ -105,6 +106,11 @@ function HackathonInfoSection({
   const [isEditingDates, setIsEditingDates] = useState(false);
   const [newStartDate, setNewStartDate] = useState(
     format(new Date(hackathon.startDate), "yyyy-MM-dd")
+  );
+  const [newSubmissionsStartDate, setNewSubmissionsStartDate] = useState(
+    hackathon.submissionsStartDate
+      ? format(new Date(hackathon.submissionsStartDate), "yyyy-MM-dd")
+      : ""
   );
   const [newEndDate, setNewEndDate] = useState(
     format(new Date(hackathon.endDate), "yyyy-MM-dd")
@@ -286,8 +292,20 @@ function HackathonInfoSection({
     const start = new Date(newStartDate).getTime();
     const end = new Date(newEndDate).getTime();
     if (end <= start) { toast.error("End date must be after start date"); return; }
+    const submissionsStart = newSubmissionsStartDate
+      ? new Date(newSubmissionsStartDate).getTime()
+      : undefined;
+    if (submissionsStart !== undefined && submissionsStart > end) {
+      toast.error("Submissions cannot open after hackathon ends");
+      return;
+    }
     try {
-      await updateHackathon({ hackathonId, startDate: start, endDate: end });
+      await updateHackathon({
+        hackathonId,
+        startDate: start,
+        submissionsStartDate: submissionsStart ?? start,
+        endDate: end,
+      });
       toast.success("Dates updated");
       setIsEditingDates(false);
     } catch (error) {
@@ -400,6 +418,10 @@ function HackathonInfoSection({
                 <input type="date" value={newStartDate} onChange={(e) => setNewStartDate(e.target.value)} className="tui-input w-auto" />
               </div>
               <div className="space-y-1">
+                <label className="text-xs text-[#333333] uppercase">Submissions Open</label>
+                <input type="date" value={newSubmissionsStartDate} onChange={(e) => setNewSubmissionsStartDate(e.target.value)} className="tui-input w-auto" placeholder="Same as start" />
+              </div>
+              <div className="space-y-1">
                 <label className="text-xs text-[#333333] uppercase">End</label>
                 <input type="date" value={newEndDate} onChange={(e) => setNewEndDate(e.target.value)} className="tui-input w-auto" />
               </div>
@@ -409,11 +431,18 @@ function HackathonInfoSection({
               </div>
             </div>
           ) : (
-            <div className="mt-1 flex items-center gap-3">
-              <span className="text-xs text-white">
-                {format(new Date(hackathon.startDate), "MMM d, yyyy")} — {format(new Date(hackathon.endDate), "MMM d, yyyy")}
-              </span>
-              <button onClick={() => { setNewStartDate(format(new Date(hackathon.startDate), "yyyy-MM-dd")); setNewEndDate(format(new Date(hackathon.endDate), "yyyy-MM-dd")); setIsEditingDates(true); }} className="p-1.5 text-[#555555] hover:text-white transition-colors">
+            <div className="mt-1 flex items-start gap-3">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-white">
+                  {format(new Date(hackathon.startDate), "MMM d, yyyy")} — {format(new Date(hackathon.endDate), "MMM d, yyyy")}
+                </span>
+                {hackathon.submissionsStartDate && hackathon.submissionsStartDate !== hackathon.startDate && (
+                  <span className="text-xs text-[#555555]">
+                    Submissions open: {format(new Date(hackathon.submissionsStartDate), "MMM d, yyyy")}
+                  </span>
+                )}
+              </div>
+              <button onClick={() => { setNewStartDate(format(new Date(hackathon.startDate), "yyyy-MM-dd")); setNewSubmissionsStartDate(hackathon.submissionsStartDate ? format(new Date(hackathon.submissionsStartDate), "yyyy-MM-dd") : ""); setNewEndDate(format(new Date(hackathon.endDate), "yyyy-MM-dd")); setIsEditingDates(true); }} className="p-1.5 text-[#555555] hover:text-white transition-colors">
                 <Pencil className="h-3.5 w-3.5" />
               </button>
             </div>
