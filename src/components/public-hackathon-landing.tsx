@@ -16,6 +16,7 @@ type PublicHackathon = {
   name: string;
   description: string;
   startDate: number;
+  submissionsStartDate?: number;
   endDate: number;
   isActive: boolean;
   isPublic?: boolean;
@@ -262,6 +263,15 @@ export function PublicHackathonLanding({
                       accent: "#00B4FF",
                       active: false,
                     },
+                    ...(hackathon.submissionsStartDate && hackathon.submissionsStartDate !== hackathon.startDate
+                      ? [{
+                          label: "Submissions open",
+                          date: format(new Date(hackathon.submissionsStartDate), "EEEE, MMMM d, yyyy"),
+                          done: now >= hackathon.submissionsStartDate,
+                          accent: "#00FF41",
+                          active: now >= hackathon.startDate && now < hackathon.submissionsStartDate,
+                        }]
+                      : []),
                     {
                       label: "Submissions close",
                       date: format(new Date(hackathon.endDate), "EEEE, MMMM d, yyyy"),
@@ -525,6 +535,11 @@ export function PublicHackathonLanding({
                   {format(new Date(hackathon.startDate), "MMM d")} –{" "}
                   {format(new Date(hackathon.endDate), "MMM d, yyyy")}
                 </StatRow>
+                {hackathon.submissionsStartDate && hackathon.submissionsStartDate !== hackathon.startDate && (
+                  <StatRow icon={<Clock className="h-3.5 w-3.5" />} label="Submissions open">
+                    {format(new Date(hackathon.submissionsStartDate), "MMM d, yyyy")}
+                  </StatRow>
+                )}
                 {(categories?.length ?? 0) > 0 && (
                   <StatRow icon={<Zap className="h-3.5 w-3.5" />} label="Categories">
                     {categories!.length} judging {categories!.length === 1 ? "category" : "categories"}
