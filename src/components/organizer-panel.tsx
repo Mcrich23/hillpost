@@ -827,9 +827,12 @@ function PendingApprovalsSection({ hackathonId }: { hackathonId: Id<"hackathons"
 function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
   const members = useQuery(api.members.listMembers, { hackathonId });
   const updateRole = useMutation(api.members.updateRole);
+  const updateDisplayName = useMutation(api.members.updateDisplayName);
   const removeMember = useMutation(api.members.removeMember);
 
   const [changingRole, setChangingRole] = useState<Id<"hackathonMembers"> | null>(null);
+  const [editingName, setEditingName] = useState<Id<"hackathonMembers"> | null>(null);
+  const [nameDraft, setNameDraft] = useState("");
 
   if (members === undefined) return <SectionSkeleton title="MEMBERS" />;
   if (members === null) return null;
@@ -841,6 +844,33 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
       setChangingRole(null);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update role");
+    }
+  };
+
+  const startNameEdit = (memberId: Id<"hackathonMembers">, currentName: string) => {
+    setChangingRole(null);
+    setEditingName(memberId);
+    setNameDraft(currentName);
+  };
+
+  const cancelNameEdit = () => {
+    setEditingName(null);
+    setNameDraft("");
+  };
+
+  const handleNameUpdate = async (memberId: Id<"hackathonMembers">) => {
+    const userName = nameDraft.trim();
+    if (!userName) {
+      toast.error("Display name cannot be empty");
+      return;
+    }
+
+    try {
+      await updateDisplayName({ memberId, userName });
+      toast.success("Name updated");
+      cancelNameEdit();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update name");
     }
   };
 
@@ -874,7 +904,26 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
             return (
               <div key={member._id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border border-[#1F1F1F] bg-[#111111] px-3 py-2">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm text-white truncate">{member.userName}</span>
+                  {editingName === member._id ? (
+                    <input
+                      value={nameDraft}
+                      onChange={(event) => setNameDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          void handleNameUpdate(member._id);
+                        }
+                        if (event.key === "Escape") {
+                          cancelNameEdit();
+                        }
+                      }}
+                      maxLength={80}
+                      className="min-w-0 flex-1 border border-[#1F1F1F] bg-black px-2 py-1 text-sm text-white outline-none focus:border-[#00B4FF]"
+                      aria-label="Member display name"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="text-sm text-white truncate">{member.userName}</span>
+                  )}
                   <span className={cn("tui-badge shrink-0", roleBadgeClass(member.role))}>
                     {member.role.toUpperCase()}
                   </span>
@@ -883,7 +932,14 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                   )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  {changingRole === member._id ? (
+                  {editingName === member._id ? (
+                    <>
+                      <button onClick={() => handleNameUpdate(member._id)} className="p-1.5 text-[#555555] hover:text-[#00FF41] transition-colors" title="Save name">
+                        <Check className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={cancelNameEdit} className="px-2 py-1 text-xs text-[#555555] hover:text-white transition-colors" title="Cancel name edit">✕</button>
+                    </>
+                  ) : changingRole === member._id ? (
                     <div className="flex flex-wrap gap-1">
                       {(["organizer", "judge", "competitor"] as const).map((r) => (
                         <button key={r} onClick={() => handleRoleChange(member._id, r)}
@@ -897,6 +953,9 @@ function MembersSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                     </div>
                   ) : (
                     <>
+                      <button onClick={() => startNameEdit(member._id, member.userName)} className="p-1.5 text-[#555555] hover:text-white transition-colors" title="Edit display name">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
                       <button onClick={() => setChangingRole(member._id)} className="p-1.5 text-[#555555] hover:text-white transition-colors" title="Change role">
                         <Shield className="h-3.5 w-3.5" />
                       </button>
