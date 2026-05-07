@@ -38,11 +38,15 @@ export function JudgePanel({ hackathonId, hackathon }: JudgePanelProps) {
 
   const teamMap = new Map(teams?.map((t) => [t._id, t.name]) ?? []);
 
-  const displayedSubmissions = submissions ? submissions.filter((sub) => {
-    if (!user?.id) return false;
-    const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
-    return view === "pending" ? !hasJudged : hasJudged;
-  }) : [];
+  const displayedSubmissions = submissions
+    ? submissions
+        .filter((sub) => {
+          if (!user?.id) return false;
+          const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
+          return view === "pending" ? !hasJudged : hasJudged;
+        })
+        .sort((a, b) => a.submittedAt - b.submittedAt)
+    : [];
 
   if (membership === undefined || submissions === undefined || categories === undefined || teams === undefined || isLoading || user === undefined) {
     return <PanelSkeleton />;
