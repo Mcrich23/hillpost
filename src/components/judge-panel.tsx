@@ -45,7 +45,10 @@ export function JudgePanel({ hackathonId, hackathon }: JudgePanelProps) {
           const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
           return view === "pending" ? !hasJudged : hasJudged;
         })
-        .sort((a, b) => a.submittedAt - b.submittedAt)
+        .sort((a, b) => {
+          if (a.submittedAt === b.submittedAt) return 0;
+          return a.submittedAt < b.submittedAt ? -1 : 1;
+        })
     : [];
 
   if (membership === undefined || submissions === undefined || categories === undefined || teams === undefined || isLoading || user === undefined) {
