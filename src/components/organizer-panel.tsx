@@ -716,7 +716,13 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
       {showAddForm && (
         <form onSubmit={handleAdd} className="mb-4 space-y-2 border border-[#1F1F1F] bg-[#111111] p-4">
           <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Category name" className="tui-input" required />
-          <input type="text" value={newDescription} onChange={(e) => setNewDescription(e.target.value)} placeholder="Description (optional)" className="tui-input" />
+          <textarea
+            value={newDescription}
+            onChange={(e) => setNewDescription(e.target.value)}
+            placeholder="Description (optional)"
+            rows={3}
+            className="tui-input"
+          />
           <div className="flex items-center gap-2">
             <label className="text-xs text-[#555555] uppercase">Max Score:</label>
             <input type="number" value={newMaxScore} onChange={(e) => setNewMaxScore(Number(e.target.value))} min={1} className="tui-input w-24" />
@@ -736,7 +742,12 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
               {editingId === cat._id ? (
                 <div className="space-y-2">
                   <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="tui-input" />
-                  <input type="text" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="tui-input" />
+                   <textarea
+                     value={editDescription}
+                     onChange={(e) => setEditDescription(e.target.value)}
+                     rows={3}
+                     className="tui-input"
+                   />
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-[#555555] uppercase">Max:</label>
                     <input type="number" value={editMaxScore} onChange={(e) => setEditMaxScore(Number(e.target.value))} min={1} className="tui-input w-24" />
@@ -750,7 +761,7 @@ function CategoriesSection({ hackathonId }: { hackathonId: Id<"hackathons"> }) {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-bold text-white uppercase tracking-wide">{cat.name}</p>
-                    {cat.description.trim().length > 0 && <p className="text-xs text-[#555555]">{cat.description}</p>}
+                    {cat.description.trim().length > 0 && <p className="text-xs text-[#555555] whitespace-pre-wrap break-words">{cat.description}</p>}
                     <p className="text-xs text-[#333333] uppercase tracking-wider mt-0.5">Max: {cat.maxScore} pts</p>
                   </div>
                   <div className="flex gap-1">

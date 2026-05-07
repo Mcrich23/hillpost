@@ -326,7 +326,7 @@ export function PublicHackathonLanding({
                           </div>
                         )}
                         {cat.description && (
-                          <p className="text-xs text-[#666666] leading-relaxed">
+                          <p className="text-xs text-[#666666] leading-relaxed whitespace-pre-wrap break-words">
                             {cat.description}
                           </p>
                         )}
