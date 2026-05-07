@@ -25,6 +25,12 @@ interface JudgePanelProps {
   };
 }
 
+function getSubmissionTime(submittedAt: number | string | Date | null | undefined) {
+  if (submittedAt === null || submittedAt === undefined) return Number.POSITIVE_INFINITY;
+  const time = new Date(submittedAt).getTime();
+  return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time;
+}
+
 export function JudgePanel({ hackathonId, hackathon }: JudgePanelProps) {
   const { user } = useUser();
   const { isLoading } = useConvexAuth();
@@ -45,10 +51,7 @@ export function JudgePanel({ hackathonId, hackathon }: JudgePanelProps) {
           const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
           return view === "pending" ? !hasJudged : hasJudged;
         })
-        .sort((a, b) => {
-          if (a.submittedAt === b.submittedAt) return 0;
-          return a.submittedAt < b.submittedAt ? -1 : 1;
-        })
+        .sort((a, b) => getSubmissionTime(a.submittedAt) - getSubmissionTime(b.submittedAt))
     : [];
 
   if (membership === undefined || submissions === undefined || categories === undefined || teams === undefined || isLoading || user === undefined) {
