@@ -25,6 +25,12 @@ interface JudgePanelProps {
   };
 }
 
+function getSubmissionTime(submittedAt: number | string | Date | null | undefined) {
+  if (submittedAt == null) return Number.POSITIVE_INFINITY;
+  const time = new Date(submittedAt).getTime();
+  return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time;
+}
+
 export function JudgePanel({ hackathonId, hackathon }: JudgePanelProps) {
   const { user } = useUser();
   const { isLoading } = useConvexAuth();
@@ -38,11 +44,20 @@ export function JudgePanel({ hackathonId, hackathon }: JudgePanelProps) {
 
   const teamMap = new Map(teams?.map((t) => [t._id, t.name]) ?? []);
 
-  const displayedSubmissions = submissions ? submissions.filter((sub) => {
-    if (!user?.id) return false;
-    const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
-    return view === "pending" ? !hasJudged : hasJudged;
-  }) : [];
+  const displayedSubmissions = submissions
+    ? submissions
+        .filter((sub) => {
+          if (!user?.id) return false;
+          const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
+          return view === "pending" ? !hasJudged : hasJudged;
+        })
+        .map((sub) => ({
+          sub,
+          submittedAt: getSubmissionTime(sub.submittedAt),
+        }))
+        .sort((a, b) => a.submittedAt - b.submittedAt)
+        .map(({ sub }) => sub)
+    : [];
 
   if (membership === undefined || submissions === undefined || categories === undefined || teams === undefined || isLoading || user === undefined) {
     return <PanelSkeleton />;
