@@ -773,7 +773,7 @@ export default function HackathonDetailPage() {
                         {cat.maxScore} PTS
                       </span>
                     </div>
-                    <p className="text-xs text-[#555555] leading-relaxed">{cat.description}</p>
+                    <p className="text-xs text-[#555555] leading-relaxed whitespace-pre-wrap break-words">{cat.description}</p>
                   </div>
                 ))}
               </div>
