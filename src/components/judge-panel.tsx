@@ -26,7 +26,7 @@ interface JudgePanelProps {
 }
 
 function getSubmissionTime(submittedAt: number | string | Date | null | undefined) {
-  if (submittedAt === null || submittedAt === undefined) return Number.POSITIVE_INFINITY;
+  if (submittedAt == null) return Number.POSITIVE_INFINITY;
   const time = new Date(submittedAt).getTime();
   return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time;
 }
@@ -51,7 +51,12 @@ export function JudgePanel({ hackathonId, hackathon }: JudgePanelProps) {
           const hasJudged = sub.judgedBy?.includes(user.id) ?? false;
           return view === "pending" ? !hasJudged : hasJudged;
         })
-        .sort((a, b) => getSubmissionTime(a.submittedAt) - getSubmissionTime(b.submittedAt))
+        .map((sub) => ({
+          sub,
+          submittedAt: getSubmissionTime(sub.submittedAt),
+        }))
+        .sort((a, b) => a.submittedAt - b.submittedAt)
+        .map(({ sub }) => sub)
     : [];
 
   if (membership === undefined || submissions === undefined || categories === undefined || teams === undefined || isLoading || user === undefined) {
